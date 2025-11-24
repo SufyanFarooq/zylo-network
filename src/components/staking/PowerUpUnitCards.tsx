@@ -6,6 +6,7 @@ import { BrowserProvider } from 'ethers';
 import { getPowerUpLength, userPowerUpDetails, getSelfPowerUpReward } from '@/blockchain/instances/ZyloPowerUp';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
+import { FaLock } from 'react-icons/fa';
 import AssetRenderer, { getAssetName } from '@/components/AssetRenderer';
 import { getUnitCategory } from './utils/unitCategoryMapping';
 import './ZillowStake.css';
@@ -118,7 +119,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
       unitIndex: 4,
       name: 'Zylo Universe',
       image: '/Unit/zylo-universe.png',
-      reward: 'Coming Soon',
+      reward: '',
       rewardColor: '#FEE739',
       borderColor: '#FEE739',
       titleColor: '#FEE739',
@@ -411,7 +412,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                     e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.3)';
                   }}
                 >
-                  {/* Reward Badge - Top Left */}
+                  {/* Reward Badge or Lock Icon - Top Left */}
                   <div
                     style={{
                       position: 'absolute',
@@ -419,17 +420,26 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                       left: '16px',
                       background: zone.isComingSoon ? 'rgba(254, 231, 57, 0.2)' : 'rgba(0, 0, 0, 0.8)',
                       color: zone.rewardColor,
-                      padding: '8px 16px',
+                      padding: zone.isComingSoon ? '10px' : '8px 16px',
                       borderRadius: '12px',
-                      fontSize: '0.85rem',
+                      fontSize: zone.isComingSoon ? '1.2rem' : '0.85rem',
                       fontWeight: '700',
                       border: `2px solid ${zone.rewardColor}`,
                       zIndex: 10,
                       boxShadow: `0 4px 12px ${zone.rewardColor}40`,
                       backdropFilter: 'blur(10px)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      minWidth: zone.isComingSoon ? '40px' : 'auto',
+                      minHeight: zone.isComingSoon ? '40px' : 'auto',
                     }}
                   >
-                    {zone.reward}
+                    {zone.isComingSoon ? (
+                      <FaLock style={{ fontSize: '1.2rem' }} />
+                    ) : (
+                      zone.reward
+                    )}
                   </div>
 
                   {/* Profile Icon Section - Centered */}
