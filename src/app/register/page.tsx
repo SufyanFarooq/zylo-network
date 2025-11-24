@@ -425,35 +425,51 @@ const RegisterPage: React.FC = () => {
                 </div>
             </div>
 
-            <main className="register-main">
+            <main className="register-main" style={{ paddingTop: '120px' }}>
                 <div className="container">
                     <div className="row justify-content-center">
                         <div className="col-lg-6 col-md-8">
-                            <div className="text-center mb-5 position-relative">
-                                <div className="position-absolute" style={{
-                                    left: '-120px',
-                                    top: '-135px',
-                                    zIndex: '0'
-                                }}>
-                                    <Image
-                                        src="/assets/secure/Circle bg.svg"
-                                        alt="Circle Background"
-                                        width={388}
-                                        height={358}
-                                        style={{
-                                            width: 'auto',
-                                            height: 'auto',
-                                        }}
-                                    />
+                            {/* Modern Left-Right Layout for Image and Heading */}
+                            <div className="row align-items-center mb-5" style={{ minHeight: '300px' }}>
+                                {/* Left Side - Heading */}
+                                <div className="col-lg-7 col-md-6 mb-4 mb-lg-0">
+                                    <h1 className="text-white fw-bold mb-4" style={{
+                                        fontSize: 'clamp(2rem, 5vw, 3.5rem)',
+                                        lineHeight: '1.2',
+                                        textAlign: 'left',
+                                    }}>
+                                        Quick incept now for a free account
+                                    </h1>
                                 </div>
-                                <h1 className="text-white fw-bold display-4 mb-4 position-relative" style={{ zIndex: 1 }}>
-                                    Quick incept now for a free account
-                                    {/* <div className="title-glow"></div> */}
-                                </h1>
+
+                                {/* Right Side - Image */}
+                                <div className="col-lg-5 col-md-6">
+                                    <div className="d-flex justify-content-center justify-content-lg-end">
+                                        <div style={{
+                                            position: 'relative',
+                                            zIndex: 1,
+                                        }}>
+                                            <Image
+                                                src="/assets/secure/incept-now.png"
+                                                alt="Zylo Vortex"
+                                                width={350}
+                                                height={320}
+                                                style={{
+                                                    width: '100%',
+                                                    height: 'auto',
+                                                    maxWidth: '350px',
+                                                }}
+                                                priority
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="card border-0 register-card">
-                                <div className="card-body p-5">
+                            {/* Form Section */}
+                            <div className="mt-4">
+                                <div className="card border-0 register-card">
+                                        <div className="card-body p-5">
                                     {!isConnected && showWalletMessage && (
                                         <div className={`alert alert-warning mb-4 ${walletMessageFadeOut ? 'fade-out' : ''}`}>
                                             <strong>Wallet Required:</strong> Please connect your wallet using the button in the header to continue.
@@ -617,7 +633,8 @@ const RegisterPage: React.FC = () => {
                                             </div>
                                         </div>
                                     )}
-                                </div>
+                                        </div>
+                                    </div>
                             </div>
 
                             {/* Level Team Details Table Section - Only show for registered users - Outside the card */}

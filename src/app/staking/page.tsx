@@ -122,12 +122,12 @@ const StakingPage: React.FC = () => {
         <div className="container py-5">
 
           {/* Participate IDO Stack Section */}
+          <ApplyForZylo />
           <div className="zillow-stake-section">
             <ZillowStake />
           </div>
 
           {/* Apply for IGO Section */}
-          <ApplyForZylo />
         </div>
       </main>
 
