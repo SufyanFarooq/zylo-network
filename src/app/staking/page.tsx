@@ -31,6 +31,8 @@ const StakingPage: React.FC = () => {
   const [, setUserStakes] = useState<StakeRecord[]>([]);
   const [, setIsLoadingStakes] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [showZoneCards, setShowZoneCards] = useState(true);
+  const [activeTab, setActiveTab] = useState<'powerup' | 'units'>('powerup');
 
   // Wagmi hooks
   const { address, isConnected } = useAccount();
@@ -120,14 +122,113 @@ const StakingPage: React.FC = () => {
 
       <main className="min-vh-100" style={{ paddingTop: '100px', background: 'var(--dark-bg)' }}>
         <div className="container py-5">
+          {/* Show tabs only when a unit is selected (showZoneCards is false) */}
+          {!showZoneCards && (
+            <div className="mb-5" style={{ borderBottom: '2px solid rgba(254, 231, 57, 0.2)' }}>
+              <div className="d-flex gap-3">
+                <button
+                  onClick={() => setActiveTab('powerup')}
+                  style={{
+                    background: activeTab === 'powerup' 
+                      ? 'linear-gradient(135deg, #FEE739 0%, #FDD835 100%)' 
+                      : 'transparent',
+                    color: activeTab === 'powerup' ? '#1a1a1a' : '#FEE739',
+                    border: '2px solid #FEE739',
+                    borderBottom: 'none',
+                    padding: '1rem 2.5rem',
+                    borderRadius: '12px 12px 0 0',
+                    fontSize: '1.1rem',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    position: 'relative',
+                    bottom: '-2px',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (activeTab !== 'powerup') {
+                      e.currentTarget.style.background = 'rgba(254, 231, 57, 0.1)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (activeTab !== 'powerup') {
+                      e.currentTarget.style.background = 'transparent';
+                    }
+                  }}
+                >
+                  Power UP
+                </button>
+                <button
+                  onClick={() => setActiveTab('units')}
+                  style={{
+                    background: activeTab === 'units' 
+                      ? 'linear-gradient(135deg, #FEE739 0%, #FDD835 100%)' 
+                      : 'transparent',
+                    color: activeTab === 'units' ? '#1a1a1a' : '#FEE739',
+                    border: '2px solid #FEE739',
+                    borderBottom: 'none',
+                    padding: '1rem 2.5rem',
+                    borderRadius: '12px 12px 0 0',
+                    fontSize: '1.1rem',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    position: 'relative',
+                    bottom: '-2px',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (activeTab !== 'units') {
+                      e.currentTarget.style.background = 'rgba(254, 231, 57, 0.1)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (activeTab !== 'units') {
+                      e.currentTarget.style.background = 'transparent';
+                    }
+                  }}
+                >
+                  Units
+                </button>
+              </div>
+            </div>
+          )}
 
-          {/* Participate IDO Stack Section */}
-          <ApplyForZylo />
-          <div className="zillow-stake-section">
-            <ZillowStake />
-          </div>
-
-          {/* Apply for IGO Section */}
+          {/* Initial State: ApplyForZylo + Zone Cards */}
+          {showZoneCards ? (
+            <>
+              <ApplyForZylo />
+              <div className="zillow-stake-section">
+                <ZillowStake 
+                  onShowZoneCardsChange={setShowZoneCards}
+                  showRewardsSection={false}
+                  externalShowZoneCards={showZoneCards}
+                />
+              </div>
+            </>
+          ) : (
+            /* Tab Content - When unit is selected */
+            <>
+              {activeTab === 'powerup' ? (
+                <div className="zillow-stake-section" key="powerup-tab">
+                  <ZillowStake 
+                    key="powerup-stake"
+                    onShowZoneCardsChange={setShowZoneCards}
+                    showRewardsSection={false}
+                    externalShowZoneCards={showZoneCards}
+                  />
+                </div>
+              ) : (
+                <div className="zillow-stake-section" key="units-tab">
+                  <ZillowStake 
+                    key="units-stake"
+                    onShowZoneCardsChange={setShowZoneCards}
+                    showRewardsSection={true}
+                    enableStakingForm={false}
+                    externalShowZoneCards={showZoneCards}
+                  />
+                </div>
+              )}
+            </>
+          )}
         </div>
       </main>
 

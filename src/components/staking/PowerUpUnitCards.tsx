@@ -314,6 +314,15 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
     }
   }, [externalSelectedZoneUnit]);
 
+  // Load all units when showZoneCards is false and no unit is selected (Units tab)
+  useEffect(() => {
+    if (!showZoneCards && selectedUnit === null && isConnected && address && walletClient) {
+      // Load all units' power ups
+      [0, 1, 2, 3].forEach((unitIndex) => { // Skip Zylo Universe (4)
+        handleLoadUnitPowerUps(unitIndex);
+      });
+    }
+  }, [showZoneCards, selectedUnit, isConnected, address, walletClient, handleLoadUnitPowerUps]);
 
   const currentUnit = selectedUnit !== null ? units.find(u => u.unitIndex === selectedUnit) : null;
 
@@ -323,7 +332,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
       <div className="container mt-5">
         <div className="text-center mb-5">
           <h2 className="text-white fw-bold" style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>
-            Power Up Vortex Zones
+            Power Up Units
           </h2>
         </div>
 
@@ -412,16 +421,40 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                     e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.3)';
                   }}
                 >
-                  {/* Reward Badge or Lock Icon - Top Left */}
+                  {/* Unit Number Badge - Top Left */}
                   <div
                     style={{
                       position: 'absolute',
                       top: '16px',
                       left: '16px',
+                      background: 'rgba(0, 0, 0, 0.8)',
+                      color: zone.borderColor,
+                      padding: '8px 16px',
+                      borderRadius: '12px',
+                      fontSize: '0.85rem',
+                      fontWeight: '700',
+                      border: `2px solid ${zone.borderColor}`,
+                      zIndex: 10,
+                      boxShadow: `0 4px 12px ${zone.borderColor}40`,
+                      backdropFilter: 'blur(10px)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    Unit {zone.unitIndex + 1}
+                  </div>
+
+                  {/* Reward Badge or Lock Icon - Top Right */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '16px',
+                      right: '16px',
                       background: zone.isComingSoon ? 'rgba(254, 231, 57, 0.2)' : 'rgba(0, 0, 0, 0.8)',
                       color: zone.rewardColor,
                       padding: zone.isComingSoon ? '10px' : '8px 16px',
-                      borderRadius: '12px',
+                      borderRadius: zone.isComingSoon ? '50%' : '12px',
                       fontSize: zone.isComingSoon ? '1.2rem' : '0.85rem',
                       fontWeight: '700',
                       border: `2px solid ${zone.rewardColor}`,
@@ -606,13 +639,253 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
 
       {/* Power Up Details Cards */}
       <div className="power-up-details-section">
-        {!currentUnit ? (
-          <div className="text-center py-5">
-            <p className="text-white-50 mb-0" style={{ fontSize: '1.1rem' }}>
-              Please select a unit
-            </p>
+        {!currentUnit && selectedUnit === null ? (
+          // Show all units' power-ups when no specific unit is selected (Units tab)
+          <div className="power-up-cards-carousel" style={{ overflow: 'visible' }}>
+            {isMounted ? (
+              <Slider
+                dots={true}
+                infinite={false}
+                speed={500}
+                slidesToShow={5}
+                slidesToScroll={1}
+                responsive={[
+                  {
+                    breakpoint: 1400,
+                    settings: {
+                      slidesToShow: 4,
+                      slidesToScroll: 1,
+                    }
+                  },
+                  {
+                    breakpoint: 1200,
+                    settings: {
+                      slidesToShow: 3,
+                      slidesToScroll: 1,
+                    }
+                  },
+                  {
+                    breakpoint: 992,
+                    settings: {
+                      slidesToShow: 2,
+                      slidesToScroll: 1,
+                    }
+                  },
+                  {
+                    breakpoint: 768,
+                    settings: {
+                      slidesToShow: 1,
+                      slidesToScroll: 1,
+                    }
+                  }
+                ]}
+                arrows={units.reduce((total, unit) => total + unit.powerUps.length, 0) > 4}
+                className="power-up-slider"
+                prevArrow={
+                  <div className="slick-arrow-custom slick-prev-custom">
+                    <span className="slick-arrow-icon">←</span>
+                  </div>
+                }
+                nextArrow={
+                  <div className="slick-arrow-custom slick-next-custom">
+                    <span className="slick-arrow-icon">→</span>
+                  </div>
+                }
+              >
+                {units.map((unit) => 
+                  unit.powerUps.map((powerUp, index) => (
+                    <div key={`${unit.unitIndex}-${index}`} style={{ padding: '0 12px' }}>
+                      <div style={{ position: 'relative' }}>
+                        <div
+                          className="power-up-detail-card"
+                          style={{
+                            background: 'linear-gradient(145deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)',
+                            borderRadius: '24px',
+                            padding: '1.5rem 1rem',
+                            border: '2px solid rgba(0, 214, 163, 0.3)',
+                            transition: 'all 0.3s ease',
+                            minHeight: '320px',
+                            position: 'relative',
+                            overflow: 'visible',
+                            margin: '0 auto',
+                            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+                            marginBottom: '1rem',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.borderColor = 'rgba(0, 214, 163, 0.6)';
+                            e.currentTarget.style.transform = 'translateY(-8px)';
+                            e.currentTarget.style.boxShadow = '0 15px 40px rgba(0, 214, 163, 0.4)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor = 'rgba(0, 214, 163, 0.3)';
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.3)';
+                          }}
+                        >
+                          {/* Status Badge - Top Right */}
+                          <div
+                            className="status-badge-tag"
+                            style={{
+                              position: 'absolute',
+                              top: '16px',
+                              right: '16px',
+                              background: powerUp.unPowerUp ? '#dc3545' : '#0080ff',
+                              color: '#ffffff',
+                              padding: '6px 14px',
+                              borderRadius: '6px',
+                              fontSize: '0.75rem',
+                              fontWeight: '700',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.5px',
+                              boxShadow: powerUp.unPowerUp
+                                ? '0 2px 8px rgba(220, 53, 69, 0.4)'
+                                : '0 2px 8px rgba(0, 128, 255, 0.4)',
+                              zIndex: 10,
+                            }}
+                          >
+                            {powerUp.unPowerUp ? 'Unpowered' : 'Active'}
+                          </div>
+
+                          {/* Unit Name - Top */}
+                          <div className="text-center mb-3" style={{ marginTop: '0.5rem' }}>
+                            <div
+                              className="text-white"
+                              style={{
+                                fontSize: '1.2rem',
+                                fontWeight: '700',
+                                letterSpacing: '0.5px',
+                                textShadow: '0 2px 10px rgba(0, 214, 163, 0.3)',
+                              }}
+                            >
+                              {unit.name}
+                            </div>
+                          </div>
+
+                          {/* Asset Display - Large and Prominent */}
+                          <div className="text-center mb-3">
+                            <div className="asset-svg-container" style={{
+                              width: '120px',
+                              height: '120px',
+                              margin: '0 auto',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              background: 'linear-gradient(135deg, rgba(0, 214, 163, 0.15) 0%, rgba(0, 214, 163, 0.05) 100%)',
+                              borderRadius: '50%',
+                              border: '3px solid rgba(0, 214, 163, 0.4)',
+                              boxShadow: '0 0 30px rgba(0, 214, 163, 0.2), inset 0 0 20px rgba(0, 214, 163, 0.1)',
+                            }}>
+                              <AssetRenderer
+                                unitCategory={getUnitCategory(unit.unitIndex)}
+                                assetNumber={Number(powerUp.assetsNo)}
+                                className="asset-svg"
+                              />
+                            </div>
+                            <div
+                              className="text-white mt-2"
+                              style={{
+                                fontSize: '0.9rem',
+                                fontWeight: '600',
+                                letterSpacing: '0.5px',
+                                textShadow: '0 2px 10px rgba(0, 214, 163, 0.3)',
+                              }}
+                            >
+                              {getAssetName(getUnitCategory(unit.unitIndex), Number(powerUp.assetsNo))}
+                            </div>
+                          </div>
+
+                          {/* Power Up Amount */}
+                          <div className="text-center mb-3">
+                            <div className="text-white-50 mb-1" style={{ fontSize: '0.75rem', fontWeight: '500' }}>
+                              Power Up Amount
+                            </div>
+                            <div
+                              className="fw-bold"
+                              style={{
+                                fontSize: '1.1rem',
+                                color: '#FEE739',
+                                textShadow: '0 2px 8px rgba(254, 231, 57, 0.3)',
+                              }}
+                            >
+                              {parseFloat(powerUp.powerUpToken || '0').toFixed(2)} ZYLO
+                            </div>
+                            {/* Time Display */}
+                            {powerUp.powerUpTime && (
+                              <div
+                                className="text-white-50 mt-2"
+                                style={{
+                                  fontSize: '0.85rem',
+                                  fontWeight: '400',
+                                }}
+                              >
+                                {(() => {
+                                  try {
+                                    const timestamp = Number(powerUp.powerUpTime);
+                                    if (timestamp > 0) {
+                                      // Convert timestamp to date (check if it's in seconds or milliseconds)
+                                      const date = new Date(timestamp < 1e12 ? timestamp * 1000 : timestamp);
+                                      return date.toLocaleString('en-US', {
+                                        year: 'numeric',
+                                        month: 'short',
+                                        day: 'numeric',
+                                        hour: 'numeric',
+                                        minute: '2-digit',
+                                        hour12: true
+                                      });
+                                    }
+                                    return 'N/A';
+                                  } catch (error) {
+                                    return 'N/A';
+                                  }
+                                })()}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Reward Section */}
+                          <div
+                            style={{
+                              background: 'rgba(254, 231, 57, 0.1)',
+                              border: '2px solid rgba(254, 231, 57, 0.3)',
+                              borderRadius: '12px',
+                              padding: '1rem',
+                              marginTop: '1rem',
+                            }}
+                          >
+                            <div className="text-center">
+                              <div className="text-white-50 mb-1" style={{ fontSize: '0.75rem', fontWeight: '500', textTransform: 'uppercase' }}>
+                                SELF POWER UP REWARD
+                              </div>
+                              <div
+                                className="fw-bold"
+                                style={{
+                                  fontSize: '1.2rem',
+                                  color: '#FEE739',
+                                  textShadow: '0 2px 8px rgba(254, 231, 57, 0.4)',
+                                }}
+                              >
+                                {powerUp.isLoadingReward ? 'Loading...' : `${parseFloat(powerUp.reward || '0').toFixed(4)} ZYLO`}
+                              </div>
+                              <div className="text-white-50 mt-1" style={{ fontSize: '0.7rem', fontWeight: '400' }}>
+                                Available reward
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </Slider>
+            ) : (
+              <div className="text-center py-5">
+                <div className="spinner-border text-warning" role="status" style={{ width: '3rem', height: '3rem' }}>
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+              </div>
+            )}
           </div>
-        ) : currentUnit.isLoading ? (
+        ) : !currentUnit ? null : currentUnit.isLoading ? (
           <div className="text-center py-5">
             <div className="spinner-border text-warning" role="status" style={{ width: '3rem', height: '3rem' }}>
               <span className="visually-hidden">Loading...</span>

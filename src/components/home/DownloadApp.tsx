@@ -104,19 +104,18 @@ const DownloadApp: React.FC = () => {
                 }}
                 style={{ fontSize: '1.1rem', padding: '0.75rem 2rem' }}
               >
-                Activate Unit
+                <FaApple className="me-2" style={{ fontSize: '1.2rem' }} />
+                App Store
               </button>
               <button
-                className="btn btn-download-app d-flex align-items-center"
+                className="btn btn-connect-chain d-flex align-items-center"
                 onClick={() => {
-                  // Connect wallet functionality
-                  if (typeof window !== 'undefined' && (window as { ethereum?: unknown }).ethereum) {
-                    ((window as { ethereum?: { request: (_params: { method: string }) => void } }).ethereum?.request({ method: 'eth_requestAccounts' }));
-                  }
+                  // Google Play Store link - replace with actual play store URL when available
+                  window.open('https://play.google.com/store', '_blank');
                 }}
-                style={{ fontSize: '1.1rem', padding: '0.75rem 2rem' }}
               >
-                Connect Wallet
+                <FaGooglePlay className="me-2" style={{ fontSize: '1.2rem' }} />
+                Google Play
               </button>
             </div>
           </div>

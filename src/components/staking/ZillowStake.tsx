@@ -9,6 +9,7 @@ import './ZillowStake.css';
 import ZillowStakingCards from './ZillowStakingCards';
 import AnimatedCharacters from './AnimatedCharacters';
 import PowerUpUnitCards from './PowerUpUnitCards';
+import RewardSummaryCards from './RewardSummaryCards';
 import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
 // import { log } from 'console';
 
@@ -62,7 +63,19 @@ const CoinSVG = () => (
   </svg>
 );
 
-const ZillowStake: React.FC = () => {
+interface ZillowStakeProps {
+  onShowZoneCardsChange?: (showZoneCards: boolean) => void;
+  showRewardsSection?: boolean;
+  enableStakingForm?: boolean;
+  externalShowZoneCards?: boolean;
+}
+
+const ZillowStake: React.FC<ZillowStakeProps> = ({ 
+  onShowZoneCardsChange,
+  showRewardsSection = false,
+  enableStakingForm = true,
+  externalShowZoneCards,
+}) => {
   // const [selectedPeriod, setSelectedPeriod] = useState<'7' | '14' | '30' | '60'>('7');
   const [amountTop, setAmountTop] = useState('0.00');
   // const [amountBottom, setAmountBottom] = useState('0.00');
@@ -93,8 +106,25 @@ const ZillowStake: React.FC = () => {
   // UI state for showing/hiding staking form when user has character
   const [showStakingForm, setShowStakingForm] = useState(false);
   const [userCategory, setUserCategory] = useState<number>(0);
-  const [showZoneCards, setShowZoneCards] = useState(true); // Show zone cards initially
+  const [internalShowZoneCards, setInternalShowZoneCards] = useState(true); // Show zone cards initially
   const [selectedZoneUnit, setSelectedZoneUnit] = useState<number | null>(null);
+
+  // Use external state if provided, otherwise use internal state
+  const showZoneCards = externalShowZoneCards !== undefined ? externalShowZoneCards : internalShowZoneCards;
+
+  // Sync internal state with external prop
+  useEffect(() => {
+    if (externalShowZoneCards !== undefined) {
+      setInternalShowZoneCards(externalShowZoneCards);
+    }
+  }, [externalShowZoneCards]);
+
+  // Notify parent when showZoneCards changes (only if using internal state)
+  useEffect(() => {
+    if (onShowZoneCardsChange && externalShowZoneCards === undefined) {
+      onShowZoneCardsChange(internalShowZoneCards);
+    }
+  }, [internalShowZoneCards, onShowZoneCardsChange, externalShowZoneCards]);
 
   // Auto-close success notification after 5 seconds
   useEffect(() => {
@@ -1241,8 +1271,49 @@ const ZillowStake: React.FC = () => {
 
   const progressColor = getProgressColor(selectedPercentage);
 
-  // Show zone cards first
-  if (showZoneCards) {
+  // STRICT CHECK: Only show reward summary cards when explicitly set to true (Units tab only)
+  // Power UP tab should NEVER show reward cards - this is the ONLY place reward cards should render
+  // Early return for Units tab (showRewardsSection === true)
+  // DEBUG: Uncomment to verify condition
+  // console.log('ZillowStake render - showRewardsSection:', showRewardsSection);
+  
+  if (showRewardsSection === true) {
+    return (
+      <section className="ido-section position-relative pb-5" style={{ paddingTop: '60px' }}>
+        {/* Ambient glows + dotted texture */}
+        <div className="bg-ambient" aria-hidden="true" />
+
+        <div className="container-fluid mb-5 pb-5">
+          {/* Reward Cards Section - Using separate component */}
+          <RewardSummaryCards
+            claimedSelfReward={claimedSelfReward}
+            claimedTeamReward={claimedTeamReward}
+            currentSelfReward={currentSelfReward}
+            currentTeamReward={currentTeamReward}
+            isLoadingRewards={isLoadingRewards}
+          />
+
+          {/* Power Up Unit Cards Section - Show all units' power ups */}
+          <div className="row mt-5">
+            <div className="col-12">
+              <PowerUpUnitCards
+                onZoneCardClick={(unitIndex: number) => {
+                  // Don't change showZoneCards in Units tab, just update selected unit
+                  setSelectedZoneUnit(unitIndex);
+                }}
+                showZoneCards={false}
+                selectedZoneUnit={selectedZoneUnit}
+              />
+            </div>
+          </div>
+
+        </div>
+      </section>
+    );
+  }
+
+  // Show zone cards (initial state - when showZoneCards is true and showRewardsSection is false)
+  if (showZoneCards && !showRewardsSection) {
     return (
       <section className="ido-section position-relative pb-5" style={{ paddingTop: '30px' }}>
         {/* Ambient glows + dotted texture */}
@@ -1251,7 +1322,15 @@ const ZillowStake: React.FC = () => {
         <div className="container-fluid mb-5 pb-5">
           <PowerUpUnitCards
             onZoneCardClick={(unitIndex: number) => {
-              setShowZoneCards(false);
+              if (externalShowZoneCards !== undefined) {
+                // If external state is controlled, notify parent
+                if (onShowZoneCardsChange) {
+                  onShowZoneCardsChange(false);
+                }
+              } else {
+                // Otherwise use internal state
+                setInternalShowZoneCards(false);
+              }
               setSelectedZoneUnit(unitIndex);
               setShowStakingForm(true);
             }}
@@ -1263,6 +1342,11 @@ const ZillowStake: React.FC = () => {
     );
   }
 
+  // Power UP Tab - NEVER show reward cards here
+  // This return statement is ONLY for Power UP tab (showRewardsSection === false)
+  // Reward cards are ONLY shown in the if block above (showRewardsSection === true)
+  // At this point, showRewardsSection MUST be false, so reward cards will NEVER render
+  
   return (
     <section className="ido-section position-relative pb-5" style={{ paddingTop: '60px' }}>
       {/* Ambient glows + dotted texture */}
@@ -1273,7 +1357,15 @@ const ZillowStake: React.FC = () => {
         <div className="d-flex align-items-center">
           <button
             onClick={() => {
-              setShowZoneCards(true);
+              if (externalShowZoneCards !== undefined) {
+                // If external state is controlled, notify parent
+                if (onShowZoneCardsChange) {
+                  onShowZoneCardsChange(true);
+                }
+              } else {
+                // Otherwise use internal state
+                setInternalShowZoneCards(true);
+              }
               setSelectedZoneUnit(null);
             }}
             style={{
@@ -1591,189 +1683,6 @@ const ZillowStake: React.FC = () => {
             />
           </div>
           {/* /RIGHT */}
-        </div>
-
-        {/* Reward Cards Section - 2x2 Grid - Below ZillowStakingCards */}
-        <div className="row g-4 mt-5">
-          {/* Card 1: Claimed Self Power Up Reward */}
-          <div className="col-lg-6 col-md-6">
-            <div style={{
-              position: 'relative',
-              overflow: 'hidden',
-              background: '#03353d',
-              borderRadius: '16px',
-              border: '1px solid rgba(254, 231, 57, 0.2)',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-            }}>
-              <div className="stat-inner d-flex align-items-center justify-content-between" style={{ padding: '1.5rem' }}>
-                <div className="stat-copy" style={{ flex: 1 }}>
-                  <div className="stat-value" style={{ fontSize: '1.75rem', fontWeight: '700', color: '#FEE739', marginBottom: '0.5rem' }}>
-                    {isLoadingRewards ? 'Loading...' : `${parseFloat(claimedSelfReward || '0').toFixed(2)}`}
-                    <span style={{ fontSize: '1.2rem', marginLeft: '0.5rem', color: '#FEE739', opacity: 0.8 }}>ZYLO</span>
-                  </div>
-                  <div className="stat-label" style={{ fontSize: '0.9rem', fontWeight: '600', color: 'rgba(255, 255, 255, 0.7)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    Claimed Self Power Up Reward
-                  </div>
-                </div>
-                <div className="stat-icon" style={{ marginLeft: '1rem' }}>
-                  <div style={{
-                    width: '56px',
-                    height: '56px',
-                    background: 'rgba(254, 231, 57, 0.15)',
-                    borderRadius: '12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
-                    <CoinSVG />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 2: Claimed Team Power Up Reward */}
-          <div className="col-lg-6 col-md-6">
-            <div style={{
-              position: 'relative',
-              overflow: 'hidden',
-              background: '#03353d',
-              borderRadius: '16px',
-              border: '1px solid rgba(254, 231, 57, 0.2)',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-            }}>
-              <div className="stat-inner d-flex align-items-center justify-content-between" style={{ padding: '1.5rem' }}>
-                <div className="stat-copy" style={{ flex: 1 }}>
-                  <div className="stat-value" style={{ fontSize: '1.75rem', fontWeight: '700', color: '#FEE739', marginBottom: '0.5rem' }}>
-                    {isLoadingRewards ? 'Loading...' : `${parseFloat(claimedTeamReward || '0').toFixed(2)}`}
-                    <span style={{ fontSize: '1.2rem', marginLeft: '0.5rem', color: '#FEE739', opacity: 0.8 }}>ZYLO</span>
-                  </div>
-                  <div className="stat-label" style={{ fontSize: '0.9rem', fontWeight: '600', color: 'rgba(255, 255, 255, 0.7)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    Claimed Team Power Up Reward
-                  </div>
-                </div>
-                <div className="stat-icon" style={{ marginLeft: '1rem' }}>
-                  <div style={{
-                    width: '56px',
-                    height: '56px',
-                    background: 'rgba(254, 231, 57, 0.15)',
-                    borderRadius: '12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
-                    <CoinSVG />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 3: Current Self Power Up Reward */}
-          <div className="col-lg-6 col-md-6">
-            <div style={{
-              position: 'relative',
-              overflow: 'hidden',
-              background: '#03353d',
-              borderRadius: '16px',
-              border: '1px solid rgba(0, 214, 163, 0.2)',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-            }}>
-              <div className="stat-inner d-flex align-items-center justify-content-between" style={{ padding: '1.5rem' }}>
-                <div className="stat-copy" style={{ flex: 1 }}>
-                  <div className="stat-value" style={{ fontSize: '1.75rem', fontWeight: '700', color: '#00d6a3', marginBottom: '0.5rem' }}>
-                    {isLoadingRewards ? 'Loading...' : `${parseFloat(currentSelfReward || '0').toFixed(2)}`}
-                    <span style={{ fontSize: '1.2rem', marginLeft: '0.5rem', color: '#00d6a3', opacity: 0.8 }}>ZYLO</span>
-                  </div>
-                  <div className="stat-label" style={{ fontSize: '0.9rem', fontWeight: '600', color: 'rgba(255, 255, 255, 0.7)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    Current Self Power Up Reward
-                  </div>
-                </div>
-                <div className="stat-icon" style={{ marginLeft: '1rem' }}>
-                  <div style={{
-                    width: '56px',
-                    height: '56px',
-                    background: 'rgba(0, 214, 163, 0.15)',
-                    borderRadius: '12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
-                    <CoinSVG />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 4: Current Team Power Up Reward */}
-          <div className="col-lg-6 col-md-6">
-            <div style={{
-              position: 'relative',
-              overflow: 'hidden',
-              background: '#03353d',
-              borderRadius: '16px',
-              border: '1px solid rgba(0, 214, 163, 0.2)',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-            }}>
-              <div className="stat-inner d-flex align-items-center justify-content-between" style={{ padding: '1.5rem' }}>
-                <div className="stat-copy" style={{ flex: 1 }}>
-                  <div className="stat-value" style={{ fontSize: '1.75rem', fontWeight: '700', color: '#00d6a3', marginBottom: '0.5rem' }}>
-                    {isLoadingRewards ? 'Loading...' : `${parseFloat(currentTeamReward || '0').toFixed(2)}`}
-                    <span style={{ fontSize: '1.2rem', marginLeft: '0.5rem', color: '#00d6a3', opacity: 0.8 }}>ZYLO</span>
-                  </div>
-                  <div className="stat-label" style={{ fontSize: '0.9rem', fontWeight: '600', color: 'rgba(255, 255, 255, 0.7)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    Current Team Power Up Reward
-                  </div>
-                </div>
-                <div className="stat-icon" style={{ marginLeft: '1rem' }}>
-                  <div style={{
-                    width: '56px',
-                    height: '56px',
-                    background: 'rgba(0, 214, 163, 0.15)',
-                    borderRadius: '12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
-                    <CoinSVG />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Claim Button - Centered */}
-        <div className="row mt-4">
-          <div className="col-12 d-flex justify-content-center">
-            <button
-              type="button"
-              className="zbtn cta"
-              style={{
-                padding: '1rem 3rem',
-                fontSize: '1.1rem',
-                fontWeight: '700',
-                background: 'linear-gradient(135deg, #FEE739 0%, #FDD835 100%)',
-                color: '#1a1a1a',
-                border: 'none',
-                borderRadius: '16px',
-                boxShadow: '0 8px 32px rgba(254, 231, 57, 0.4)',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 12px 40px rgba(254, 231, 57, 0.5)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 8px 32px rgba(254, 231, 57, 0.4)';
-              }}
-            >
-              Claim Rewards
-            </button>
-          </div>
         </div>
 
         {/* Power Up Unit Cards Section - Show selected unit's power ups */}
