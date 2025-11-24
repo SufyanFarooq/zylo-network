@@ -73,7 +73,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
     {
       unitIndex: 0,
       name: 'Spark Up',
-      image: '/Unit/SPARK UP.png',
+      image: '/Unit/spark-up.png',
       reward: '1X Reward',
       rewardColor: '#FEE739',
       borderColor: '#FEE739',
@@ -95,7 +95,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
     {
       unitIndex: 2,
       name: 'AI Overrider',
-      image: '/Unit/AI OVERRIDER.png',
+      image: '/Unit/ai-overrider.png',
       reward: '2.5X Reward',
       rewardColor: '#FEE739',
       borderColor: '#FEE739',
@@ -106,7 +106,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
     {
       unitIndex: 3,
       name: 'Zylo Apex',
-      image: '/Unit/ZYLO APEX.png',
+      image: '/Unit/zylo-apex.png',
       reward: '3X Reward',
       rewardColor: '#00d6a3',
       borderColor: '#00d6a3',
@@ -117,7 +117,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
     {
       unitIndex: 4,
       name: 'Zylo Universe',
-      image: '/Unit/zylo universe.png',
+      image: '/Unit/zylo-universe.png',
       reward: 'Coming Soon',
       rewardColor: '#FEE739',
       borderColor: '#FEE739',
@@ -326,18 +326,18 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
           </h2>
         </div>
 
-        <div className="power-up-cards-carousel" style={{ overflow: 'visible' }}>
+        <div className="power-up-cards-carousel" style={{ overflow: 'visible', padding: '0 50px' }}>
           <Slider
             dots={true}
             infinite={false}
             speed={500}
-            slidesToShow={5}
+            slidesToShow={4}
             slidesToScroll={1}
             responsive={[
               {
                 breakpoint: 1400,
                 settings: {
-                  slidesToShow: 4,
+                  slidesToShow: 3,
                   slidesToScroll: 1,
                 }
               },
@@ -389,11 +389,14 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                     cursor: zone.isComingSoon ? 'not-allowed' : 'pointer',
                     position: 'relative',
                     overflow: 'hidden',
-                    minHeight: '500px',
+                    height: 'auto',
+                    minHeight: '380px',
                     display: 'flex',
                     flexDirection: 'column',
                     boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
                     opacity: zone.isComingSoon ? 0.7 : 1,
+                    alignItems: 'center',
+                    justifyContent: 'flex-start',
                   }}
                   onMouseEnter={(e) => {
                     if (!zone.isComingSoon) {
@@ -408,96 +411,148 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                     e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.3)';
                   }}
                 >
-                  {/* Reward Badge or Coming Soon Badge */}
+                  {/* Reward Badge - Top Left */}
                   <div
                     style={{
                       position: 'absolute',
                       top: '16px',
-                      right: '16px',
-                      background: zone.isComingSoon ? 'rgba(254, 231, 57, 0.2)' : '#000',
+                      left: '16px',
+                      background: zone.isComingSoon ? 'rgba(254, 231, 57, 0.2)' : 'rgba(0, 0, 0, 0.8)',
                       color: zone.rewardColor,
-                      padding: '6px 14px',
-                      borderRadius: '6px',
-                      fontSize: '0.75rem',
+                      padding: '8px 16px',
+                      borderRadius: '12px',
+                      fontSize: '0.85rem',
                       fontWeight: '700',
                       border: `2px solid ${zone.rewardColor}`,
                       zIndex: 10,
+                      boxShadow: `0 4px 12px ${zone.rewardColor}40`,
+                      backdropFilter: 'blur(10px)',
                     }}
                   >
                     {zone.reward}
                   </div>
 
-                  {/* Coming Soon Overlay */}
-                  {zone.isComingSoon && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        background: 'rgba(0, 0, 0, 0.8)',
-                        color: '#FEE739',
-                        padding: '12px 24px',
-                        borderRadius: '12px',
-                        fontSize: '1.2rem',
-                        fontWeight: '700',
-                        zIndex: 20,
-                        border: '2px solid #FEE739',
-                        textTransform: 'uppercase',
-                        letterSpacing: '2px',
-                      }}
-                    >
-                      Coming Soon
-                    </div>
-                  )}
-
-                  {/* Image */}
+                  {/* Profile Icon Section - Centered */}
                   <div
                     style={{
-                      width: '100%',
-                      height: '280px',
-                      position: 'relative',
-                      marginBottom: '1.5rem',
-                      borderRadius: '16px',
-                      overflow: 'hidden',
-                      background: 'rgba(0, 0, 0, 0.3)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginTop: '2rem',
+                      marginBottom: '0',
                     }}
                   >
-                    <Image
-                      src={zone.image}
-                      alt={zone.name}
-                      fill
-                      style={{ objectFit: 'contain' }}
-                      priority={zone.unitIndex < 2}
-                    />
+                    {/* Profile Image - Circular */}
+                    <div
+                      style={{
+                        width: '200px',
+                        height: '200px',
+                        position: 'relative',
+                        borderRadius: '50%',
+                        overflow: 'hidden',
+                        border: `4px solid ${zone.borderColor}`,
+                        background: 'transparent',
+                        boxShadow: `0 0 30px ${zone.borderColor}60`,
+                        marginBottom: '0.5rem',
+                        transition: 'all 0.3s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!zone.isComingSoon) {
+                          e.currentTarget.style.transform = 'scale(1.05)';
+                          e.currentTarget.style.boxShadow = `0 0 40px ${zone.borderColor}80`;
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'scale(1)';
+                        e.currentTarget.style.boxShadow = `0 0 30px ${zone.borderColor}60`;
+                      }}
+                    >
+                      <div style={{
+                        width: '100%',
+                        height: '100%',
+                        borderRadius: '50%',
+                        overflow: 'hidden',
+                        position: 'relative',
+                      }}>
+                        <Image
+                          src={zone.image}
+                          alt={zone.name}
+                          fill
+                          sizes="180px"
+                          style={{ 
+                            objectFit: 'contain',
+                            padding: '5px',
+                            borderRadius: '50%',
+                            transform: 'scale(1.1)',
+                          }}
+                          priority={zone.unitIndex < 2}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Name Below Image */}
+                    <h3
+                      style={{
+                        color: zone.titleColor,
+                        fontSize: '1.6rem',
+                        fontWeight: '700',
+                        textAlign: 'center',
+                        marginTop: '0',
+                        marginBottom: '0.75rem',
+                        textShadow: `0 2px 8px ${zone.titleColor}40, 0 0 20px ${zone.titleColor}20`,
+                        letterSpacing: '1px',
+                      }}
+                    >
+                      {zone.name}
+                    </h3>
+
+                    {/* Power UP Button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!zone.isComingSoon) {
+                          handleZoneCardClick(zone.unitIndex);
+                        }
+                      }}
+                      disabled={zone.isComingSoon}
+                      style={{
+                        background: zone.isComingSoon 
+                          ? 'rgba(128, 128, 128, 0.2)' 
+                          : `linear-gradient(135deg, ${zone.borderColor}20 0%, ${zone.borderColor}10 100%)`,
+                        border: `2px solid ${zone.borderColor}`,
+                        color: zone.titleColor,
+                        padding: '0.6rem 1.5rem',
+                        borderRadius: '12px',
+                        fontSize: '0.9rem',
+                        fontWeight: '700',
+                        textTransform: 'uppercase',
+                        letterSpacing: '1px',
+                        cursor: zone.isComingSoon ? 'not-allowed' : 'pointer',
+                        transition: 'all 0.3s ease',
+                        boxShadow: `0 4px 12px ${zone.borderColor}30`,
+                        opacity: zone.isComingSoon ? 0.5 : 1,
+                        width: '100%',
+                        maxWidth: '160px',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!zone.isComingSoon) {
+                          e.currentTarget.style.background = `linear-gradient(135deg, ${zone.borderColor}40 0%, ${zone.borderColor}20 100%)`;
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.boxShadow = `0 6px 16px ${zone.borderColor}50`;
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!zone.isComingSoon) {
+                          e.currentTarget.style.background = `linear-gradient(135deg, ${zone.borderColor}20 0%, ${zone.borderColor}10 100%)`;
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = `0 4px 12px ${zone.borderColor}30`;
+                        }
+                      }}
+                    >
+                      Power UP
+                    </button>
                   </div>
-
-                  {/* Title */}
-                  <h3
-                    style={{
-                      color: zone.titleColor,
-                      fontSize: '1.5rem',
-                      fontWeight: '700',
-                      marginBottom: '1rem',
-                      textAlign: 'center',
-                    }}
-                  >
-                    {zone.name}
-                  </h3>
-
-                  {/* Quote */}
-                  <p
-                    style={{
-                      color: '#ffffff',
-                      fontSize: '0.9rem',
-                      textAlign: 'center',
-                      marginBottom: '1rem',
-                      fontStyle: 'italic',
-                      minHeight: '50px',
-                    }}
-                  >
-                    {zone.quote}
-                  </p>
                 </div>
               </div>
             ))}

@@ -48,7 +48,7 @@ const LevelsCarousel: React.FC = () => {
         { 
             zone: 2, 
             zoneName: 'Flicker Growth', 
-            personalRequirement: '2 units (1 Spark + 1 Flicker)', 
+            personalRequirement: '2 units (Spark+Flicker)', 
             teamRequirement: '3 Spark + 3 Flicker', 
             rewardShare: '12%', 
             essence: 'You didn\'t just earn — you duplicated success.',

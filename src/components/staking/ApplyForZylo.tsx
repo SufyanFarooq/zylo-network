@@ -68,7 +68,7 @@ const ApplyForZylo: React.FC = () => {
                     display: 'inline-block'
                   }}>
                     <Image
-                      src="/assets/igo-bg.svg"
+                      src="/Unit/power-up.png"
                       alt="ZYLO Token Power Up"
                       width={200}
                       height={200}
