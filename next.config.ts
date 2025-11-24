@@ -73,6 +73,23 @@ const nextConfig: NextConfig = {
       path: false,
     };
 
+    // Fix for porto module resolution issue in @reown/appkit-adapter-wagmi
+    // porto is an optional connector, so we ignore it if not found
+    const webpack = require('webpack');
+    
+    // Use IgnorePlugin to ignore porto module completely
+    config.plugins.push(
+      new webpack.IgnorePlugin({
+        resourceRegExp: /^porto$/,
+      })
+    );
+
+    // Also add alias as fallback
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      porto: false,
+    };
+
     // Disable source maps in development to reduce 404 errors
     if (dev) {
       config.devtool = false;

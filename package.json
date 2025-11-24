@@ -47,5 +47,8 @@
   },
   "resolutions": {
     "punycode": "^2.3.1"
+  },
+  "optionalDependencies": {
+    "porto": "^0.2.37"
   }
 }
