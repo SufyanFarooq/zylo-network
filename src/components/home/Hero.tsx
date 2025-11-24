@@ -120,7 +120,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { FaPlay, FaCloudDownloadAlt } from 'react-icons/fa';
+import { FaPlay } from 'react-icons/fa';
 import './home.css';
 
 const Hero: React.FC = () => {
@@ -131,38 +131,16 @@ const Hero: React.FC = () => {
           {/* Left Content */}
           <div className="col-lg-6 mb-5 mb-lg-0">
             <h1 className="hero-title">
-              <span className="text-yellow">EARN FREE</span><br />
-              <span className="text-green">REWARD </span>
-              <span className="text-white">WITH</span><br />
-              <span className="text-yellow">ZILLOW VORTEX</span>
+              <span className="text-yellow">Welcome to PowerUnit</span><br />
+              <span className="text-white">The Next Evolution of </span><br />
+              <span className="text-green">AI-Powered Rewards</span>
             </h1>
 
             <p className="hero-description">
-            Power Up Zillow Vortex and Build Wealth Forever. Zillow Vortex is a decentralized
-              blockchain based POS (Proof of Stake) platform. It utilizes state of the art
-              blockchain technology to power its decentralized ecosystem.
+              Where intelligent mining units transform your tokens into real power.
             </p>
 
             <div className="d-flex gap-3 flex-wrap">
-              <button
-                className="btn btn-download-app d-flex align-items-center"
-                style={{ color: '#000000' }}
-                onClick={() => {
-                  const downloadSection = document.querySelector('.download-app');
-                  if (downloadSection) {
-                    downloadSection.scrollIntoView({
-                      behavior: 'smooth',
-                      block: 'start'
-                    });
-                  } else {
-                    console.log('Download section not found');
-                  }
-                }}
-              >
-                <FaCloudDownloadAlt className="me-2" style={{ color: '#000000' }} />
-                Download the App
-              </button>
-
               <button
                 className="btn btn-connect-chain"
                 style={{ color: '#000000' }}
@@ -170,7 +148,23 @@ const Hero: React.FC = () => {
                   window.location.href = '/incept-now';
                 }}
               >
-                Connect With Zillow Community
+                Activate Your Unit
+              </button>
+
+              <button
+                className="btn btn-download-app d-flex align-items-center"
+                style={{ color: '#000000' }}
+                onClick={() => {
+                  const whatIsSection = document.querySelector('.what-is-powerunit');
+                  if (whatIsSection) {
+                    whatIsSection.scrollIntoView({
+                      behavior: 'smooth',
+                      block: 'start'
+                    });
+                  }
+                }}
+              >
+                Learn More
               </button>
             </div>
           </div>

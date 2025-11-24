@@ -430,7 +430,7 @@ const RegisterPage: React.FC = () => {
                     <div className="row justify-content-center">
                         <div className="col-lg-6 col-md-8">
                             {/* Modern Left-Right Layout for Image and Heading */}
-                            <div className="row align-items-center mb-5" style={{ minHeight: '300px' }}>
+                            <div className="row align-items-center mb-2" style={{ minHeight: '300px' }}>
                                 {/* Left Side - Heading */}
                                 <div className="col-lg-7 col-md-6 mb-4 mb-lg-0">
                                     <h1 className="text-white fw-bold mb-4" style={{
@@ -467,7 +467,7 @@ const RegisterPage: React.FC = () => {
                             </div>
 
                             {/* Form Section */}
-                            <div className="mt-4">
+                            <div className="mt-1">
                                 <div className="card border-0 register-card">
                                         <div className="card-body p-5">
                                     {!isConnected && showWalletMessage && (

@@ -7,28 +7,40 @@ import '../../app/home.css';
 const StakingSteps: React.FC = () => {
   const steps = [
     {
-      icon: '👛',
-      title: 'Create Wallet',
-      description: 'Set up your secure digital wallet to store your tokens',
-      buttonText: 'Go To Wallet',
+      icon: '1️⃣',
+      title: 'Choose Your Unit',
+      description: 'Select from 5 powerful AI units — each with unique multipliers and reward output.',
+      buttonText: 'View Units',
       buttonClass: 'btn-connect-chain',
-      borderClass: 'border-green'
+      borderClass: 'border-green',
+      onClick: () => {
+        const unitsSection = document.querySelector('.levels-carousel-section');
+        if (unitsSection) {
+          unitsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
     },
     {
-      icon: '💰',
-      title: 'Buy Token',
-      description: 'Purchase Zillow Vortex tokens from supported exchanges',
-      buttonText: 'Buy Now',
+      icon: '2️⃣',
+      title: 'Power It Up',
+      description: 'Activate your unit instantly using ZYLO tokens.',
+      buttonText: 'Activate Now',
       buttonClass: 'btn-download-app',
-      borderClass: 'border-yellow'
+      borderClass: 'border-yellow',
+      onClick: () => {
+        window.location.href = '/incept-now';
+      }
     },
     {
-      icon: '✅',
-      title: 'Start Power Up',
-      description: 'Power Up your tokens and start earning rewards immediately',
-      buttonText: 'Power Up Now',
+      icon: '3️⃣',
+      title: 'Earn Automatically',
+      description: 'Your unit generates rewards per second until its energy depletes.',
+      buttonText: 'Start Earning',
       buttonClass: 'btn-connect-chain',
-      borderClass: 'border-green'
+      borderClass: 'border-green',
+      onClick: () => {
+        window.location.href = '/power-up';
+      }
     }
   ];
 
@@ -36,7 +48,8 @@ const StakingSteps: React.FC = () => {
     <section className="py-5 network-stats" >
       <div className="container">
         <div className="text-center mb-5">
-          <h2 className="text-white fw-bold fs-1">START Power Up WITH 3 EASY STEPS</h2>
+          <h2 className="text-white fw-bold fs-1">How It Works</h2>
+          <p className="text-white-50 mt-3" style={{ fontSize: '1.1rem' }}>Simple 3-Step Explanation</p>
         </div>
 
         <div className="row">
@@ -48,22 +61,7 @@ const StakingSteps: React.FC = () => {
                 <p className="stats-label mb-4">{step.description}</p>
                 <button
                   className={`btn ${step.buttonClass} px-4 py-2 fw-bold mx-auto`}
-                  onClick={() => {
-                    if (step.title === 'Create Wallet') {
-                      // Open MetaMask
-                      if (typeof window !== 'undefined' && (window as { ethereum?: unknown }).ethereum) {
-                        ((window as { ethereum?: { request: (_params: { method: string }) => void } }).ethereum?.request({ method: 'eth_requestAccounts' }));
-                      } else {
-                        window.open('https://metamask.io/download/', '_blank');
-                      }
-                    } else if (step.title === 'Buy Token') {
-                      // Buy Now - placeholder for now
-                      alert('Buy functionality coming soon!');
-                    } else if (step.title === 'Start Staking') {
-                      // Go to staking page
-                      window.location.href = '/power-up';
-                    }
-                  }}
+                  onClick={step.onClick}
                 >
                   {step.buttonText}
                 </button>

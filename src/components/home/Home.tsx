@@ -19,6 +19,10 @@ const StakingSteps = dynamic(() => import('./StakingSteps'), {
   loading: () => <div style={{ minHeight: '300px' }} />,
 });
 
+const WhyChoosePowerUnit = dynamic(() => import('./WhyChoosePowerUnit'), {
+  loading: () => <div style={{ minHeight: '300px' }} />,
+});
+
 const DownloadApp = dynamic(() => import('./DownloadApp'), {
   loading: () => <div style={{ minHeight: '200px' }} />,
 });
@@ -50,6 +54,9 @@ const Home: React.FC = () => {
             <Suspense fallback={<div style={{ minHeight: '300px' }} />}>
                 <StakingSteps />
             </Suspense>
+            {/* <Suspense fallback={<div style={{ minHeight: '300px' }} />}>
+                <WhyChoosePowerUnit />
+            </Suspense> */}
             <Suspense fallback={<div style={{ minHeight: '200px' }} />}>
                 <DownloadApp />
             </Suspense>

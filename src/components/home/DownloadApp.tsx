@@ -92,31 +92,31 @@ const DownloadApp: React.FC = () => {
 
           {/* Right Content */}
           <div className="col-lg-6">
-            <h2 className="text-white fw-bold display-5 mb-4">Download The App</h2>
-            <p className="hero-description mb-4">
-              Get the Zillow Vortex mobile app for the best Power Up experience on the go.
-              Available on both iOS and Android platforms.
+            <h2 className="text-white fw-bold display-5 mb-4">Start Your Journey</h2>
+            <p className="hero-description mb-4" style={{ fontSize: '1.2rem' }}>
+              Ready to Power Up?
             </p>
             <div className="d-flex gap-3 flex-wrap">
               <button
-                className="btn btn-download-app d-flex align-items-center"
-                onClick={() => {
-                  // App Store link - replace with actual app store URL when available
-                  window.open('https://apps.apple.com/', '_blank');
-                }}
-              >
-                <FaApple className="me-2" style={{ fontSize: '1.2rem' }} />
-                App Store
-              </button>
-              <button
                 className="btn btn-connect-chain d-flex align-items-center"
                 onClick={() => {
-                  // Google Play Store link - replace with actual play store URL when available
-                  window.open('https://play.google.com/store', '_blank');
+                  window.location.href = '/incept-now';
                 }}
+                style={{ fontSize: '1.1rem', padding: '0.75rem 2rem' }}
               >
-                <FaGooglePlay className="me-2" style={{ fontSize: '1.2rem' }} />
-                Google Play
+                Activate Unit
+              </button>
+              <button
+                className="btn btn-download-app d-flex align-items-center"
+                onClick={() => {
+                  // Connect wallet functionality
+                  if (typeof window !== 'undefined' && (window as { ethereum?: unknown }).ethereum) {
+                    ((window as { ethereum?: { request: (_params: { method: string }) => void } }).ethereum?.request({ method: 'eth_requestAccounts' }));
+                  }
+                }}
+                style={{ fontSize: '1.1rem', padding: '0.75rem 2rem' }}
+              >
+                Connect Wallet
               </button>
             </div>
           </div>
