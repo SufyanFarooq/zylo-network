@@ -1,0 +1,121 @@
+/* --- Right-side graphic area --- */
+.hero-graphics {
+  min-height: 320px;
+}
+
+/* Card behind */
+.card-green {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  background: var(--primary-green);
+  border-radius: 18px;
+  transform: rotate(-8deg) translate(18px, 26px);
+  box-shadow: 0 0 28px rgba(0, 255, 163, 0.28);
+  z-index: 1;
+}
+
+/* Card front */
+.card-yellow {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  background: var(--primary-yellow);
+  border-radius: 18px;
+  transform: rotate(6deg) translate(60px, 46px);
+  box-shadow: 0 0 28px rgba(254, 230, 0, 0.28);
+  z-index: 2;
+
+  /* Make it easy to center content inside */
+  display: grid;
+  place-items: end center;
+  padding-bottom: 8px;
+}
+
+/* Gorilla image container (keeps image nicely inside the card) */
+.gorilla-wrap {
+  width: 88%;
+  max-width: 360px;
+  aspect-ratio: 1 / 1;
+  position: relative;
+}
+
+/* Gorilla image styling */
+.gorilla-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  /* Little flourish: gentle floating + glow */
+  filter:
+    drop-shadow(0 14px 28px rgba(0, 0, 0, 0.35))
+    drop-shadow(0 0 18px rgba(254, 230, 0, 0.18));
+  animation: gorillaFloat 6s ease-in-out infinite;
+  pointer-events: none; /* don’t block clicks on CTA nearby */
+}
+
+@keyframes gorillaFloat {
+  0%, 100% { transform: translateY(0px); }
+  50%      { transform: translateY(-6px); }
+}
+
+/* Play Button */
+.play-wrap {
+  position: absolute;
+  width: 45px;
+  height: 45px;
+  background: var(--primary-yellow);
+  border-radius: 50%;
+  top: 18px;
+  right: 136px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(254, 230, 0, 0.4);
+  border: 2px solid #000;
+  z-index: 3;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.play-wrap:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 22px rgba(254, 230, 0, 0.55);
+}
+
+/* “Zillow is Live” */
+.live-text {
+  position: absolute;
+  top: 22px;
+  right: 188px;
+  font-size: .72rem;
+  color: #fff;
+  font-weight: 700;
+  z-index: 3;
+}
+
+/* Sparkles */
+.sparkle {
+  position: absolute;
+  color: #fff;
+  font-size: 1rem;
+  z-index: 3;
+  user-select: none;
+}
+.sparkle-a { top: 40px; left: 30px; }
+.sparkle-b { top: 70px; right: 50px; }
+.sparkle-c { bottom: 50px; left: 80px; }
+
+/* Responsive tweaks */
+@media (max-width: 991.98px) {
+  .card-green,
+  .card-yellow { transform: none; left: 0; right: 0; margin: 0 auto; }
+  .card-green { top: 10px; }
+  .card-yellow { top: 30px; }
+  .play-wrap { right: 20px; top: 10px; }
+  .live-text { right: 76px; top: 14px; }
+}
+
+
+
+
+/* comunity */
+
+

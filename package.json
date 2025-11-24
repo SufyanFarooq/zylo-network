@@ -1,0 +1,51 @@
+{
+  "name": "zillow-staking",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "set NODE_OPTIONS=--no-deprecation && next dev",
+    "build": "set NODE_OPTIONS=--no-deprecation && next build",
+    "start": "set NODE_OPTIONS=--no-deprecation && next start",
+    "lint": "next lint",
+    "export": "set NODE_OPTIONS=--no-deprecation && next build && next export",
+    "build:prod": "set NODE_ENV=production && set NODE_OPTIONS=--no-deprecation --max-old-space-size=8192 && next build",
+    "build:analyze": "set NODE_OPTIONS=--no-deprecation && next build && npx @next/bundle-analyzer",
+    "build:safe": "set NODE_OPTIONS=--no-deprecation --max-old-space-size=4096 && set NPM_CONFIG_ENGINE_STRICT=false && next build",
+    "build:force": "set NODE_OPTIONS=--no-deprecation --max-old-space-size=8192 && set NPM_CONFIG_ENGINE_STRICT=false && set NPM_CONFIG_FUND=false && next build"
+  },
+  "dependencies": {
+    "@popperjs/core": "^2.11.8",
+    "@reown/appkit": "^1.7.3",
+    "@reown/appkit-adapter-wagmi": "^1.7.3",
+    "@tanstack/react-query": "^5.59.20",
+    "bootstrap": "^5.3.7",
+    "ethers": "^6.13.7",
+    "framer-motion": "^12.23.24",
+    "next": "15.4.5",
+    "pino-pretty": "^13.1.1",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-icons": "^5.5.0",
+    "react-slick": "^0.30.3",
+    "slick-carousel": "^1.8.1",
+    "viem": "^2.21.44",
+    "wagmi": "^2.12.31"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/react-slick": "^0.23.13",
+    "autoprefixer": "^10.4.17",
+    "critters": "^0.0.23",
+    "eslint": "^9",
+    "eslint-config-next": "15.4.5",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  },
+  "resolutions": {
+    "punycode": "^2.3.1"
+  }
+}

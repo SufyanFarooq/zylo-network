@@ -1,0 +1,398 @@
+/* Carousel layout + center emphasis */
+.levels-slider .slick-list {
+  margin: 0 -8px;
+}
+
+.levels-slider .slick-slide {
+  transition: opacity .25s ease, transform .25s ease;
+}
+
+.levels-slider .slick-center {
+  opacity: 1;
+}
+
+.levels-slider .slick-center .level-card-pro {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .55), 0 0 36px rgba(0, 255, 163, .10);
+}
+
+.levels-slider .slick-dots {
+  bottom: -36px;
+}
+
+.levels-slider .slick-dots li button:before {
+  content: "";
+}
+
+.levels-slider .slick-dots li button {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .18);
+}
+
+.levels-slider .slick-dots li.slick-active button {
+  background: linear-gradient(90deg, var(--primary-green), #00cc6a);
+}
+
+/* Arrows (pill) + micro-interactions */
+.slick-arrow-pill {
+  position: absolute;
+  top: -58px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 36px;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--primary-yellow), #ffed4e);
+  box-shadow: 0 8px 20px rgba(254, 230, 0, .35);
+  transform: translateY(0) scale(1);
+  transition: transform .18s ease, box-shadow .18s ease, background .18s ease, opacity .18s ease;
+  outline: none;
+}
+
+.slick-arrow-pill.prev {
+  right: 64px;
+  top: -22px;
+}
+
+.slick-arrow-pill.next {
+  right: 12px;
+  top: -22px;
+}
+
+.slick-arrow-pill:hover {
+  transform: translateY(-2px) scale(1.03) rotate(-3deg);
+  box-shadow: 0 12px 26px rgba(254, 230, 0, .5);
+}
+
+.slick-arrow-pill:active {
+  transform: translateY(0) scale(.98);
+  box-shadow: 0 6px 16px rgba(254, 230, 0, .35);
+}
+
+.slick-arrow-pill:focus-visible {
+  box-shadow: 0 0 0 3px rgba(0, 255, 163, .4), 0 8px 22px rgba(254, 230, 0, .45);
+}
+
+.slick-disabled.slick-arrow-pill {
+  opacity: .35;
+  pointer-events: none;
+  box-shadow: none;
+}
+
+/* Card look */
+.level-card-pro {
+  position: relative;
+  border-radius: 12px;
+  padding: 0.8rem;
+  background: linear-gradient(180deg, rgba(3, 34, 51, .78), rgba(3, 34, 51, .58));
+  border: 1px solid rgba(0, 255, 163, .25);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .42);
+  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+  color: var(--text-white);
+  min-height: 240px;
+  max-height: 280px;
+}
+
+.level-card-pro:hover {
+  border-color: rgba(254, 230, 0, .45);
+}
+
+.level-card-pro.locked {
+  opacity: .4;
+  filter: saturate(.3) grayscale(.4);
+  background: linear-gradient(180deg, rgba(3, 34, 51, .45), rgba(3, 34, 51, .25));
+  border-color: rgba(255, 255, 255, .08);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, .6), inset 0 1px 3px rgba(0, 0, 0, .3);
+  position: relative;
+}
+
+.level-card-pro.locked::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(0, 0, 0, .4), rgba(0, 0, 0, .2));
+  pointer-events: none;
+  z-index: 1;
+}
+
+.level-card-pro.locked * {
+  position: relative;
+  z-index: 2;
+}
+
+.level-card-pro.locked .level-badge {
+  background: linear-gradient(135deg, rgba(255, 255, 255, .3), rgba(255, 255, 255, .1));
+  color: rgba(255, 255, 255, .6);
+  box-shadow: none;
+}
+
+.level-card-pro.locked .level-coin {
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, .3) 0%, rgba(255, 255, 255, .1) 35%, rgba(0, 0, 0, .2) 100%);
+  color: rgba(255, 255, 255, .4);
+  box-shadow: none;
+}
+
+.level-card-pro.locked .btn {
+  background: rgba(0, 0, 0, .3) !important;
+  color: rgba(255, 255, 255, .4) !important;
+  border: 1px solid rgba(255, 255, 255, .1) !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+}
+
+.level-card-pro.locked .text-yellow,
+.level-card-pro.locked .text-green {
+  color: rgba(255, 255, 255, .3) !important;
+}
+
+.level-card-pro.current {
+  border-color: rgba(254, 230, 0, .7);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .6), 0 0 40px rgba(254, 230, 0, .18);
+}
+
+.level-badge {
+  background: linear-gradient(135deg, var(--primary-yellow), #ffed4e);
+  color: #111;
+  border-radius: 999px;
+  padding: .25rem .5rem;
+  font-weight: 700;
+  font-size: 0.75rem;
+  font-size: .78rem;
+  box-shadow: 0 0 18px rgba(254, 230, 0, .35);
+}
+
+.level-coin {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff 0%, var(--primary-yellow) 35%, #d9c700 100%);
+  color: #111;
+  font-weight: 800;
+  box-shadow: 0 0 18px rgba(254, 230, 0, .35), inset 0 2px 6px rgba(0, 0, 0, .25);
+}
+
+.level-title {
+  letter-spacing: .2px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.level-sub {
+  color: var(--text-gray);
+  font-size: 0.75rem;
+}
+
+.tiny-row {
+  font-size: 0.7rem;
+  color: var(--text-gray);
+}
+
+.level-progress {
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, .10);
+  border: 1px solid rgba(255, 255, 255, .08);
+}
+
+.level-progress .progress-bar {
+  background-color: transparent !important;
+  background-image: linear-gradient(90deg, var(--primary-green), #00cc6a) !important;
+  box-shadow: 0 0 16px rgba(0, 255, 163, .35);
+}
+
+/* "Current level" ribbon */
+.ribbon {
+  position: absolute;
+  top: 5px;
+  right: 10px;
+  background: linear-gradient(135deg, var(--primary-green), #00cc6a);
+  color: #0a0a0a;
+  font-weight: 800;
+  font-size: .7rem;
+  padding: 1px .5rem;
+  border-radius: 999px;
+  box-shadow: 0 0 16px rgba(0, 255, 163, .35);
+}
+
+/* mobile: reduce lift */
+
+/* ===== Level details: stat boxes like staking page ===== */
+.level-stat {
+  position: relative;
+  border-radius: 22px;
+  color: #09141a;
+  border: 1px solid rgba(255, 255, 255, .08);
+  overflow: hidden;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, .22);
+}
+
+.level-stat .inner {
+  position: relative;
+  z-index: 1;
+  padding: clamp(18px, 3.5vw, 28px);
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+}
+
+.level-stat .value {
+  font-weight: 900;
+  font-size: clamp(22px, 3.4vw, 36px);
+  line-height: 1.1;
+  color: #000;
+}
+
+.level-stat .label {
+  margin-top: 8px;
+  font-weight: 700;
+  opacity: .85;
+  font-size: clamp(13px, 1.4vw, 16px);
+  color: #000;
+}
+
+.level-stat.yellow {
+  background:
+    radial-gradient(240% 140% at -10% -40%, rgba(255, 255, 255, .6), rgba(255, 255, 255, 0) 40%),
+    linear-gradient(180deg, #ffe84f, var(--primary-yellow));
+  box-shadow: 0 14px 28px rgba(0, 0, 0, .22), 0 24px 44px rgba(254, 230, 0, .22);
+}
+
+.level-stat.green {
+  background:
+    radial-gradient(240% 140% at -10% -40%, rgba(255, 255, 255, .6), rgba(255, 255, 255, 0) 40%),
+    linear-gradient(180deg, #00ffc1, var(--primary-green));
+  box-shadow: 0 14px 28px rgba(0, 0, 0, .22), 0 24px 44px rgba(0, 255, 163, .18);
+}
+
+.level-stat::before {
+  content: "";
+  position: absolute;
+  inset: -18px;
+  border-radius: 28px;
+  z-index: 0;
+  background:
+    radial-gradient(360px 200px at 85% 110%, rgba(0, 255, 163, .12), transparent 60%),
+    radial-gradient(360px 220px at 15% -10%, rgba(0, 255, 163, .10), transparent 60%);
+  filter: blur(24px);
+  opacity: .9;
+  pointer-events: none;
+}
+
+.level-stat:hover {
+  transform: translateY(-2px);
+  transition: transform .12s ease, box-shadow .18s ease;
+}
+
+/* Table accent wrapper (when Table receives className="level-table") */
+.level-table>div {
+  border-radius: 18px !important;
+}
+
+/* Ambient background for details header area */
+.level-ambient {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(640px 440px at 92% -10%, rgba(0, 255, 163, .18), transparent 60%),
+    radial-gradient(560px 380px at 8% -15%, rgba(254, 230, 0, .10), transparent 60%),
+    linear-gradient(180deg, rgba(255, 255, 255, .02), transparent 42%);
+}
+
+/* Round, glossy nav buttons on details header */
+.level-nav {
+  position: relative;
+  z-index: 2;
+}
+
+.level-nav .nav-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  border: 0;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  cursor: pointer;
+  box-shadow: 0 16px 28px rgba(0, 0, 0, .28);
+  transition: transform .12s ease, box-shadow .18s ease, opacity .18s ease;
+}
+
+.level-nav .nav-btn.yellow {
+  background: radial-gradient(120% 120% at 30% 20%, #fff 0%, rgba(255, 255, 255, .55) 6%, transparent 12%), linear-gradient(180deg, #ffe84f, var(--primary-yellow));
+}
+
+.level-nav .nav-btn.green {
+  background: radial-gradient(120% 120% at 30% 20%, #fff 0%, rgba(255, 255, 255, .55) 6%, transparent 12%), linear-gradient(180deg, #36ffca, var(--primary-green));
+}
+
+.level-nav .nav-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 22px 40px rgba(0, 0, 0, .34);
+}
+
+.level-nav .nav-btn:active {
+  transform: translateY(0) scale(.98);
+}
+
+/* Pretty dropdown (rows per page) */
+.z-select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  color: var(--text-white);
+  background:
+    radial-gradient(100% 100% at 20% 0%, rgba(255, 255, 255, .24), rgba(255, 255, 255, 0) 22%),
+    rgba(0, 0, 0, .25);
+  border: 1.6px solid color-mix(in oklab, var(--accent, var(--primary-yellow)) 40%, transparent);
+  border-radius: 999px;
+  padding: 10px 42px 10px 14px;
+  font-weight: 800;
+  letter-spacing: .2px;
+  min-width: 108px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, .25), 0 0 0 0.6px rgba(255, 255, 255, .08) inset;
+  outline: none;
+  transition: box-shadow .18s ease, transform .12s ease, border-color .18s ease;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M7 10l5 5 5-5' stroke='%23ffffff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+}
+
+.z-select:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, .3);
+}
+
+.z-select:focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent, var(--primary-yellow)) 32%, transparent), 0 10px 26px rgba(0, 0, 0, .3);
+}
+
+.z-select option {
+  color: #09141a;
+  font-weight: 700;
+}
+
+
+@media (max-width:576px) {
+  .levels-slider .slick-center .level-card-pro {
+    transform: translateY(-4px) scale(1.01);
+  }
+
+  .slick-slider {
+    margin-top: 30px;
+  }
+}

@@ -1,0 +1,414 @@
+/* Claim Details Table Styles */
+.claim-details-section {
+    padding: 2rem 0;
+}
+
+.claim-details-card {
+    background: linear-gradient(145deg, #03353d 0%, #032233 50%, #021a23 100%);
+    border: 2px solid rgba(254, 231, 57, 0.3);
+    border-radius: 20px;
+    box-shadow: 
+        0 10px 40px rgba(0, 0, 0, 0.5),
+        0 0 30px rgba(254, 231, 57, 0.1);
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+
+.card-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 2px solid rgba(254, 231, 57, 0.3);
+    background: linear-gradient(135deg, rgba(3, 53, 61, 0.8) 0%, rgba(2, 34, 51, 0.8) 100%);
+}
+
+.card-title {
+    color: #FEE739;
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin: 0;
+    text-shadow: 0 2px 10px rgba(254, 231, 57, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.filter-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.filter-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid rgba(254, 230, 0, 0.3);
+    background: transparent;
+    color: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.filter-btn:hover {
+    background: rgba(254, 230, 0, 0.1);
+    color: var(--primary-yellow);
+    border-color: rgba(254, 230, 0, 0.5);
+}
+
+.filter-btn.active {
+    background: var(--primary-yellow);
+    color: #000;
+    border-color: var(--primary-yellow);
+    font-weight: 600;
+}
+
+.card-body {
+    padding: 0;
+}
+
+.table-container {
+    overflow: hidden;
+    width: 100%;
+}
+
+.claim-table {
+    margin: 0;
+    color: white;
+    background: transparent;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.claim-table thead th {
+    background: linear-gradient(135deg, rgba(3, 53, 61, 0.9) 0%, rgba(2, 34, 51, 0.9) 100%);
+    color: #FEE739;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.9rem;
+    padding: 1.25rem 1.5rem;
+    border: none;
+    border-bottom: 2px solid rgba(254, 231, 57, 0.4);
+    width: 33.33%;
+    text-align: center;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.claim-table tbody td {
+    padding: 1.25rem 1.5rem;
+    border: none;
+    border-bottom: 1px solid rgba(254, 231, 57, 0.1);
+    vertical-align: middle;
+    background: transparent;
+    color: #ffffff;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.claim-table tbody tr:hover {
+    background: rgba(254, 231, 57, 0.08);
+    transform: scale(1.01);
+}
+
+.claim-table tbody tr:hover td {
+    color: #FEE739;
+}
+
+.claim-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.claim-index {
+    color: #FEE739;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-shadow: 0 0 8px rgba(254, 231, 57, 0.4);
+}
+
+.amount-value {
+    font-weight: 700;
+    color: #00d6a3;
+    font-size: 1.1rem;
+    text-shadow: 0 0 10px rgba(0, 214, 163, 0.3);
+}
+
+.token-symbol {
+    color: #FEE739;
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(254, 231, 57, 0.4);
+}
+
+.timestamp {
+    color: #ffffff;
+    font-size: 0.9rem;
+}
+
+
+.transaction-link {
+    color: var(--primary-yellow);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.transaction-link:hover {
+    color: #FFD700;
+    text-decoration: underline;
+}
+
+.badge {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge.bg-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+    color: white;
+}
+
+.badge.bg-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%) !important;
+    color: #000;
+}
+
+.badge.bg-info {
+    background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%) !important;
+    color: white;
+}
+
+.badge.bg-secondary {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%) !important;
+    color: white;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .card-header {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .filter-buttons {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .filter-btn {
+        flex: 1;
+        text-align: center;
+    }
+
+    .claim-table {
+        font-size: 0.9rem;
+    }
+
+    .claim-table thead th,
+    .claim-table tbody td {
+        padding: 0.75rem 0.5rem;
+    }
+
+    .amount-value {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .claim-details-card {
+        margin: 0 -0.5rem;
+        border-radius: 15px;
+    }
+
+    .card-header {
+        padding: 1rem 0.75rem;
+    }
+
+    .card-title {
+        font-size: 1.25rem;
+    }
+
+    .filter-buttons {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .filter-btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+    }
+
+    .claim-table {
+        font-size: 0.8rem;
+    }
+
+    .claim-table thead th,
+    .claim-table tbody td {
+        padding: 0.5rem 0.25rem;
+    }
+
+    .amount-value {
+        font-size: 0.9rem;
+    }
+
+    .timestamp {
+        font-size: 0.8rem;
+    }
+
+    .badge {
+        font-size: 0.7rem;
+        padding: 0.3rem 0.6rem;
+    }
+}
+
+/* Loading and Empty States */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+    border-width: 0.3em;
+}
+
+.text-muted {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.text-white-50 {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Animation */
+.claim-table tbody tr {
+    transition: all 0.3s ease;
+}
+
+.claim-table tbody tr:hover {
+    transform: translateX(5px);
+}
+
+/* Icon Styles */
+.fas {
+    font-size: 1.1rem;
+}
+
+.fa-user {
+    color: #007bff;
+}
+
+.fa-users {
+    color: #17a2b8;
+}
+
+.fa-trophy {
+    color: #ffc107;
+}
+
+.fa-coins {
+    color: #28a745;
+}
+
+.fa-gift {
+    color: #6c757d;
+}
+
+.fa-history {
+    color: var(--primary-yellow);
+}
+
+.fa-external-link-alt {
+    font-size: 0.8rem;
+}
+
+/* Enhanced Table Styles */
+.claim-table.table-dark {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+.claim-table.table-striped tbody tr:nth-of-type(odd) {
+    background: rgba(255, 215, 0, 0.03);
+}
+
+.claim-table.table-striped tbody tr:nth-of-type(even) {
+    background: rgba(255, 215, 0, 0.01);
+}
+
+.claim-row {
+    transition: all 0.3s ease;
+}
+
+.claim-row:hover {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 215, 0, 0.05) 100%) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+}
+
+.claim-index {
+    background: linear-gradient(135deg, #FEE739 0%, #FFD700 100%);
+    color: #032233;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 800;
+    font-size: 0.9rem;
+    display: inline-block;
+    min-width: 40px;
+    text-align: center;
+    box-shadow: 0 0 15px rgba(254, 231, 57, 0.4);
+}
+
+/* Pagination Styles */
+.pagination-controls {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.pagination-controls {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.pagination-controls .page-link {
+    background: rgba(3, 53, 61, 0.6);
+    border: 1px solid rgba(254, 231, 57, 0.3);
+    color: rgba(255, 255, 255, 0.8);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    font-size: 0.9rem;
+    min-width: 40px;
+    text-align: center;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.pagination-controls .page-link:hover {
+    background: rgba(254, 231, 57, 0.2);
+    color: #FEE739;
+    border-color: rgba(254, 231, 57, 0.5);
+    transform: translateY(-2px);
+}
+
+.pagination-controls .page-link.active {
+    background: linear-gradient(135deg, #00d6a3 0%, #00FFA3 100%);
+    color: #032233;
+    border-color: #00d6a3;
+    font-weight: 700;
+    box-shadow: 0 0 15px rgba(0, 214, 163, 0.4);
+}
+
+.pagination-controls .page-link.disabled {
+    background: rgba(3, 53, 61, 0.3);
+    color: rgba(255, 255, 255, 0.4);
+    border-color: rgba(254, 231, 57, 0.2);
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Records Info */
+.text-muted {
+    color: rgba(255, 255, 255, 0.7) !important;
+}

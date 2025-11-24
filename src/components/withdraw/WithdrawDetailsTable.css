@@ -1,0 +1,290 @@
+/* Level Team Details Table Styles */
+.level-team-details-table {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Level Buttons Container */
+.level-buttons-container {
+    margin-bottom: 20px;
+}
+
+.level-buttons {
+    display: flex;
+    flex-wrap: nowrap;
+    /* force single line */
+    gap: 6px;
+    justify-content: space-between;
+    /* spread buttons across line */
+    align-items: center;
+    /* space for scrollbar */
+}
+
+.level-button {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex: 1 1 auto;
+    /* allow equal growth per button */
+    min-width: 60px;
+    /* ensure readability */
+    white-space: nowrap;
+    flex-shrink: 0;
+    /* prevent buttons from shrinking */
+}
+
+.level-button:hover {
+    background: rgba(254, 231, 57, 0.2);
+    border-color: #FEE739;
+    color: #FEE739;
+    transform: translateY(-2px);
+}
+
+.level-button.active {
+    background: #FEE739;
+    border-color: #FEE739;
+    color: #000000;
+    box-shadow: 0 4px 12px rgba(254, 231, 57, 0.3);
+}
+
+.level-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Table Container */
+.table-container {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.table-header h6 {
+    color: #FEE739;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+/* Table Styles */
+.table-responsive {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table {
+    margin-bottom: 0;
+    background: transparent;
+}
+
+.table thead th {
+    background: rgba(254, 231, 57, 0.1);
+    border-bottom: 2px solid #FEE739;
+    color: #FEE739;
+    font-weight: 700;
+    padding: 12px 15px;
+    text-align: center;
+}
+
+.table tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.table tbody tr:hover {
+    background: rgba(254, 231, 57, 0.05);
+    transform: translateY(-1px);
+}
+
+.table tbody td {
+    padding: 12px 15px;
+    vertical-align: middle;
+    text-align: center;
+    border: none;
+}
+
+/* Address Text */
+.address-text {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+/* Stake Amount */
+.stake-amount {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+/* Time Text */
+.time-text {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Pagination Styles */
+.pagination-container {
+    margin-top: 20px;
+}
+
+.pagination {
+    margin-bottom: 0;
+}
+
+.page-link {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    padding: 8px 12px;
+    margin: 0 2px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.page-link:hover {
+    background: rgba(254, 231, 57, 0.2);
+    border-color: #FEE739;
+    color: #FEE739;
+}
+
+.page-item.active .page-link {
+    background: #FEE739;
+    border-color: #FEE739;
+    color: #000000;
+    font-weight: 600;
+}
+
+.page-item.disabled .page-link {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Loading Spinner */
+.spinner-border {
+    width: 2rem;
+    height: 2rem;
+    border-width: 0.2em;
+}
+
+/* Alert Styles */
+.alert {
+    border-radius: 8px;
+    border: none;
+    padding: 15px 20px;
+}
+
+.alert-danger {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+    border-left: 4px solid #dc3545;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .level-team-details-table {
+        padding: 15px;
+    }
+
+    .level-buttons {
+        gap: 8px;
+    }
+
+    .level-button {
+        padding: 6px 12px;
+        font-size: 12px;
+        min-width: 60px;
+    }
+
+    .table-container {
+        padding: 15px;
+    }
+
+    .table thead th,
+    .table tbody td {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+
+    .address-text {
+        font-size: 10px;
+        padding: 2px 6px;
+    }
+
+    .time-text {
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 576px) {
+    .level-buttons {
+        justify-content: flex-start;
+        overflow-x: auto;
+        padding-bottom: 10px;
+    }
+
+    .level-button {
+        flex-shrink: 0;
+    }
+
+    .table-responsive {
+        font-size: 11px;
+    }
+
+    .pagination {
+        flex-wrap: wrap;
+    }
+
+    .page-link {
+        padding: 6px 8px;
+        font-size: 12px;
+    }
+}
+
+/* Animation for smooth transitions */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.table-container {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Custom scrollbar for table */
+.table-responsive::-webkit-scrollbar {
+    height: 6px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: rgba(254, 231, 57, 0.5);
+    border-radius: 3px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: rgba(254, 231, 57, 0.7);
+}

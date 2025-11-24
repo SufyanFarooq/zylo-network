@@ -1,0 +1,316 @@
+/* Staking Levels Table Styles */
+.staking-levels-table {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.table-container {
+    padding: 24px;
+}
+
+.table-header {
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.table-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #FEE739;
+    margin: 0 0 8px 0;
+    text-shadow: 0 0 20px rgba(254, 231, 57, 0.3);
+}
+
+.table-subtitle {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+}
+
+.table-wrapper {
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.levels-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: transparent;
+    table-layout: fixed;
+}
+
+.levels-table thead {
+    background: linear-gradient(135deg, rgba(254, 231, 57, 0.1), rgba(254, 231, 57, 0.05));
+}
+
+.levels-table th {
+    padding: 16px 8px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 14px;
+    color: #FEE739;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid rgba(254, 231, 57, 0.3);
+}
+
+.levels-table th:nth-child(1) {
+    width: 8%;
+}
+
+.levels-table th:nth-child(2) {
+    width: 45%;
+}
+
+.levels-table th:nth-child(3) {
+    width: 22%;
+}
+
+.levels-table th:nth-child(4) {
+    width: 25%;
+}
+
+.levels-table td {
+    padding: 16px 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    vertical-align: middle;
+}
+
+.table-row {
+    transition: all 0.3s ease;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.table-row:hover {
+    background: rgba(0, 214, 163, 0.1);
+    transform: translateX(4px);
+}
+
+.table-row.selected {
+    background: rgba(254, 231, 57, 0.15);
+    border-left: 4px solid #FEE739;
+}
+
+.table-row.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.table-row.disabled:hover {
+    background: rgba(255, 255, 255, 0.02);
+    transform: none;
+}
+
+.level-cell {
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.level-number {
+    font-size: 16px;
+    font-weight: 700;
+    color: #FEE739;
+}
+
+.stake-cell,
+.reward-cell,
+.duration-cell {
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.stake-amount,
+.reward-amount,
+.duration-text {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.status-cell {
+    text-align: center;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-active {
+    background: linear-gradient(135deg, #00d6a3, #1a1a1a);
+    color: #ffffff;
+    border: 1px solid rgba(0, 214, 163, 0.5);
+    box-shadow: 0 4px 12px rgba(0, 214, 163, 0.3);
+}
+
+.status-inactive {
+    background: linear-gradient(135deg, #6b7280, #1a1a1a);
+    color: #ffffff;
+    border: 1px solid rgba(107, 114, 128, 0.5);
+    box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+}
+
+.status-locked {
+    background: linear-gradient(135deg, #f59e0b, #1a1a1a);
+    color: #ffffff;
+    border: 1px solid rgba(245, 158, 11, 0.5);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+/* Pagination Styles */
+.pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 24px;
+    padding: 16px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.pagination-info {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.pagination-btn {
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: rgba(0, 214, 163, 0.2);
+    border-color: rgba(0, 214, 163, 0.5);
+    transform: translateY(-2px);
+}
+
+.pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-numbers {
+    display: flex;
+    gap: 8px;
+}
+
+.pagination-number {
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 40px;
+    text-align: center;
+}
+
+.pagination-number:hover {
+    background: rgba(0, 214, 163, 0.2);
+    border-color: rgba(0, 214, 163, 0.5);
+    transform: translateY(-2px);
+}
+
+.pagination-number.active {
+    background: linear-gradient(135deg, #00d6a3, #1a1a1a);
+    border-color: rgba(0, 214, 163, 0.8);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 214, 163, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .table-container {
+        padding: 16px;
+    }
+
+    .table-title {
+        font-size: 20px;
+    }
+
+    .levels-table th,
+    .levels-table td {
+        padding: 12px 6px;
+        font-size: 13px;
+    }
+
+    .levels-table th:nth-child(1) {
+        width: 10%;
+    }
+
+    .levels-table th:nth-child(2) {
+        width: 40%;
+    }
+
+    .levels-table th:nth-child(3) {
+        width: 25%;
+    }
+
+    .levels-table th:nth-child(4) {
+        width: 25%;
+    }
+
+    .pagination-container {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+    }
+
+    .pagination-controls {
+        justify-content: center;
+    }
+
+    .pagination-numbers {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .table-container {
+        padding: 12px;
+    }
+
+    .table-title {
+        font-size: 18px;
+    }
+
+    .levels-table th,
+    .levels-table td {
+        padding: 10px 6px;
+        font-size: 12px;
+    }
+
+    .pagination-btn,
+    .pagination-number {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+}
