@@ -42,12 +42,16 @@ interface UnitCard {
 
 interface PowerUpUnitCardsProps {
   onZoneCardClick?: (_unitIndex: number) => void;
+  onPowerUpClick?: (_unitIndex: number) => void; // Navigate to Power UP section
+  onUnitsClick?: (_unitIndex: number) => void; // Navigate to Units section
   showZoneCards?: boolean;
   selectedZoneUnit?: number | null;
 }
 
 const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
   onZoneCardClick,
+  onPowerUpClick,
+  onUnitsClick,
   showZoneCards: externalShowZoneCards,
   selectedZoneUnit: externalSelectedZoneUnit
 }) => {
@@ -59,8 +63,8 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
 
   // Use external props if provided, otherwise use internal state
   const showZoneCards = externalShowZoneCards !== undefined ? externalShowZoneCards : internalShowZoneCards;
-  // Note: selectedZoneUnit is used via externalSelectedZoneUnit prop directly
-  // const selectedZoneUnit = externalSelectedZoneUnit !== undefined ? externalSelectedZoneUnit : null;
+  // Use external selectedZoneUnit if provided, otherwise use internal selectedUnit
+  const selectedZoneUnit = externalSelectedZoneUnit !== undefined ? externalSelectedZoneUnit : selectedUnit;
   const [units, setUnits] = useState<UnitCard[]>([
     { unitIndex: 0, name: 'SPARK UP', powerUps: [], isLoading: false },
     { unitIndex: 1, name: 'FLICKER ROAR', powerUps: [], isLoading: false },
@@ -314,17 +318,25 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
     }
   }, [externalSelectedZoneUnit]);
 
-  // Load all units when showZoneCards is false and no unit is selected (Units tab)
-  useEffect(() => {
-    if (!showZoneCards && selectedUnit === null && isConnected && address && walletClient) {
-      // Load all units' power ups
-      [0, 1, 2, 3].forEach((unitIndex) => { // Skip Zylo Universe (4)
-        handleLoadUnitPowerUps(unitIndex);
-      });
-    }
-  }, [showZoneCards, selectedUnit, isConnected, address, walletClient, handleLoadUnitPowerUps]);
+  // Use selectedZoneUnit (from prop or internal state) for filtering
+  const effectiveSelectedUnit = externalSelectedZoneUnit !== undefined ? externalSelectedZoneUnit : selectedUnit;
 
-  const currentUnit = selectedUnit !== null ? units.find(u => u.unitIndex === selectedUnit) : null;
+  // Load units based on selected unit
+  useEffect(() => {
+    if (!showZoneCards && isConnected && address && walletClient) {
+      if (effectiveSelectedUnit !== null) {
+        // Load only selected unit's power ups
+        handleLoadUnitPowerUps(effectiveSelectedUnit);
+      } else {
+        // Load all units' power ups when no unit is selected
+        [0, 1, 2, 3].forEach((unitIndex) => { // Skip Zylo Universe (4)
+          handleLoadUnitPowerUps(unitIndex);
+        });
+      }
+    }
+  }, [showZoneCards, effectiveSelectedUnit, isConnected, address, walletClient, handleLoadUnitPowerUps]);
+
+  const currentUnit = effectiveSelectedUnit !== null ? units.find(u => u.unitIndex === effectiveSelectedUnit) : null;
 
   // Show zone cards view
   if (showZoneCards) {
@@ -550,51 +562,108 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                       {zone.name}
                     </h3>
 
-                    {/* Power UP Button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (!zone.isComingSoon) {
-                          handleZoneCardClick(zone.unitIndex);
-                        }
-                      }}
-                      disabled={zone.isComingSoon}
-                      style={{
-                        background: zone.isComingSoon 
-                          ? 'rgba(128, 128, 128, 0.2)' 
-                          : `linear-gradient(135deg, ${zone.borderColor}20 0%, ${zone.borderColor}10 100%)`,
-                        border: `2px solid ${zone.borderColor}`,
-                        color: zone.titleColor,
-                        padding: '0.6rem 1.5rem',
-                        borderRadius: '12px',
-                        fontSize: '0.9rem',
-                        fontWeight: '700',
-                        textTransform: 'uppercase',
-                        letterSpacing: '1px',
-                        cursor: zone.isComingSoon ? 'not-allowed' : 'pointer',
-                        transition: 'all 0.3s ease',
-                        boxShadow: `0 4px 12px ${zone.borderColor}30`,
-                        opacity: zone.isComingSoon ? 0.5 : 1,
-                        width: '100%',
-                        maxWidth: '160px',
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!zone.isComingSoon) {
-                          e.currentTarget.style.background = `linear-gradient(135deg, ${zone.borderColor}40 0%, ${zone.borderColor}20 100%)`;
-                          e.currentTarget.style.transform = 'translateY(-2px)';
-                          e.currentTarget.style.boxShadow = `0 6px 16px ${zone.borderColor}50`;
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!zone.isComingSoon) {
-                          e.currentTarget.style.background = `linear-gradient(135deg, ${zone.borderColor}20 0%, ${zone.borderColor}10 100%)`;
-                          e.currentTarget.style.transform = 'translateY(0)';
-                          e.currentTarget.style.boxShadow = `0 4px 12px ${zone.borderColor}30`;
-                        }
-                      }}
-                    >
-                      Power UP
-                    </button>
+                    {/* Buttons Container */}
+                    <div style={{
+                      display: 'flex',
+                      gap: '0.75rem',
+                      width: '100%',
+                      maxWidth: '320px',
+                      justifyContent: 'center',
+                    }}>
+                      {/* Power UP Button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!zone.isComingSoon) {
+                            if (onPowerUpClick) {
+                              onPowerUpClick(zone.unitIndex);
+                            } else {
+                              handleZoneCardClick(zone.unitIndex);
+                            }
+                          }
+                        }}
+                        disabled={zone.isComingSoon}
+                        style={{
+                          background: zone.isComingSoon 
+                            ? 'rgba(128, 128, 128, 0.2)' 
+                            : `linear-gradient(135deg, ${zone.borderColor}20 0%, ${zone.borderColor}10 100%)`,
+                          border: `2px solid ${zone.borderColor}`,
+                          color: zone.titleColor,
+                          padding: '0.6rem 1.2rem',
+                          borderRadius: '12px',
+                          fontSize: '0.9rem',
+                          fontWeight: '700',
+                          textTransform: 'uppercase',
+                          letterSpacing: '1px',
+                          cursor: zone.isComingSoon ? 'not-allowed' : 'pointer',
+                          transition: 'all 0.3s ease',
+                          boxShadow: `0 4px 12px ${zone.borderColor}30`,
+                          opacity: zone.isComingSoon ? 0.5 : 1,
+                          flex: 1,
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!zone.isComingSoon) {
+                            e.currentTarget.style.background = `linear-gradient(135deg, ${zone.borderColor}40 0%, ${zone.borderColor}20 100%)`;
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                            e.currentTarget.style.boxShadow = `0 6px 16px ${zone.borderColor}50`;
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!zone.isComingSoon) {
+                            e.currentTarget.style.background = `linear-gradient(135deg, ${zone.borderColor}20 0%, ${zone.borderColor}10 100%)`;
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = `0 4px 12px ${zone.borderColor}30`;
+                          }
+                        }}
+                      >
+                        Power UP
+                      </button>
+
+                      {/* Units Button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!zone.isComingSoon && onUnitsClick) {
+                            onUnitsClick(zone.unitIndex);
+                          }
+                        }}
+                        disabled={zone.isComingSoon}
+                        style={{
+                          background: zone.isComingSoon 
+                            ? 'rgba(128, 128, 128, 0.2)' 
+                            : `linear-gradient(135deg, ${zone.rewardColor}20 0%, ${zone.rewardColor}10 100%)`,
+                          border: `2px solid ${zone.rewardColor}`,
+                          color: zone.rewardColor,
+                          padding: '0.6rem 1.2rem',
+                          borderRadius: '12px',
+                          fontSize: '0.9rem',
+                          fontWeight: '700',
+                          textTransform: 'uppercase',
+                          letterSpacing: '1px',
+                          cursor: zone.isComingSoon ? 'not-allowed' : 'pointer',
+                          transition: 'all 0.3s ease',
+                          boxShadow: `0 4px 12px ${zone.rewardColor}30`,
+                          opacity: zone.isComingSoon ? 0.5 : 1,
+                          flex: 1,
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!zone.isComingSoon) {
+                            e.currentTarget.style.background = `linear-gradient(135deg, ${zone.rewardColor}40 0%, ${zone.rewardColor}20 100%)`;
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                            e.currentTarget.style.boxShadow = `0 6px 16px ${zone.rewardColor}50`;
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!zone.isComingSoon) {
+                            e.currentTarget.style.background = `linear-gradient(135deg, ${zone.rewardColor}20 0%, ${zone.rewardColor}10 100%)`;
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = `0 4px 12px ${zone.rewardColor}30`;
+                          }
+                        }}
+                      >
+                        Units
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -639,28 +708,35 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
 
       {/* Power Up Details Cards */}
       <div className="power-up-details-section">
-        {!currentUnit && selectedUnit === null ? (
-          // Show all units' power-ups when no specific unit is selected (Units tab)
+        {!currentUnit && effectiveSelectedUnit === null ? (
+          // Show all units' power-ups when no specific unit is selected
           <div className="power-up-cards-carousel" style={{ overflow: 'visible' }}>
             {isMounted ? (
               <Slider
                 dots={true}
                 infinite={false}
                 speed={500}
-                slidesToShow={5}
+                slidesToShow={4}
                 slidesToScroll={1}
                 responsive={[
                   {
-                    breakpoint: 1400,
+                    breakpoint: 1600,
                     settings: {
                       slidesToShow: 4,
                       slidesToScroll: 1,
                     }
                   },
                   {
-                    breakpoint: 1200,
+                    breakpoint: 1400,
                     settings: {
                       slidesToShow: 3,
+                      slidesToScroll: 1,
+                    }
+                  },
+                  {
+                    breakpoint: 1200,
+                    settings: {
+                      slidesToShow: 2,
                       slidesToScroll: 1,
                     }
                   },
@@ -694,181 +770,297 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
               >
                 {units.map((unit) => 
                   unit.powerUps.map((powerUp, index) => (
-                    <div key={`${unit.unitIndex}-${index}`} style={{ padding: '0 12px' }}>
+                    <div key={`${unit.unitIndex}-${index}`} style={{ padding: '0 15px' }}>
                       <div style={{ position: 'relative' }}>
-                        <div
-                          className="power-up-detail-card"
-                          style={{
-                            background: 'linear-gradient(145deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)',
-                            borderRadius: '24px',
-                            padding: '1.5rem 1rem',
-                            border: '2px solid rgba(0, 214, 163, 0.3)',
-                            transition: 'all 0.3s ease',
-                            minHeight: '320px',
+                      <div
+                        className="power-up-detail-card"
+                        style={{
+                          background: 'linear-gradient(145deg, #0a0a1a 0%, #0f0f23 50%, #1a1a2e 100%)',
+                          borderRadius: '24px',
+                          padding: '0',
+                          border: '2px solid rgba(0, 214, 163, 0.3)',
+                          transition: 'all 0.3s ease',
+                          height: '572px',
+                          width: '100%',
+                          maxWidth: '320px',
+                          position: 'relative',
+                          overflow: 'hidden',
+                          margin: '0 auto',
+                          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+                          marginBottom: '1rem',
+                          display: 'flex',
+                          flexDirection: 'column',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = 'rgba(0, 214, 163, 0.6)';
+                          e.currentTarget.style.transform = 'translateY(-8px)';
+                          e.currentTarget.style.boxShadow = '0 12px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(0, 214, 163, 0.3)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = 'rgba(0, 214, 163, 0.3)';
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1)';
+                        }}
+                      >
+                          {/* Top Section - SVG Area (Like Zone Cards) */}
+                          <div style={{
+                            height: '260px',
+                            background: 'linear-gradient(135deg, #0a1a0f 0%, #1a2d1f 100%)',
                             position: 'relative',
-                            overflow: 'visible',
-                            margin: '0 auto',
-                            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
-                            marginBottom: '1rem',
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.borderColor = 'rgba(0, 214, 163, 0.6)';
-                            e.currentTarget.style.transform = 'translateY(-8px)';
-                            e.currentTarget.style.boxShadow = '0 15px 40px rgba(0, 214, 163, 0.4)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.borderColor = 'rgba(0, 214, 163, 0.3)';
-                            e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.3)';
-                          }}
-                        >
-                          {/* Status Badge - Top Right */}
-                          <div
-                            className="status-badge-tag"
-                            style={{
-                              position: 'absolute',
-                              top: '16px',
-                              right: '16px',
-                              background: powerUp.unPowerUp ? '#dc3545' : '#0080ff',
-                              color: '#ffffff',
-                              padding: '6px 14px',
-                              borderRadius: '6px',
-                              fontSize: '0.75rem',
-                              fontWeight: '700',
-                              textTransform: 'uppercase',
-                              letterSpacing: '0.5px',
-                              boxShadow: powerUp.unPowerUp
-                                ? '0 2px 8px rgba(220, 53, 69, 0.4)'
-                                : '0 2px 8px rgba(0, 128, 255, 0.4)',
-                              zIndex: 10,
-                            }}
-                          >
-                            {powerUp.unPowerUp ? 'Unpowered' : 'Active'}
-                          </div>
-
-                          {/* Unit Name - Top */}
-                          <div className="text-center mb-3" style={{ marginTop: '0.5rem' }}>
-                            <div
-                              className="text-white"
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderRadius: '22px 22px 0 0',
+                            overflow: 'hidden',
+                            borderBottom: '2px solid rgba(0, 214, 163, 0.2)'
+                          }}>
+                            {/* SVG Display - Centered and Large */}
+                            <div 
+                              className="asset-svg-container" 
                               style={{
-                                fontSize: '1.2rem',
-                                fontWeight: '700',
-                                letterSpacing: '0.5px',
-                                textShadow: '0 2px 10px rgba(0, 214, 163, 0.3)',
+                                width: '190px',
+                                height: '190px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: 'transparent',
+                                borderRadius: '50%',
+                                border: '4px solid rgba(0, 214, 163, 0.5)',
+                                boxShadow: '0 0 40px rgba(0, 214, 163, 0.4), inset 0 0 30px rgba(0, 214, 163, 0.2)',
+                                position: 'relative',
+                                animation: 'pulse-glow 2s ease-in-out infinite',
+                                zIndex: 1,
                               }}
                             >
-                              {unit.name}
-                            </div>
-                          </div>
-
-                          {/* Asset Display - Large and Prominent */}
-                          <div className="text-center mb-3">
-                            <div className="asset-svg-container" style={{
-                              width: '120px',
-                              height: '120px',
-                              margin: '0 auto',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              background: 'linear-gradient(135deg, rgba(0, 214, 163, 0.15) 0%, rgba(0, 214, 163, 0.05) 100%)',
-                              borderRadius: '50%',
-                              border: '3px solid rgba(0, 214, 163, 0.4)',
-                              boxShadow: '0 0 30px rgba(0, 214, 163, 0.2), inset 0 0 20px rgba(0, 214, 163, 0.1)',
-                            }}>
-                              <AssetRenderer
-                                unitCategory={getUnitCategory(unit.unitIndex)}
-                                assetNumber={Number(powerUp.assetsNo)}
-                                className="asset-svg"
-                              />
-                            </div>
-                            <div
-                              className="text-white mt-2"
-                              style={{
-                                fontSize: '0.9rem',
-                                fontWeight: '600',
-                                letterSpacing: '0.5px',
-                                textShadow: '0 2px 10px rgba(0, 214, 163, 0.3)',
-                              }}
-                            >
-                              {getAssetName(getUnitCategory(unit.unitIndex), Number(powerUp.assetsNo))}
-                            </div>
-                          </div>
-
-                          {/* Power Up Amount */}
-                          <div className="text-center mb-3">
-                            <div className="text-white-50 mb-1" style={{ fontSize: '0.75rem', fontWeight: '500' }}>
-                              Power Up Amount
-                            </div>
-                            <div
-                              className="fw-bold"
-                              style={{
-                                fontSize: '1.1rem',
-                                color: '#FEE739',
-                                textShadow: '0 2px 8px rgba(254, 231, 57, 0.3)',
-                              }}
-                            >
-                              {parseFloat(powerUp.powerUpToken || '0').toFixed(2)} ZYLO
-                            </div>
-                            {/* Time Display */}
-                            {powerUp.powerUpTime && (
+                              {/* Animated ripple rings */}
                               <div
-                                className="text-white-50 mt-2"
                                 style={{
-                                  fontSize: '0.85rem',
-                                  fontWeight: '400',
+                                  position: 'absolute',
+                                  width: '100%',
+                                  height: '100%',
+                                  borderRadius: '50%',
+                                  border: '2px solid rgba(0, 214, 163, 0.3)',
+                                  animation: 'ripple 2s ease-out infinite',
+                                }}
+                              />
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  width: '100%',
+                                  height: '100%',
+                                  borderRadius: '50%',
+                                  border: '2px solid rgba(0, 214, 163, 0.2)',
+                                  animation: 'ripple 2s ease-out infinite 0.5s',
+                                }}
+                              />
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  width: '100%',
+                                  height: '100%',
+                                  borderRadius: '50%',
+                                  border: '2px solid rgba(0, 214, 163, 0.1)',
+                                  animation: 'ripple 2s ease-out infinite 1s',
+                                }}
+                              />
+                              <div style={{ position: 'relative', zIndex: 2, transform: 'scale(1.05)' }}>
+                                <AssetRenderer
+                                  unitCategory={getUnitCategory(unit.unitIndex)}
+                                  assetNumber={Number(powerUp.assetsNo)}
+                                  className="asset-svg"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Active Badge - Top Right (Simple Style) */}
+                            {!powerUp.unPowerUp && (
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  top: '16px',
+                                  right: '16px',
+                                  background: 'rgba(0, 0, 0, 0.7)',
+                                  backdropFilter: 'blur(10px)',
+                                  color: '#ffffff',
+                                  padding: '6px 14px',
+                                  borderRadius: '12px',
+                                  fontSize: '0.75rem',
+                                  fontWeight: '700',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '1px',
+                                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
+                                  zIndex: 2
                                 }}
                               >
-                                {(() => {
-                                  try {
-                                    const timestamp = Number(powerUp.powerUpTime);
-                                    if (timestamp > 0) {
-                                      // Convert timestamp to date (check if it's in seconds or milliseconds)
-                                      const date = new Date(timestamp < 1e12 ? timestamp * 1000 : timestamp);
-                                      return date.toLocaleString('en-US', {
-                                        year: 'numeric',
-                                        month: 'short',
-                                        day: 'numeric',
-                                        hour: 'numeric',
-                                        minute: '2-digit',
-                                        hour12: true
-                                      });
-                                    }
-                                    return 'N/A';
-                                  } catch (error) {
-                                    return 'N/A';
-                                  }
-                                })()}
+                                Active
                               </div>
                             )}
                           </div>
+                          {/* Bottom Section - Data Area (Like Zone Cards) */}
+                          <div style={{
+                            background: 'linear-gradient(145deg, #0f0f1a 0%, #1a1a2e 100%)',
+                            padding: '1.5rem 1.75rem 1.75rem',
+                            flex: 1,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            borderRadius: '0 0 22px 22px',
+                            minHeight: '312px'
+                          }}>
+                            {/* Asset Name - Title */}
+                            <div style={{ marginTop: '8px', marginBottom: '8px' }}>
+                              <h3 style={{
+                                fontSize: '1.5rem',
+                                fontWeight: '800',
+                                color: '#00d6a3',
+                                margin: '0',
+                                paddingTop: '6px',
+                                paddingBottom: '10px',
+                                textShadow: '0 2px 8px rgba(0, 0, 0, 0.8), 0 0 12px rgba(0, 214, 163, 0.4)',
+                                letterSpacing: '0.5px',
+                                textAlign: 'center',
+                                textTransform: 'uppercase',
+                              }}>
+                                {getAssetName(getUnitCategory(unit.unitIndex), Number(powerUp.assetsNo))}
+                              </h3>
+                            </div>
 
-                          {/* Reward Section */}
-                          <div
-                            style={{
-                              background: 'rgba(254, 231, 57, 0.1)',
-                              border: '2px solid rgba(254, 231, 57, 0.3)',
-                              borderRadius: '12px',
-                              padding: '1rem',
-                              marginTop: '1rem',
-                            }}
-                          >
-                            <div className="text-center">
-                              <div className="text-white-50 mb-1" style={{ fontSize: '0.75rem', fontWeight: '500', textTransform: 'uppercase' }}>
-                                SELF POWER UP REWARD
-                              </div>
-                              <div
-                                className="fw-bold"
-                                style={{
-                                  fontSize: '1.2rem',
+                            {/* Power Up Amount and Time - Side by Side */}
+                            <div style={{
+                              display: 'flex',
+                              gap: '10px',
+                              marginBottom: '10px',
+                            }}>
+                              {/* Power Up Amount Box - Smaller */}
+                              <div style={{
+                                background: 'rgba(0, 214, 163, 0.1)',
+                                padding: '8px 10px',
+                                borderRadius: '8px',
+                                border: '1px solid rgba(0, 214, 163, 0.3)',
+                                backdropFilter: 'blur(5px)',
+                                flex: 1,
+                              }}>
+                                <div style={{
+                                  fontSize: '12px',
+                                  color: 'rgba(255, 255, 255, 0.7)',
+                                  fontWeight: '600',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.5px',
+                                  marginBottom: '0.4rem',
+                                  textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
+                                  textAlign: 'center',
+                                }}>
+                                  Power Up Amount
+                                </div>
+                                <div style={{
+                                  fontSize: '14px',
+                                  fontWeight: '400',
                                   color: '#FEE739',
-                                  textShadow: '0 2px 8px rgba(254, 231, 57, 0.4)',
+                                  textShadow: '0 1px 3px rgba(0, 0, 0, 0.6)',
+                                  lineHeight: '1.2',
+                                  textAlign: 'center',
+                                  whiteSpace: 'nowrap',
+                                }}>
+                                  <span style={{ fontWeight: '700' }}>{parseFloat(powerUp.powerUpToken || '0').toFixed(2)}</span> <span style={{ fontSize: '13px', fontWeight: '400' }}>ZYLO</span>
+                                </div>
+                              </div>
+
+                              {/* Time Box - Smaller */}
+                              {powerUp.powerUpTime && (
+                                <div style={{
+                                  background: 'rgba(0, 214, 163, 0.1)',
+                                  padding: '8px 10px',
+                                  borderRadius: '8px',
+                                  border: '1px solid rgba(0, 214, 163, 0.3)',
+                                  backdropFilter: 'blur(5px)',
+                                  flex: 1,
+                                }}>
+                                  <div style={{
+                                    fontSize: '12px',
+                                    color: 'rgba(255, 255, 255, 0.7)',
+                                    fontWeight: '600',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.5px',
+                                    marginBottom: '0.4rem',
+                                    textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
+                                    textAlign: 'center',
+                                  }}>
+                                    Time
+                                  </div>
+                                  <div
+                                    style={{
+                                      fontSize: '14px',
+                                      fontWeight: '400',
+                                      color: '#FEE739',
+                                      fontStyle: 'normal',
+                                      textAlign: 'center',
+                                      lineHeight: '17px',
+                                      whiteSpace: 'nowrap',
+                                    }}
+                                  >
+                                    {(() => {
+                                      try {
+                                        const timestamp = Number(powerUp.powerUpTime);
+                                        if (timestamp > 0) {
+                                          const date = new Date(timestamp < 1e12 ? timestamp * 1000 : timestamp);
+                                          if (!isNaN(date.getTime())) {
+                                            return date.toLocaleString('en-US', {
+                                              month: 'short',
+                                              day: 'numeric',
+                                              hour: '2-digit',
+                                              minute: '2-digit',
+                                              hour12: true
+                                            });
+                                          }
+                                        }
+                                        return 'N/A';
+                                      } catch {
+                                        return 'N/A';
+                                      }
+                                    })()}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Reward Box - Button Style */}
+                            <div style={{
+                              background: 'rgba(254, 231, 57, 0.15)',
+                              padding: '0',
+                              borderRadius: '8px',
+                              border: '2px solid rgba(254, 231, 57, 0.4)',
+                              backdropFilter: 'blur(5px)',
+                              boxShadow: '0 4px 12px rgba(254, 231, 57, 0.2)',
+                              marginTop: '10px',
+                              overflow: 'hidden',
+                            }}>
+                              <button
+                                style={{
+                                  width: '100%',
+                                  height: '40px',
+                                  background: 'transparent',
+                                  border: 'none',
+                                  color: '#FEE739',
+                                  fontSize: '13px',
+                                  fontWeight: '700',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.5px',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  transition: 'all 0.3s ease',
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background = 'rgba(254, 231, 57, 0.2)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background = 'transparent';
                                 }}
                               >
-                                {powerUp.isLoadingReward ? 'Loading...' : `${parseFloat(powerUp.reward || '0').toFixed(4)} ZYLO`}
-                              </div>
-                              <div className="text-white-50 mt-1" style={{ fontSize: '0.7rem', fontWeight: '400' }}>
-                                Available reward
-                              </div>
+                                SELF POWER UP REWARD
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -905,20 +1097,27 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                 dots={true}
                 infinite={false}
                 speed={500}
-                slidesToShow={5}
+                slidesToShow={4}
                 slidesToScroll={1}
                 responsive={[
                   {
-                    breakpoint: 1400,
+                    breakpoint: 1600,
                     settings: {
                       slidesToShow: 4,
                       slidesToScroll: 1,
                     }
                   },
                   {
-                    breakpoint: 1200,
+                    breakpoint: 1400,
                     settings: {
                       slidesToShow: 3,
+                      slidesToScroll: 1,
+                    }
+                  },
+                  {
+                    breakpoint: 1200,
+                    settings: {
+                      slidesToShow: 2,
                       slidesToScroll: 1,
                     }
                   },
@@ -951,232 +1150,300 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                 }
               >
                 {currentUnit.powerUps.map((powerUp, index) => (
-                  <div key={index} style={{ padding: '0 12px' }}>
+                  <div key={index} style={{ padding: '0 15px' }}>
                     <div style={{ position: 'relative' }}>
                       <div
                         className="power-up-detail-card"
                         style={{
-                          background: 'linear-gradient(145deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)',
+                          background: 'linear-gradient(145deg, #0a0a1a 0%, #0f0f23 50%, #1a1a2e 100%)',
                           borderRadius: '24px',
-                          padding: '1.5rem 1rem',
+                          padding: '0',
                           border: '2px solid rgba(0, 214, 163, 0.3)',
                           transition: 'all 0.3s ease',
-                          minHeight: '320px',
+                          height: '572px',
+                          width: '100%',
+                          maxWidth: '320px',
                           position: 'relative',
-                          overflow: 'visible',
+                          overflow: 'hidden',
                           margin: '0 auto',
-                          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+                          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1)',
                           marginBottom: '1rem',
+                          display: 'flex',
+                          flexDirection: 'column',
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.borderColor = 'rgba(0, 214, 163, 0.6)';
                           e.currentTarget.style.transform = 'translateY(-8px)';
-                          e.currentTarget.style.boxShadow = '0 15px 40px rgba(0, 214, 163, 0.4)';
+                          e.currentTarget.style.boxShadow = '0 12px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(0, 214, 163, 0.3)';
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.borderColor = 'rgba(0, 214, 163, 0.3)';
                           e.currentTarget.style.transform = 'translateY(0)';
-                          e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.3)';
+                          e.currentTarget.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1)';
                         }}
                       >
-                        {/* Status Badge - Top Right */}
-                        <div
-                          className="status-badge-tag"
-                          style={{
-                            position: 'absolute',
-                            top: '16px',
-                            right: '16px',
-                            background: powerUp.unPowerUp ? '#dc3545' : '#0080ff',
-                            color: '#ffffff',
-                            padding: '6px 14px',
-                            borderRadius: '6px',
-                            fontSize: '0.75rem',
-                            fontWeight: '700',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.5px',
-                            boxShadow: powerUp.unPowerUp
-                              ? '0 2px 8px rgba(220, 53, 69, 0.4)'
-                              : '0 2px 8px rgba(0, 128, 255, 0.4)',
-                            zIndex: 10,
-                          }}
-                        >
-                          {powerUp.unPowerUp ? 'Unpowered' : 'Active'}
-                        </div>
-
-                        {/* Asset Display - Large and Prominent */}
-                        <div className="text-center mb-3" style={{ marginTop: '0.25rem' }}>
-                          <div className="asset-svg-container" style={{
-                            width: '100px',
-                            height: '100px',
-                            margin: '0 auto',
+                          {/* Top Section - SVG Area (Like Zone Cards) */}
+                          <div style={{
+                            height: '260px',
+                            background: 'linear-gradient(135deg, #0a1a0f 0%, #1a2d1f 100%)',
+                            position: 'relative',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            background: 'linear-gradient(135deg, rgba(0, 214, 163, 0.15) 0%, rgba(0, 214, 163, 0.05) 100%)',
-                            borderRadius: '50%',
-                            border: '3px solid rgba(0, 214, 163, 0.4)',
-                            boxShadow: '0 0 30px rgba(0, 214, 163, 0.2), inset 0 0 20px rgba(0, 214, 163, 0.1)',
-                          }}>
-                            <AssetRenderer
-                              unitCategory={getUnitCategory(currentUnit.unitIndex)}
-                              assetNumber={Number(powerUp.assetsNo)}
-                              className="asset-svg"
-                            />
-                          </div>
-                          <div
-                            className="text-white mt-2"
-                            style={{
-                              fontSize: '1.1rem',
-                              fontWeight: '700',
-                              letterSpacing: '0.5px',
-                              textShadow: '0 2px 10px rgba(0, 214, 163, 0.3)',
-                            }}
-                          >
-                            {getAssetName(getUnitCategory(currentUnit.unitIndex), Number(powerUp.assetsNo))}
-                          </div>
-                        </div>
-
-                        {/* Token Quantity - Prominent Display */}
-                        <div className="power-up-details" style={{ marginTop: '1.25rem' }}>
-                          <div
-                            className="text-center"
-                            style={{
-                              background: 'rgba(0, 214, 163, 0.08)',
-                              borderRadius: '12px',
-                              padding: '0.75rem',
-                              border: '1px solid rgba(0, 214, 163, 0.2)',
-                            }}
-                          >
-                            <div className="text-white-50 mb-1" style={{ fontSize: '0.75rem', fontWeight: '500' }}>
-                              Power Up Amount
-                            </div>
-                            <div
-                              className="fw-bold"
-                              style={{
-                                color: '#FEE739',
-                                fontSize: '1.1rem',
-                                textShadow: '0 2px 8px rgba(254, 231, 57, 0.3)',
-                              }}
-                            >
-                              {parseFloat(powerUp.powerUpToken || '0').toFixed(2)} ZYLO
-                            </div>
-                            {/* Time Display */}
-                            {powerUp.powerUpTime && (
-                              <div
-                                className="text-white-50 mt-2"
-                                style={{
-                                  fontSize: '0.75rem',
-                                  fontStyle: 'italic',
-                                }}
-                              >
-                                {(() => {
-                                  try {
-                                    const timestamp = Number(powerUp.powerUpTime);
-                                    if (timestamp > 0) {
-                                      // Convert timestamp to date (check if it's in seconds or milliseconds)
-                                      const date = new Date(timestamp < 1e12 ? timestamp * 1000 : timestamp);
-                                      if (!isNaN(date.getTime())) {
-                                        return date.toLocaleString('en-US', {
-                                          year: 'numeric',
-                                          month: 'short',
-                                          day: 'numeric',
-                                          hour: '2-digit',
-                                          minute: '2-digit'
-                                        });
-                                      }
-                                    }
-                                    return 'N/A';
-                                  } catch {
-                                    return 'N/A';
-                                  }
-                                })()}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Reward Display - Always shown below token amount */}
-                        <div
-                          style={{
-                            marginTop: '0.75rem',
-                            background: 'linear-gradient(145deg, rgba(254, 231, 57, 0.15) 0%, rgba(254, 231, 57, 0.05) 100%)',
-                            borderRadius: '16px',
-                            padding: '1rem',
-                            border: '2px solid rgba(254, 231, 57, 0.4)',
-                            boxShadow: '0 8px 30px rgba(254, 231, 57, 0.2)',
-                            position: 'relative',
+                            borderRadius: '22px 22px 0 0',
                             overflow: 'hidden',
-                          }}
-                        >
-                          {/* Decorative glow effect */}
-                          <div
-                            style={{
-                              position: 'absolute',
-                              top: '-50%',
-                              left: '-50%',
-                              width: '200%',
-                              height: '200%',
-                              background: 'radial-gradient(circle, rgba(254, 231, 57, 0.1) 0%, transparent 70%)',
-                              animation: 'pulse 2s ease-in-out infinite',
-                            }}
-                          />
-
-                          <div style={{ position: 'relative', zIndex: 1 }}>
-                            <div
-                              className="text-center mb-2"
+                            borderBottom: '2px solid rgba(0, 214, 163, 0.2)'
+                          }}>
+                            {/* SVG Display - Centered and Large */}
+                            <div 
+                              className="asset-svg-container" 
                               style={{
-                                fontSize: '0.75rem',
-                                fontWeight: '600',
-                                color: '#FEE739',
-                                textTransform: 'uppercase',
-                                letterSpacing: '1px',
-                                textShadow: '0 2px 10px rgba(254, 231, 57, 0.3)',
+                                width: '190px',
+                                height: '190px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: 'transparent',
+                                borderRadius: '50%',
+                                border: '4px solid rgba(0, 214, 163, 0.5)',
+                                boxShadow: '0 0 40px rgba(0, 214, 163, 0.4), inset 0 0 30px rgba(0, 214, 163, 0.2)',
+                                position: 'relative',
+                                animation: 'pulse-glow 2s ease-in-out infinite',
+                                zIndex: 1,
                               }}
                             >
-                              Self Power Up Reward
+                              {/* Animated ripple rings */}
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  width: '100%',
+                                  height: '100%',
+                                  borderRadius: '50%',
+                                  border: '2px solid rgba(0, 214, 163, 0.3)',
+                                  animation: 'ripple 2s ease-out infinite',
+                                }}
+                              />
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  width: '100%',
+                                  height: '100%',
+                                  borderRadius: '50%',
+                                  border: '2px solid rgba(0, 214, 163, 0.2)',
+                                  animation: 'ripple 2s ease-out infinite 0.5s',
+                                }}
+                              />
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  width: '100%',
+                                  height: '100%',
+                                  borderRadius: '50%',
+                                  border: '2px solid rgba(0, 214, 163, 0.1)',
+                                  animation: 'ripple 2s ease-out infinite 1s',
+                                }}
+                              />
+                              <div style={{ position: 'relative', zIndex: 2, transform: 'scale(1.05)' }}>
+                                <AssetRenderer
+                                  unitCategory={getUnitCategory(currentUnit.unitIndex)}
+                                  assetNumber={Number(powerUp.assetsNo)}
+                                  className="asset-svg"
+                                />
+                              </div>
                             </div>
 
-                            {powerUp.isLoadingReward ? (
-                              <div className="text-center">
-                                <div className="spinner-border text-warning" role="status" style={{ width: '1.5rem', height: '1.5rem' }}>
-                                  <span className="visually-hidden">Loading...</span>
-                                </div>
-                                <p className="text-white-50 mt-2 mb-0" style={{ fontSize: '0.75rem' }}>Loading...</p>
-                              </div>
-                            ) : (
+                            {/* Active Badge - Top Right (Simple Style) */}
+                            {!powerUp.unPowerUp && (
                               <div
-                                className="text-center"
                                 style={{
-                                  background: 'rgba(0, 0, 0, 0.3)',
-                                  borderRadius: '10px',
-                                  padding: '0.75rem',
-                                  border: '1px solid rgba(254, 231, 57, 0.3)',
+                                  position: 'absolute',
+                                  top: '16px',
+                                  right: '16px',
+                                  background: 'rgba(0, 0, 0, 0.7)',
+                                  backdropFilter: 'blur(10px)',
+                                  color: '#ffffff',
+                                  padding: '6px 14px',
+                                  borderRadius: '12px',
+                                  fontSize: '0.75rem',
+                                  fontWeight: '700',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '1px',
+                                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
+                                  zIndex: 2
                                 }}
                               >
-                                <div
-                                  className="fw-bold"
-                                  style={{
-                                    color: '#FEE739',
-                                    fontSize: '1.2rem',
-                                    textShadow: '0 2px 15px rgba(254, 231, 57, 0.5)',
-                                    lineHeight: '1.2',
-                                  }}
-                                >
-                                  {parseFloat(powerUp.reward || '0').toFixed(4)} <span style={{ fontSize: '0.9rem' }}>ZYLO</span>
-                                </div>
-                                <div
-                                  className="text-white-50 mt-1"
-                                  style={{
-                                    fontSize: '0.7rem',
-                                    fontStyle: 'italic',
-                                  }}
-                                >
-                                  Available reward
-                                </div>
+                                Active
                               </div>
                             )}
                           </div>
-                        </div>
+
+                          {/* Bottom Section - Data Area (Like Zone Cards) */}
+                          <div style={{
+                            background: 'linear-gradient(145deg, #0f0f1a 0%, #1a1a2e 100%)',
+                            padding: '1.5rem 1.75rem 1.75rem',
+                            flex: 1,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            borderRadius: '0 0 22px 22px',
+                            minHeight: '312px'
+                          }}>
+                            {/* Asset Name - Title */}
+                            <div style={{ marginTop: '8px', marginBottom: '8px' }}>
+                              <h3 style={{
+                                fontSize: '1.5rem',
+                                fontWeight: '800',
+                                color: '#00d6a3',
+                                margin: '0',
+                                paddingTop: '6px',
+                                paddingBottom: '10px',
+                                textShadow: '0 2px 8px rgba(0, 0, 0, 0.8), 0 0 12px rgba(0, 214, 163, 0.4)',
+                                letterSpacing: '0.5px',
+                                textAlign: 'center',
+                                textTransform: 'uppercase',
+                              }}>
+                                {getAssetName(getUnitCategory(currentUnit.unitIndex), Number(powerUp.assetsNo))}
+                              </h3>
+                            </div>
+
+                            {/* Power Up Amount and Time - Side by Side */}
+                            <div style={{
+                              display: 'flex',
+                              gap: '10px',
+                              marginBottom: '10px',
+                            }}>
+                              {/* Power Up Amount Box - Smaller */}
+                              <div style={{
+                                background: 'rgba(0, 214, 163, 0.1)',
+                                padding: '8px 10px',
+                                borderRadius: '8px',
+                                border: '1px solid rgba(0, 214, 163, 0.3)',
+                                backdropFilter: 'blur(5px)',
+                                flex: 1,
+                              }}>
+                                <div style={{
+                                  fontSize: '12px',
+                                  color: 'rgba(255, 255, 255, 0.7)',
+                                  fontWeight: '600',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.5px',
+                                  marginBottom: '0.4rem',
+                                  textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
+                                  textAlign: 'center',
+                                }}>
+                                  Power Up Amount
+                                </div>
+                                <div style={{
+                                  fontSize: '14px',
+                                  fontWeight: '400',
+                                  color: '#FEE739',
+                                  textShadow: '0 1px 3px rgba(0, 0, 0, 0.6)',
+                                  lineHeight: '1.2',
+                                  textAlign: 'center',
+                                  whiteSpace: 'nowrap',
+                                }}>
+                                  <span style={{ fontWeight: '700' }}>{parseFloat(powerUp.powerUpToken || '0').toFixed(2)}</span> <span style={{ fontSize: '13px', fontWeight: '400' }}>ZYLO</span>
+                                </div>
+                              </div>
+
+                              {/* Time Box - Smaller */}
+                              {powerUp.powerUpTime && (
+                                <div style={{
+                                  background: 'rgba(0, 214, 163, 0.1)',
+                                  padding: '8px 10px',
+                                  borderRadius: '8px',
+                                  border: '1px solid rgba(0, 214, 163, 0.3)',
+                                  backdropFilter: 'blur(5px)',
+                                  flex: 1,
+                                }}>
+                                  <div style={{
+                                    fontSize: '12px',
+                                    color: 'rgba(255, 255, 255, 0.7)',
+                                    fontWeight: '600',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.5px',
+                                    marginBottom: '0.4rem',
+                                    textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
+                                    textAlign: 'center',
+                                  }}>
+                                    Time
+                                  </div>
+                                  <div
+                                    style={{
+                                      fontSize: '14px',
+                                      fontWeight: '400',
+                                      color: '#FEE739',
+                                      fontStyle: 'normal',
+                                      textAlign: 'center',
+                                      lineHeight: '17px',
+                                      whiteSpace: 'nowrap',
+                                    }}
+                                  >
+                                    {(() => {
+                                      try {
+                                        const timestamp = Number(powerUp.powerUpTime);
+                                        if (timestamp > 0) {
+                                          const date = new Date(timestamp < 1e12 ? timestamp * 1000 : timestamp);
+                                          if (!isNaN(date.getTime())) {
+                                            return date.toLocaleString('en-US', {
+                                              month: 'short',
+                                              day: 'numeric',
+                                              hour: '2-digit',
+                                              minute: '2-digit',
+                                              hour12: true
+                                            });
+                                          }
+                                        }
+                                        return 'N/A';
+                                      } catch {
+                                        return 'N/A';
+                                      }
+                                    })()}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Reward Box - Button Style */}
+                            <div style={{
+                              background: 'rgba(254, 231, 57, 0.15)',
+                              padding: '0',
+                              borderRadius: '8px',
+                              border: '2px solid rgba(254, 231, 57, 0.4)',
+                              backdropFilter: 'blur(5px)',
+                              boxShadow: '0 4px 12px rgba(254, 231, 57, 0.2)',
+                              marginTop: '10px',
+                              overflow: 'hidden',
+                            }}>
+                              <button
+                                style={{
+                                  width: '100%',
+                                  height: '40px',
+                                  background: 'transparent',
+                                  border: 'none',
+                                  color: '#FEE739',
+                                  fontSize: '13px',
+                                  fontWeight: '700',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.5px',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  transition: 'all 0.3s ease',
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background = 'rgba(254, 231, 57, 0.2)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background = 'transparent';
+                                }}
+                              >
+                                SELF POWER UP REWARD
+                              </button>
+                            </div>
+                          </div>
                       </div>
                     </div>
                   </div>

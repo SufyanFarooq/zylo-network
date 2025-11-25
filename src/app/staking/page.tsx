@@ -1,12 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useAccount, useWalletClient } from 'wagmi';
 import { BrowserProvider } from 'ethers';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Header from '@/components/common/Header';
 import Footer from '@/components/common/Footer';
 import ZillowStake from '@/components/staking/ZillowStake';
 import ApplyForZylo from '@/components/staking/ApplyForZylo';
+import PowerUpStakingSection from '@/components/staking/PowerUpStakingSection';
+import UnitsRewardsSection from '@/components/staking/UnitsRewardsSection';
 import { getAllUserStakes } from '@/blockchain/instances/ZyloPowerUp';
 import '../globals.css';
 import '@/components/common/StakingLevelsTable.css';
@@ -27,12 +30,138 @@ interface BlockchainStake {
   duration: string;
 }
 
+// Separate component for content that uses searchParams
+const StakingContent: React.FC<{
+  currentSection: 'zones' | 'powerup' | 'units';
+  selectedUnit: number | null;
+  setCurrentSection: (section: 'zones' | 'powerup' | 'units') => void;
+  setSelectedUnit: (unit: number | null) => void;
+  updateURL: (section: 'zones' | 'powerup' | 'units', unit: number | null) => void;
+  claimedSelfReward: string;
+  claimedTeamReward: string;
+  currentSelfReward: string;
+  currentTeamReward: string;
+  isLoadingRewards: boolean;
+}> = ({
+  currentSection,
+  selectedUnit,
+  setCurrentSection,
+  setSelectedUnit,
+  updateURL,
+  claimedSelfReward,
+  claimedTeamReward,
+  currentSelfReward,
+  currentTeamReward,
+  isLoadingRewards,
+}) => {
+  return (
+    <>
+      {/* Initial State: ApplyForZylo + Zone Cards */}
+      {currentSection === 'zones' ? (
+        <>
+          <ApplyForZylo />
+          <div className="zillow-stake-section">
+            <ZillowStake 
+              onShowZoneCardsChange={(show) => {
+                if (show) {
+                  setCurrentSection('zones');
+                  setSelectedUnit(null);
+                  updateURL('zones', null);
+                }
+              }}
+              onPowerUpClick={(unitIndex) => {
+                setSelectedUnit(unitIndex);
+                setCurrentSection('powerup');
+                updateURL('powerup', unitIndex);
+              }}
+              onUnitsClick={(unitIndex) => {
+                setSelectedUnit(unitIndex);
+                setCurrentSection('units');
+                updateURL('units', unitIndex);
+              }}
+              showRewardsSection={false}
+              externalShowZoneCards={true}
+            />
+          </div>
+        </>
+      ) : currentSection === 'powerup' ? (
+        /* Power UP Section - Staking Form + Selected Unit's Power Ups */
+        <PowerUpStakingSection
+          selectedUnit={selectedUnit}
+          onBackToZones={() => {
+            setCurrentSection('zones');
+            setSelectedUnit(null);
+            updateURL('zones', null);
+          }}
+        />
+      ) : (
+        /* Units Section - Reward Cards + Selected Unit's Power Ups Only */
+        <UnitsRewardsSection
+          selectedUnit={selectedUnit}
+          onBackToZones={() => {
+            setCurrentSection('zones');
+            setSelectedUnit(null);
+            updateURL('zones', null);
+          }}
+          claimedSelfReward={claimedSelfReward}
+          claimedTeamReward={claimedTeamReward}
+          currentSelfReward={currentSelfReward}
+          currentTeamReward={currentTeamReward}
+          isLoadingRewards={isLoadingRewards}
+        />
+      )}
+    </>
+  );
+};
+
 const StakingPage: React.FC = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [, setUserStakes] = useState<StakeRecord[]>([]);
   const [, setIsLoadingStakes] = useState(false);
   const [isClient, setIsClient] = useState(false);
-  const [showZoneCards, setShowZoneCards] = useState(true);
-  const [activeTab, setActiveTab] = useState<'powerup' | 'units'>('powerup');
+  
+  // Get section and unit from URL params
+  const urlSection = searchParams.get('section') as 'zones' | 'powerup' | 'units' | null;
+  const urlUnit = searchParams.get('unit');
+  
+  const [selectedUnit, setSelectedUnit] = useState<number | null>(
+    urlUnit ? parseInt(urlUnit, 10) : null
+  );
+  const [currentSection, setCurrentSection] = useState<'zones' | 'powerup' | 'units'>(
+    urlSection || 'zones'
+  );
+  
+  // Update URL when section or unit changes
+  const updateURL = (section: 'zones' | 'powerup' | 'units', unit: number | null) => {
+    const params = new URLSearchParams();
+    if (section !== 'zones') {
+      params.set('section', section);
+    }
+    if (unit !== null) {
+      params.set('unit', unit.toString());
+    }
+    const queryString = params.toString();
+    const newUrl = queryString ? `/staking?${queryString}` : '/staking';
+    router.push(newUrl, { scroll: false });
+  };
+  
+  // Sync state with URL on mount
+  useEffect(() => {
+    if (urlSection) {
+      setCurrentSection(urlSection);
+    }
+    if (urlUnit) {
+      setSelectedUnit(parseInt(urlUnit, 10));
+    }
+  }, [urlSection, urlUnit]);
+  
+  // Reward states (for UnitsRewardsSection)
+  const [claimedSelfReward] = useState('0.00');
+  const [claimedTeamReward] = useState('0.00');
+  const [currentSelfReward] = useState('0.00');
+  const [currentTeamReward] = useState('0.00');
+  const [isLoadingRewards] = useState(false);
 
   // Wagmi hooks
   const { address, isConnected } = useAccount();
@@ -122,113 +251,20 @@ const StakingPage: React.FC = () => {
 
       <main className="min-vh-100" style={{ paddingTop: '100px', background: 'var(--dark-bg)' }}>
         <div className="container py-5">
-          {/* Show tabs only when a unit is selected (showZoneCards is false) */}
-          {!showZoneCards && (
-            <div className="mb-5" style={{ borderBottom: '2px solid rgba(254, 231, 57, 0.2)' }}>
-              <div className="d-flex gap-3">
-                <button
-                  onClick={() => setActiveTab('powerup')}
-                  style={{
-                    background: activeTab === 'powerup' 
-                      ? 'linear-gradient(135deg, #FEE739 0%, #FDD835 100%)' 
-                      : 'transparent',
-                    color: activeTab === 'powerup' ? '#1a1a1a' : '#FEE739',
-                    border: '2px solid #FEE739',
-                    borderBottom: 'none',
-                    padding: '1rem 2.5rem',
-                    borderRadius: '12px 12px 0 0',
-                    fontSize: '1.1rem',
-                    fontWeight: '700',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    position: 'relative',
-                    bottom: '-2px',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (activeTab !== 'powerup') {
-                      e.currentTarget.style.background = 'rgba(254, 231, 57, 0.1)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (activeTab !== 'powerup') {
-                      e.currentTarget.style.background = 'transparent';
-                    }
-                  }}
-                >
-                  Power UP
-                </button>
-                <button
-                  onClick={() => setActiveTab('units')}
-                  style={{
-                    background: activeTab === 'units' 
-                      ? 'linear-gradient(135deg, #FEE739 0%, #FDD835 100%)' 
-                      : 'transparent',
-                    color: activeTab === 'units' ? '#1a1a1a' : '#FEE739',
-                    border: '2px solid #FEE739',
-                    borderBottom: 'none',
-                    padding: '1rem 2.5rem',
-                    borderRadius: '12px 12px 0 0',
-                    fontSize: '1.1rem',
-                    fontWeight: '700',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    position: 'relative',
-                    bottom: '-2px',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (activeTab !== 'units') {
-                      e.currentTarget.style.background = 'rgba(254, 231, 57, 0.1)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (activeTab !== 'units') {
-                      e.currentTarget.style.background = 'transparent';
-                    }
-                  }}
-                >
-                  Units
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Initial State: ApplyForZylo + Zone Cards */}
-          {showZoneCards ? (
-            <>
-              <ApplyForZylo />
-              <div className="zillow-stake-section">
-                <ZillowStake 
-                  onShowZoneCardsChange={setShowZoneCards}
-                  showRewardsSection={false}
-                  externalShowZoneCards={showZoneCards}
-                />
-              </div>
-            </>
-          ) : (
-            /* Tab Content - When unit is selected */
-            <>
-              {activeTab === 'powerup' ? (
-                <div className="zillow-stake-section" key="powerup-tab">
-                  <ZillowStake 
-                    key="powerup-stake"
-                    onShowZoneCardsChange={setShowZoneCards}
-                    showRewardsSection={false}
-                    externalShowZoneCards={showZoneCards}
-                  />
-                </div>
-              ) : (
-                <div className="zillow-stake-section" key="units-tab">
-                  <ZillowStake 
-                    key="units-stake"
-                    onShowZoneCardsChange={setShowZoneCards}
-                    showRewardsSection={true}
-                    enableStakingForm={false}
-                    externalShowZoneCards={showZoneCards}
-                  />
-                </div>
-              )}
-            </>
-          )}
+          <Suspense fallback={<div className="text-center py-5"><div className="spinner-border text-warning" role="status" /></div>}>
+            <StakingContent 
+              currentSection={currentSection}
+              selectedUnit={selectedUnit}
+              setCurrentSection={setCurrentSection}
+              setSelectedUnit={setSelectedUnit}
+              updateURL={updateURL}
+              claimedSelfReward={claimedSelfReward}
+              claimedTeamReward={claimedTeamReward}
+              currentSelfReward={currentSelfReward}
+              currentTeamReward={currentTeamReward}
+              isLoadingRewards={isLoadingRewards}
+            />
+          </Suspense>
         </div>
       </main>
 
@@ -237,4 +273,4 @@ const StakingPage: React.FC = () => {
   );
 };
 
-export default StakingPage; 
+export default StakingPage;

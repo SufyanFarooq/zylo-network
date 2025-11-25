@@ -65,16 +65,22 @@ const CoinSVG = () => (
 
 interface ZillowStakeProps {
   onShowZoneCardsChange?: (showZoneCards: boolean) => void;
+  onPowerUpClick?: (unitIndex: number) => void;
+  onUnitsClick?: (unitIndex: number) => void;
   showRewardsSection?: boolean;
   enableStakingForm?: boolean;
   externalShowZoneCards?: boolean;
+  initialSelectedUnit?: number | null; // Pass selected unit from parent
 }
 
 const ZillowStake: React.FC<ZillowStakeProps> = ({ 
   onShowZoneCardsChange,
+  onPowerUpClick,
+  onUnitsClick,
   showRewardsSection = false,
   enableStakingForm = true,
   externalShowZoneCards,
+  initialSelectedUnit = null,
 }) => {
   // const [selectedPeriod, setSelectedPeriod] = useState<'7' | '14' | '30' | '60'>('7');
   const [amountTop, setAmountTop] = useState('0.00');
@@ -107,7 +113,14 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
   const [showStakingForm, setShowStakingForm] = useState(false);
   const [userCategory, setUserCategory] = useState<number>(0);
   const [internalShowZoneCards, setInternalShowZoneCards] = useState(true); // Show zone cards initially
-  const [selectedZoneUnit, setSelectedZoneUnit] = useState<number | null>(null);
+  const [selectedZoneUnit, setSelectedZoneUnit] = useState<number | null>(initialSelectedUnit || null);
+  
+  // Sync with external prop if provided
+  useEffect(() => {
+    if (initialSelectedUnit !== undefined && initialSelectedUnit !== null) {
+      setSelectedZoneUnit(initialSelectedUnit);
+    }
+  }, [initialSelectedUnit]);
 
   // Use external state if provided, otherwise use internal state
   const showZoneCards = externalShowZoneCards !== undefined ? externalShowZoneCards : internalShowZoneCards;
@@ -1334,6 +1347,8 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
               setSelectedZoneUnit(unitIndex);
               setShowStakingForm(true);
             }}
+            onPowerUpClick={onPowerUpClick}
+            onUnitsClick={onUnitsClick}
             showZoneCards={true}
             selectedZoneUnit={null}
           />
@@ -1686,7 +1701,7 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
         </div>
 
         {/* Power Up Unit Cards Section - Show selected unit's power ups */}
-        <div className="row mt-5">
+        {/* <div className="row mt-5">
           <div className="col-12">
             <PowerUpUnitCards
               onZoneCardClick={(unitIndex: number) => {
@@ -1696,7 +1711,7 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
               selectedZoneUnit={selectedZoneUnit}
             />
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Success Notification */}
