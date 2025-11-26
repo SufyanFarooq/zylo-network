@@ -21,6 +21,13 @@ const Slider = dynamic(() => import('react-slick'), {
   loading: () => <div style={{ minHeight: '400px' }} />
 });
 
+// Wrapper component to filter out react-slick props from DOM elements
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const SlideWrapper: React.FC<{ children: React.ReactNode; [key: string]: any }> = ({ children, currentSlide, slideCount, ...rest }) => {
+    // Filter out react-slick internal props (currentSlide, slideCount) before passing to DOM
+    return <div {...rest}>{children}</div>;
+};
+
 const LevelsCarousel: React.FC = () => {
     const [isMounted, setIsMounted] = useState(false);
 
@@ -131,7 +138,8 @@ const LevelsCarousel: React.FC = () => {
     // Custom Next Arrow Component
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const _NextArrow = (props: any) => {
-        const { className, style, onClick } = props;
+        // Destructure only the props we need, exclude react-slick internal props
+        const { className, style, onClick, currentSlide, slideCount, ...rest } = props;
         return (
             <div
                 className={`${className} custom-slick-arrow custom-slick-next`}
@@ -148,18 +156,7 @@ const LevelsCarousel: React.FC = () => {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        cursor: 'pointer',
-                        transition: 'all 0.3s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'rgba(0, 204, 112, 0.2)';
-                        e.currentTarget.style.borderColor = '#00CC70';
-                        e.currentTarget.style.transform = 'scale(1.1)';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'rgba(0, 204, 112, 0.1)';
-                        e.currentTarget.style.borderColor = '#00CC70';
-                        e.currentTarget.style.transform = 'scale(1)';
+                        cursor: 'pointer'
                     }}
                 >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -173,7 +170,8 @@ const LevelsCarousel: React.FC = () => {
     // Custom Previous Arrow Component
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const _PrevArrow = (props: any) => {
-        const { className, style, onClick } = props;
+        // Destructure only the props we need, exclude react-slick internal props
+        const { className, style, onClick, currentSlide, slideCount, ...rest } = props;
         return (
             <div
                 className={`${className} custom-slick-arrow custom-slick-prev`}
@@ -190,18 +188,7 @@ const LevelsCarousel: React.FC = () => {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        cursor: 'pointer',
-                        transition: 'all 0.3s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'rgba(0, 204, 112, 0.2)';
-                        e.currentTarget.style.borderColor = '#00CC70';
-                        e.currentTarget.style.transform = 'scale(1.1)';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'rgba(0, 204, 112, 0.1)';
-                        e.currentTarget.style.borderColor = '#00CC70';
-                        e.currentTarget.style.transform = 'scale(1)';
+                        cursor: 'pointer'
                     }}
                 >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -221,8 +208,7 @@ const LevelsCarousel: React.FC = () => {
         autoplay: false,
         pauseOnHover: false,
         initialSlide: 0,
-        // nextArrow: <NextArrow />,
-        // prevArrow: <PrevArrow />,
+        arrows: false, // Disable default arrows since we have custom buttons
         responsive: [
             {
                 breakpoint: 1200,
@@ -298,7 +284,7 @@ const LevelsCarousel: React.FC = () => {
                         // @ts-expect-error - innerRef is valid for react-slick but not in types for dynamic import
                         <Slider innerRef={setSliderRef} {...settings} className="levels-slider">
                             {zones.map((zone, index) => (
-                            <div key={index} className="level-slide px-2">
+                            <SlideWrapper key={index} className="level-slide px-2">
                                 <div
                                     className={`level-card ${zone.color}-level`}
                                     style={{
@@ -515,7 +501,7 @@ const LevelsCarousel: React.FC = () => {
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </SlideWrapper>
                         ))}
                         </Slider>
                     ) : (

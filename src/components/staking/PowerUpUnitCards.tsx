@@ -6,7 +6,7 @@ import { BrowserProvider } from 'ethers';
 import { getPowerUpLength, userPowerUpDetails, getSelfPowerUpReward } from '@/blockchain/instances/ZyloPowerUp';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
-import { FaLock } from 'react-icons/fa';
+import { FaLock, FaBolt, FaClock } from 'react-icons/fa';
 import AssetRenderer, { getAssetName } from '@/components/AssetRenderer';
 import { getUnitCategory } from './utils/unitCategoryMapping';
 import './ZillowStake.css';
@@ -20,6 +20,32 @@ const Slider = dynamic(() => import('react-slick'), {
   ssr: false,
   loading: () => <div style={{ minHeight: '400px' }} />
 });
+
+// Wrapper component to filter out react-slick props from DOM elements
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const SlideWrapper: React.FC<{ children: React.ReactNode; [key: string]: any }> = ({ children, currentSlide, slideCount, ...rest }) => {
+    // Filter out react-slick internal props (currentSlide, slideCount) before passing to DOM
+    return <div {...rest}>{children}</div>;
+};
+
+// Arrow components that filter out react-slick props
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const CustomPrevArrow: React.FC<any> = ({ currentSlide, slideCount, ...props }) => {
+    return (
+        <div className="slick-arrow-custom slick-prev-custom" {...props}>
+            <span className="slick-arrow-icon">←</span>
+        </div>
+    );
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const CustomNextArrow: React.FC<any> = ({ currentSlide, slideCount, ...props }) => {
+    return (
+        <div className="slick-arrow-custom slick-next-custom" {...props}>
+            <span className="slick-arrow-icon">→</span>
+        </div>
+    );
+};
 
 interface PowerUpData {
   powerUpToken: string;
@@ -399,7 +425,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
             }
           >
             {zoneCards.map((zone) => (
-              <div key={zone.unitIndex} style={{ padding: '0 12px' }}>
+              <SlideWrapper key={zone.unitIndex} style={{ padding: '0 12px' }}>
                 <div
                   onClick={() => !zone.isComingSoon && handleZoneCardClick(zone.unitIndex)}
                   style={{
@@ -666,7 +692,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                     </div>
                   </div>
                 </div>
-              </div>
+              </SlideWrapper>
             ))}
           </Slider>
         </div>
@@ -757,20 +783,12 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                 ]}
                 arrows={units.reduce((total, unit) => total + unit.powerUps.length, 0) > 4}
                 className="power-up-slider"
-                prevArrow={
-                  <div className="slick-arrow-custom slick-prev-custom">
-                    <span className="slick-arrow-icon">←</span>
-                  </div>
-                }
-                nextArrow={
-                  <div className="slick-arrow-custom slick-next-custom">
-                    <span className="slick-arrow-icon">→</span>
-                  </div>
-                }
+            prevArrow={<CustomPrevArrow />}
+            nextArrow={<CustomNextArrow />}
               >
                 {units.map((unit) => 
                   unit.powerUps.map((powerUp, index) => (
-                    <div key={`${unit.unitIndex}-${index}`} style={{ padding: '0 15px' }}>
+                    <SlideWrapper key={`${unit.unitIndex}-${index}`} style={{ padding: '0 15px' }}>
                       <div style={{ position: 'relative' }}>
                       <div
                         className="power-up-detail-card"
@@ -926,68 +944,42 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                               </h3>
                             </div>
 
-                            {/* Power Up Amount and Time - Side by Side */}
+                            {/* Power Up Amount and Time - Simple Text in 2 Lines */}
                             <div style={{
                               display: 'flex',
-                              gap: '10px',
+                              flexDirection: 'column',
+                              gap: '8px',
                               marginBottom: '10px',
+                              alignItems: 'center',
                             }}>
-                              {/* Power Up Amount Box - Smaller */}
+                              {/* Power Up Amount - Line 1 */}
                               <div style={{
-                                background: 'rgba(0, 214, 163, 0.1)',
-                                padding: '8px 10px',
-                                borderRadius: '8px',
-                                border: '1px solid rgba(0, 214, 163, 0.3)',
-                                backdropFilter: 'blur(5px)',
-                                flex: 1,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                justifyContent: 'center',
                               }}>
-                                <div style={{
-                                  fontSize: '12px',
-                                  color: 'rgba(255, 255, 255, 0.7)',
-                                  fontWeight: '600',
-                                  textTransform: 'uppercase',
-                                  letterSpacing: '0.5px',
-                                  marginBottom: '0.4rem',
-                                  textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
-                                  textAlign: 'center',
-                                }}>
-                                  Power Up Amount
-                                </div>
+                                <FaBolt style={{ color: '#00d6a3', fontSize: '16px' }} />
                                 <div style={{
                                   fontSize: '14px',
                                   fontWeight: '400',
                                   color: '#FEE739',
                                   textShadow: '0 1px 3px rgba(0, 0, 0, 0.6)',
-                                  lineHeight: '1.2',
                                   textAlign: 'center',
-                                  whiteSpace: 'nowrap',
                                 }}>
                                   <span style={{ fontWeight: '700' }}>{parseFloat(powerUp.powerUpToken || '0').toFixed(2)}</span> <span style={{ fontSize: '13px', fontWeight: '400' }}>ZYLO</span>
                                 </div>
                               </div>
 
-                              {/* Time Box - Smaller */}
+                              {/* Time - Line 2 */}
                               {powerUp.powerUpTime && (
                                 <div style={{
-                                  background: 'rgba(0, 214, 163, 0.1)',
-                                  padding: '8px 10px',
-                                  borderRadius: '8px',
-                                  border: '1px solid rgba(0, 214, 163, 0.3)',
-                                  backdropFilter: 'blur(5px)',
-                                  flex: 1,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '8px',
+                                  justifyContent: 'center',
                                 }}>
-                                  <div style={{
-                                    fontSize: '12px',
-                                    color: 'rgba(255, 255, 255, 0.7)',
-                                    fontWeight: '600',
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.5px',
-                                    marginBottom: '0.4rem',
-                                    textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
-                                    textAlign: 'center',
-                                  }}>
-                                    Time
-                                  </div>
+                                  <FaClock style={{ color: '#00d6a3', fontSize: '16px' }} />
                                   <div
                                     style={{
                                       fontSize: '14px',
@@ -995,8 +987,6 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                                       color: '#FEE739',
                                       fontStyle: 'normal',
                                       textAlign: 'center',
-                                      lineHeight: '17px',
-                                      whiteSpace: 'nowrap',
                                     }}
                                   >
                                     {(() => {
@@ -1027,7 +1017,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                             {/* Reward Box - Button Style */}
                             <div style={{
                               background: 'rgba(254, 231, 57, 0.15)',
-                              padding: '0',
+                              padding: '12px',
                               borderRadius: '8px',
                               border: '2px solid rgba(254, 231, 57, 0.4)',
                               backdropFilter: 'blur(5px)',
@@ -1035,37 +1025,43 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                               marginTop: '10px',
                               overflow: 'hidden',
                             }}>
-                              <button
-                                style={{
-                                  width: '100%',
-                                  height: '40px',
-                                  background: 'transparent',
-                                  border: 'none',
-                                  color: '#FEE739',
-                                  fontSize: '13px',
-                                  fontWeight: '700',
-                                  textTransform: 'uppercase',
-                                  letterSpacing: '0.5px',
-                                  cursor: 'pointer',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  transition: 'all 0.3s ease',
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.background = 'rgba(254, 231, 57, 0.2)';
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.background = 'transparent';
-                                }}
-                              >
+                              <div style={{
+                                fontSize: '11px',
+                                color: 'rgba(254, 231, 57, 0.8)',
+                                fontWeight: '600',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px',
+                                textAlign: 'center',
+                                marginBottom: '6px',
+                              }}>
                                 SELF POWER UP REWARD
-                              </button>
+                              </div>
+                              <div style={{
+                                fontSize: '18px',
+                                fontWeight: '700',
+                                color: '#FEE739',
+                                textAlign: 'center',
+                                textShadow: '0 1px 3px rgba(0, 0, 0, 0.6)',
+                                marginBottom: '8px',
+                              }}>
+                                {powerUp.isLoadingReward ? (
+                                  <span style={{ fontSize: '12px', opacity: 0.7 }}>Loading...</span>
+                                ) : (
+                                  `${parseFloat(powerUp.reward || '0').toFixed(4)} ZYLO`
+                                )}
+                              </div>
+                              <div style={{
+                                fontSize: '11px',
+                                color: 'rgba(254, 231, 57, 0.7)',
+                                textAlign: 'center',
+                              }}>
+                                Available reward
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </SlideWrapper>
                   ))
                 )}
               </Slider>
@@ -1138,19 +1134,11 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                 ]}
                 arrows={currentUnit.powerUps.length > 4}
                 className="power-up-slider"
-                prevArrow={
-                  <div className="slick-arrow-custom slick-prev-custom">
-                    <span className="slick-arrow-icon">←</span>
-                  </div>
-                }
-                nextArrow={
-                  <div className="slick-arrow-custom slick-next-custom">
-                    <span className="slick-arrow-icon">→</span>
-                  </div>
-                }
+            prevArrow={<CustomPrevArrow />}
+            nextArrow={<CustomNextArrow />}
               >
                 {currentUnit.powerUps.map((powerUp, index) => (
-                  <div key={index} style={{ padding: '0 15px' }}>
+                  <SlideWrapper key={index} style={{ padding: '0 15px' }}>
                     <div style={{ position: 'relative' }}>
                       <div
                         className="power-up-detail-card"
@@ -1307,68 +1295,42 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                               </h3>
                             </div>
 
-                            {/* Power Up Amount and Time - Side by Side */}
+                            {/* Power Up Amount and Time - Simple Text in 2 Lines */}
                             <div style={{
                               display: 'flex',
-                              gap: '10px',
+                              flexDirection: 'column',
+                              gap: '8px',
                               marginBottom: '10px',
+                              alignItems: 'center',
                             }}>
-                              {/* Power Up Amount Box - Smaller */}
+                              {/* Power Up Amount - Line 1 */}
                               <div style={{
-                                background: 'rgba(0, 214, 163, 0.1)',
-                                padding: '8px 10px',
-                                borderRadius: '8px',
-                                border: '1px solid rgba(0, 214, 163, 0.3)',
-                                backdropFilter: 'blur(5px)',
-                                flex: 1,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                justifyContent: 'center',
                               }}>
-                                <div style={{
-                                  fontSize: '12px',
-                                  color: 'rgba(255, 255, 255, 0.7)',
-                                  fontWeight: '600',
-                                  textTransform: 'uppercase',
-                                  letterSpacing: '0.5px',
-                                  marginBottom: '0.4rem',
-                                  textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
-                                  textAlign: 'center',
-                                }}>
-                                  Power Up Amount
-                                </div>
+                                <FaBolt style={{ color: '#00d6a3', fontSize: '16px' }} />
                                 <div style={{
                                   fontSize: '14px',
                                   fontWeight: '400',
                                   color: '#FEE739',
                                   textShadow: '0 1px 3px rgba(0, 0, 0, 0.6)',
-                                  lineHeight: '1.2',
                                   textAlign: 'center',
-                                  whiteSpace: 'nowrap',
                                 }}>
                                   <span style={{ fontWeight: '700' }}>{parseFloat(powerUp.powerUpToken || '0').toFixed(2)}</span> <span style={{ fontSize: '13px', fontWeight: '400' }}>ZYLO</span>
                                 </div>
                               </div>
 
-                              {/* Time Box - Smaller */}
+                              {/* Time - Line 2 */}
                               {powerUp.powerUpTime && (
                                 <div style={{
-                                  background: 'rgba(0, 214, 163, 0.1)',
-                                  padding: '8px 10px',
-                                  borderRadius: '8px',
-                                  border: '1px solid rgba(0, 214, 163, 0.3)',
-                                  backdropFilter: 'blur(5px)',
-                                  flex: 1,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '8px',
+                                  justifyContent: 'center',
                                 }}>
-                                  <div style={{
-                                    fontSize: '12px',
-                                    color: 'rgba(255, 255, 255, 0.7)',
-                                    fontWeight: '600',
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.5px',
-                                    marginBottom: '0.4rem',
-                                    textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
-                                    textAlign: 'center',
-                                  }}>
-                                    Time
-                                  </div>
+                                  <FaClock style={{ color: '#00d6a3', fontSize: '16px' }} />
                                   <div
                                     style={{
                                       fontSize: '14px',
@@ -1376,8 +1338,6 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                                       color: '#FEE739',
                                       fontStyle: 'normal',
                                       textAlign: 'center',
-                                      lineHeight: '17px',
-                                      whiteSpace: 'nowrap',
                                     }}
                                   >
                                     {(() => {
@@ -1408,7 +1368,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                             {/* Reward Box - Button Style */}
                             <div style={{
                               background: 'rgba(254, 231, 57, 0.15)',
-                              padding: '0',
+                              padding: '12px',
                               borderRadius: '8px',
                               border: '2px solid rgba(254, 231, 57, 0.4)',
                               backdropFilter: 'blur(5px)',
@@ -1416,37 +1376,43 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                               marginTop: '10px',
                               overflow: 'hidden',
                             }}>
-                              <button
-                                style={{
-                                  width: '100%',
-                                  height: '40px',
-                                  background: 'transparent',
-                                  border: 'none',
-                                  color: '#FEE739',
-                                  fontSize: '13px',
-                                  fontWeight: '700',
-                                  textTransform: 'uppercase',
-                                  letterSpacing: '0.5px',
-                                  cursor: 'pointer',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  transition: 'all 0.3s ease',
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.background = 'rgba(254, 231, 57, 0.2)';
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.background = 'transparent';
-                                }}
-                              >
+                              <div style={{
+                                fontSize: '11px',
+                                color: 'rgba(254, 231, 57, 0.8)',
+                                fontWeight: '600',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px',
+                                textAlign: 'center',
+                                marginBottom: '6px',
+                              }}>
                                 SELF POWER UP REWARD
-                              </button>
+                              </div>
+                              <div style={{
+                                fontSize: '18px',
+                                fontWeight: '700',
+                                color: '#FEE739',
+                                textAlign: 'center',
+                                textShadow: '0 1px 3px rgba(0, 0, 0, 0.6)',
+                                marginBottom: '8px',
+                              }}>
+                                {powerUp.isLoadingReward ? (
+                                  <span style={{ fontSize: '12px', opacity: 0.7 }}>Loading...</span>
+                                ) : (
+                                  `${parseFloat(powerUp.reward || '0').toFixed(4)} ZYLO`
+                                )}
+                              </div>
+                              <div style={{
+                                fontSize: '11px',
+                                color: 'rgba(254, 231, 57, 0.7)',
+                                textAlign: 'center',
+                              }}>
+                                Available reward
+                              </div>
                             </div>
                           </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
+                    </SlideWrapper>
                 ))}
               </Slider>
             ) : (
@@ -1464,4 +1430,5 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
 };
 
 export default PowerUpUnitCards;
+
 
