@@ -25,8 +25,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Zillow Vortex - Power Up Platform",
-  description: "Earn free rewards with Zillow Vortex Power Up platform",
+  title: "Zylo Vortex - Power Up Platform",
+  description: "Join Zylo Vortex and power up your earnings. Stake ZYLO tokens, unlock Power Up units, and earn rewards through our revolutionary staking platform. Start your journey to financial freedom today.",
 };
 
 export default async function RootLayout({
