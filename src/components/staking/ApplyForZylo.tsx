@@ -15,8 +15,48 @@ const ApplyForZylo: React.FC = () => {
   };
 
   return (
-    <section className="py-5">
-      <div className="row justify-content-center">
+    <>
+      <style jsx>{`
+        @keyframes powerUpFloat {
+          0%, 100% { 
+            transform: translateY(0px) rotate(0deg);
+          }
+          25% {
+            transform: translateY(-10px) rotate(2deg);
+          }
+          50% { 
+            transform: translateY(-8px) rotate(0deg);
+          }
+          75% {
+            transform: translateY(-12px) rotate(-2deg);
+          }
+        }
+        
+        @keyframes powerUpImageRotate {
+          0%, 100% { 
+            transform: rotate(0deg) scale(1);
+          }
+          25% {
+            transform: rotate(5deg) scale(1.05);
+          }
+          50% { 
+            transform: rotate(0deg) scale(1);
+          }
+          75% {
+            transform: rotate(-5deg) scale(1.05);
+          }
+        }
+        
+        .power-up-image-container:hover {
+          transform: translateY(-5px) scale(1.05) !important;
+        }
+        
+        .power-up-image-container:hover .power-up-image {
+          transform: rotate(10deg) scale(1.1) !important;
+        }
+      `}</style>
+      <section className="py-5">
+        <div className="row justify-content-center">
         <div className="col-lg-10">
           <div className="card border-0" style={{
             background: 'linear-gradient(135deg, #FEE739 0%, #00d6a3 50%, #1a1a1a 100%)',
@@ -58,28 +98,34 @@ const ApplyForZylo: React.FC = () => {
               {/* Left Side - Illustration */}
               <div className="col-lg-6 d-flex align-items-center justify-content-center p-3 p-lg-1">
                 <div className="text-center">
-                  <div className="position-relative mb-4" style={{
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    borderRadius: '50%',
-                    padding: '20px',
-                    backdropFilter: 'blur(20px)',
-                    border: '2px solid rgba(255, 255, 255, 0.2)',
-                    boxShadow: '0 15px 35px rgba(0, 0, 0, 0.1)',
-                    display: 'inline-block'
-                  }}>
+                  <div 
+                    className="position-relative mb-4 power-up-image-container"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      borderRadius: '50%',
+                      padding: '20px',
+                      backdropFilter: 'blur(20px)',
+                      border: '2px solid rgba(255, 255, 255, 0.2)',
+                      boxShadow: '0 15px 35px rgba(0, 0, 0, 0.1)',
+                      display: 'inline-block',
+                      animation: 'powerUpFloat 5s ease-in-out infinite'
+                    }}
+                  >
                     <Image
                       src="/Unit/power-up.png"
                       alt="ZYLO Token Power Up"
                       width={200}
                       height={200}
+                      className="power-up-image"
                       style={{
                         filter: 'drop-shadow(0 10px 20px rgba(0, 0, 0, 0.2))',
-                        transition: 'transform 0.3s ease'
+                        transition: 'transform 0.3s ease',
+                        animation: 'powerUpImageRotate 6s ease-in-out infinite'
                       }}
                     />
                   </div>
                   <p className="text-dark mb-0" style={{ fontSize: '0.9rem', opacity: '0.8', fontWeight: '600' }}>
-                    ZYLO Token Ecosystem
+                  Power Up Digital Ecosystem
                   </p>
                 </div>
               </div>
@@ -103,7 +149,7 @@ const ApplyForZylo: React.FC = () => {
                     fontWeight: '500',
                     textShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
                   }}>
-                    Earn rewards by Power Up your ZYLO tokens. Join our community and start earning passive income through our secure Power Up platform.
+                    Transform your ZYLO into a force of growth. Activate, engage, and rise through energy-driven Levels and Zones, earning rewards as your digital power expands.
                   </p>
                   <button
                     className="btn btn-lg px-5 py-3 fw-bold"
@@ -153,6 +199,7 @@ const ApplyForZylo: React.FC = () => {
         </div>
       </div>
     </section>
+    </>
   );
 };
 

@@ -31,12 +31,12 @@ const DEFAULT_LEVELS: Level[] = [
         name: "Novice",
         selfHold: "50 ZYLO",
         directReferrals: "1",
-        directReward: "15%",
+        directReward: "10%",
         progress: 40,
         zoneName: "Spark Lift",
         purpose: "Entry ignition & trust building",
-        personalRequirement: "1 active unit",
-        teamRequirement: "3 Spark referrals",
+        personalRequirement: "1 active unit Spark up",
+        teamRequirement: "2 Active unit Spark up",
         quote: "The first spark that lights your Zylo fire."
     },
     {
@@ -44,12 +44,12 @@ const DEFAULT_LEVELS: Level[] = [
         name: "Scout",
         selfHold: "200 ZYLO",
         directReferrals: "3",
-        directReward: "12%",
+        directReward: "8%",
         progress: 15,
         zoneName: "Flicker Growth",
         purpose: "Foundation + duplication",
-        personalRequirement: "2 units Spark up",
-        teamRequirement: "3 Spark + 3 Flicker",
+        personalRequirement: "2 active unit Spark up",
+        teamRequirement: "5 Active unit Spark up",
         quote: "You didn't just earn — you duplicated success."
     },
     {
@@ -57,12 +57,12 @@ const DEFAULT_LEVELS: Level[] = [
         name: "Seeker",
         selfHold: "500 ZYLO",
         directReferrals: "5",
-        directReward: "10%",
+        directReward: "6%",
         progress: 65,
         zoneName: "AI Momentum",
         purpose: "Skill + strategy validation",
-        personalRequirement: "3 units",
-        teamRequirement: "4 Spark + 3 Flicker + 2 AI",
+        personalRequirement: "1 active unit flicker roar",
+        teamRequirement: "10 Active unit Spark up",
         quote: "Action-takers only — vision applied, results proven."
     },
     {
@@ -70,12 +70,12 @@ const DEFAULT_LEVELS: Level[] = [
         name: "Ranger",
         selfHold: "700 ZYLO",
         directReferrals: "7",
-        directReward: "8%",
+        directReward: "5%",
         progress: 30,
         zoneName: "Apex Expansion",
         purpose: "Leadership proof stage",
-        personalRequirement: "4 units",
-        teamRequirement: "5 Spark + 4 Flicker + 3 AI + 2 Apex",
+        personalRequirement: "1 active unit flicker roar",
+        teamRequirement: "10 Spark up + 1 Flicker",
         quote: "Leadership isn't a title — it's performance."
     },
     {
@@ -87,8 +87,8 @@ const DEFAULT_LEVELS: Level[] = [
         progress: 10,
         zoneName: "Universe Gate",
         purpose: "Elite entry stage",
-        personalRequirement: "5 units",
-        teamRequirement: "6 Spark + 5 Flicker + 4 AI + 3 Apex",
+        personalRequirement: "1 active unit flicker roar",
+        teamRequirement: "12 Spark up + 1 Flicker",
         quote: "Not just earning — you're building a legacy."
     },
     {
@@ -96,12 +96,12 @@ const DEFAULT_LEVELS: Level[] = [
         name: "Warden",
         selfHold: "1,000 ZYLO",
         directReferrals: "13",
-        directReward: "3%",
+        directReward: "4%",
         progress: 0,
         zoneName: "Elite Circle",
         purpose: "Leader-producing stage",
-        personalRequirement: "6 units",
-        teamRequirement: "20 active units",
+        personalRequirement: "2 active unit flicker roar",
+        teamRequirement: "15 Spark up + 1 Flicker",
         quote: "Your circle now produces leaders — not followers."
     },
     {
@@ -109,12 +109,12 @@ const DEFAULT_LEVELS: Level[] = [
         name: "Champion",
         selfHold: "1,200 ZYLO",
         directReferrals: "15",
-        directReward: "2%",
+        directReward: "3%",
         progress: 0,
         zoneName: "Prime Network",
         purpose: "Large-scale duplication",
-        personalRequirement: "7 units",
-        teamRequirement: "30 active units",
+        personalRequirement: "1 active unit Ai overrider",
+        teamRequirement: "18 Spark up + 2 Flicker",
         quote: "Scale achieved — your network is a force."
     },
     {
@@ -122,12 +122,12 @@ const DEFAULT_LEVELS: Level[] = [
         name: "Overseer",
         selfHold: "1,500 ZYLO",
         directReferrals: "17",
-        directReward: "2%",
+        directReward: "3%",
         progress: 0,
         zoneName: "Master Tier",
         purpose: "System architect level",
-        personalRequirement: "8 units",
-        teamRequirement: "40 active units + 5 Apex",
+        personalRequirement: "1 active unit Ai overrider",
+        teamRequirement: "21 Spark up + 2 Flicker",
         quote: "You are architecting growth — not chasing it."
     },
     {
@@ -135,12 +135,12 @@ const DEFAULT_LEVELS: Level[] = [
         name: "Mythic",
         selfHold: "1,700 ZYLO",
         directReferrals: "20",
-        directReward: "2%",
+        directReward: "3%",
         progress: 0,
         zoneName: "Crown League",
         purpose: "Champion tier",
-        personalRequirement: "9 units",
-        teamRequirement: "60 active units",
+        personalRequirement: "2 active unit Ai overrider",
+        teamRequirement: "25 Spark up + 2 Flicker",
         quote: "Champions only — results speak."
     },
     {
@@ -148,12 +148,12 @@ const DEFAULT_LEVELS: Level[] = [
         name: "Vortex Elite",
         selfHold: "2,500 ZYLO",
         directReferrals: "30",
-        directReward: "5%",
+        directReward: "2%",
         progress: 0,
         zoneName: "Infinity Champion",
         purpose: "Global elite",
-        personalRequirement: "10 units",
-        teamRequirement: "100 active units + milestone audit",
+        personalRequirement: "1 active unit Zylo apex",
+        teamRequirement: "30 Spark up + 3 Flicker",
         quote: "Income becomes impact — name becomes power."
     },
 ];
@@ -221,7 +221,7 @@ export default function LevelCardsCarousel({ levels }: Props) {
                                     letterSpacing: '2px'
                                 }}
                             >
-                                Vortex Zone DETAILS
+                                Vortex Zone Details
                             </h1>
                             <p
                                 className="text-white"
@@ -231,7 +231,8 @@ export default function LevelCardsCarousel({ levels }: Props) {
                                     // maxWidth: '500px'
                                 }}
                             >
-                                Don&apos;t miss out on the opportunity to maximize your earning potential with our multi-Vortex Zone referral program! Join today and start earning unlimited rewards by sharing our platform with others. With up to 15 levels of referral rewards available and triple rewards for each account, there&apos;s never been a better time to join our community and start earning passive income. Quick incept now and unlock the power of unlimited referral rewards!
+                                Unlock the full potential of your ZYLO energy within the Vortex Zones. Activate your Units, reach milestones, and earn rewards based on skill, strategy, and engagement.
+                                With multiple Zone’s and dynamic reward multipliers, every action counts. Step into the Vortex, power up your energy, and watch your influence and rewards grow. Join the community today and experience the next-level gamified earning ecosystem.
                             </p>
                         </div>
                     </div>

@@ -111,6 +111,8 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
       titleColor: '#FEE739',
       quote: 'The first spark that lights your Zylo fire.',
       requirement: '1 active unit',
+      tokenRange: '1 → 10,000',
+      energyPercentage: 100, // This will be dynamic based on actual data
     },
     {
       unitIndex: 1,
@@ -122,6 +124,8 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
       titleColor: '#00d6a3',
       quote: 'You didn\'t just earn — you duplicated success.',
       requirement: '2 units (1 Spark + 1 Flicker)',
+      tokenRange: '10,001 → 50,000',
+      energyPercentage: 100,
     },
     {
       unitIndex: 2,
@@ -133,6 +137,8 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
       titleColor: '#FEE739',
       quote: 'Action-takers only — vision applied, results proven.',
       requirement: '3 units',
+      tokenRange: '50,001 → 100,000',
+      energyPercentage: 100,
     },
     {
       unitIndex: 3,
@@ -144,6 +150,8 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
       titleColor: '#00d6a3',
       quote: 'Leadership isn\'t a title — it\'s performance.',
       requirement: '4 units',
+      tokenRange: '100,001+',
+      energyPercentage: 100,
     },
     {
       unitIndex: 4,
@@ -156,6 +164,8 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
       quote: 'The ultimate expansion awaits.',
       requirement: 'Coming Soon',
       isComingSoon: true,
+      tokenRange: '250,000+',
+      energyPercentage: 0,
     },
   ];
 
@@ -370,7 +380,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
       <div className="container mt-5">
         <div className="text-center mb-5">
           <h2 className="text-white fw-bold" style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>
-            Power Up Units
+          Power Up  Boosters Units
           </h2>
         </div>
 
@@ -580,7 +590,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                         fontWeight: '700',
                         textAlign: 'center',
                         marginTop: '0',
-                        marginBottom: '0.75rem',
+                        marginBottom: '0.5rem',
                         textShadow: `0 2px 8px ${zone.titleColor}40, 0 0 20px ${zone.titleColor}20`,
                         letterSpacing: '1px',
                       }}
@@ -588,15 +598,79 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                       {zone.name}
                     </h3>
 
-                    {/* Buttons Container */}
+                    {/* Token Range */}
+                    <div style={{
+                      background: 'rgba(0, 0, 0, 0.6)',
+                      backdropFilter: 'blur(10px)',
+                      color: zone.titleColor,
+                      padding: '6px 12px',
+                      borderRadius: '8px',
+                      fontSize: '0.75rem',
+                      fontWeight: '600',
+                      marginBottom: '0.75rem',
+                      border: `1px solid ${zone.borderColor}40`,
+                      textAlign: 'center',
+                    }}>
+                      {zone.tokenRange}
+                    </div>
+
+                    {/* Energy Percentage */}
+                    <div style={{
+                      width: '100%',
+                      maxWidth: '280px',
+                      marginBottom: '0.75rem',
+                    }}>
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '4px',
+                      }}>
+                        <span style={{
+                          fontSize: '0.7rem',
+                          color: 'rgba(255, 255, 255, 0.7)',
+                          fontWeight: '600',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                        }}>
+                          Energy
+                        </span>
+                        <span style={{
+                          fontSize: '0.85rem',
+                          color: zone.titleColor,
+                          fontWeight: '700',
+                        }}>
+                          {zone.energyPercentage}%
+                        </span>
+                      </div>
+                      <div style={{
+                        width: '100%',
+                        height: '6px',
+                        background: 'rgba(0, 0, 0, 0.4)',
+                        borderRadius: '10px',
+                        overflow: 'hidden',
+                        border: `1px solid ${zone.borderColor}30`,
+                      }}>
+                        <div style={{
+                          width: `${zone.energyPercentage}%`,
+                          height: '100%',
+                          background: `linear-gradient(90deg, ${zone.borderColor} 0%, ${zone.rewardColor} 100%)`,
+                          borderRadius: '10px',
+                          transition: 'width 0.3s ease',
+                          boxShadow: `0 0 10px ${zone.borderColor}60`,
+                        }} />
+                      </div>
+                    </div>
+
+                    {/* Buttons Container - Slim Badge Style */}
                     <div style={{
                       display: 'flex',
-                      gap: '0.75rem',
+                      gap: '0.5rem',
                       width: '100%',
                       maxWidth: '320px',
                       justifyContent: 'center',
                     }}>
-                      {/* Power UP Button */}
+                      {/* Power UP Button - Slim Badge */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -612,40 +686,42 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                         style={{
                           background: zone.isComingSoon 
                             ? 'rgba(128, 128, 128, 0.2)' 
-                            : `linear-gradient(135deg, ${zone.borderColor}20 0%, ${zone.borderColor}10 100%)`,
+                            : 'rgba(0, 0, 0, 0.6)',
                           border: `2px solid ${zone.borderColor}`,
                           color: zone.titleColor,
-                          padding: '0.6rem 1.2rem',
+                          padding: '6px 14px',
                           borderRadius: '12px',
-                          fontSize: '0.9rem',
+                          fontSize: '0.75rem',
                           fontWeight: '700',
                           textTransform: 'uppercase',
-                          letterSpacing: '1px',
+                          letterSpacing: '0.8px',
                           cursor: zone.isComingSoon ? 'not-allowed' : 'pointer',
                           transition: 'all 0.3s ease',
-                          boxShadow: `0 4px 12px ${zone.borderColor}30`,
+                          boxShadow: `0 4px 12px ${zone.borderColor}40`,
+                          backdropFilter: 'blur(10px)',
                           opacity: zone.isComingSoon ? 0.5 : 1,
                           flex: 1,
                         }}
                         onMouseEnter={(e) => {
                           if (!zone.isComingSoon) {
-                            e.currentTarget.style.background = `linear-gradient(135deg, ${zone.borderColor}40 0%, ${zone.borderColor}20 100%)`;
+                            e.currentTarget.style.background = `rgba(0, 0, 0, 0.8)`;
                             e.currentTarget.style.transform = 'translateY(-2px)';
-                            e.currentTarget.style.boxShadow = `0 6px 16px ${zone.borderColor}50`;
+                            e.currentTarget.style.boxShadow = `0 6px 16px ${zone.borderColor}60`;
+                            e.currentTarget.style.borderColor = zone.borderColor;
                           }
                         }}
                         onMouseLeave={(e) => {
                           if (!zone.isComingSoon) {
-                            e.currentTarget.style.background = `linear-gradient(135deg, ${zone.borderColor}20 0%, ${zone.borderColor}10 100%)`;
+                            e.currentTarget.style.background = 'rgba(0, 0, 0, 0.6)';
                             e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = `0 4px 12px ${zone.borderColor}30`;
+                            e.currentTarget.style.boxShadow = `0 4px 12px ${zone.borderColor}40`;
                           }
                         }}
                       >
                         Power UP
                       </button>
 
-                      {/* Units Button */}
+                      {/* Units Button - Slim Badge */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -657,33 +733,35 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                         style={{
                           background: zone.isComingSoon 
                             ? 'rgba(128, 128, 128, 0.2)' 
-                            : `linear-gradient(135deg, ${zone.rewardColor}20 0%, ${zone.rewardColor}10 100%)`,
+                            : 'rgba(0, 0, 0, 0.6)',
                           border: `2px solid ${zone.rewardColor}`,
                           color: zone.rewardColor,
-                          padding: '0.6rem 1.2rem',
+                          padding: '6px 14px',
                           borderRadius: '12px',
-                          fontSize: '0.9rem',
+                          fontSize: '0.75rem',
                           fontWeight: '700',
                           textTransform: 'uppercase',
-                          letterSpacing: '1px',
+                          letterSpacing: '0.8px',
                           cursor: zone.isComingSoon ? 'not-allowed' : 'pointer',
                           transition: 'all 0.3s ease',
-                          boxShadow: `0 4px 12px ${zone.rewardColor}30`,
+                          boxShadow: `0 4px 12px ${zone.rewardColor}40`,
+                          backdropFilter: 'blur(10px)',
                           opacity: zone.isComingSoon ? 0.5 : 1,
                           flex: 1,
                         }}
                         onMouseEnter={(e) => {
                           if (!zone.isComingSoon) {
-                            e.currentTarget.style.background = `linear-gradient(135deg, ${zone.rewardColor}40 0%, ${zone.rewardColor}20 100%)`;
+                            e.currentTarget.style.background = `rgba(0, 0, 0, 0.8)`;
                             e.currentTarget.style.transform = 'translateY(-2px)';
-                            e.currentTarget.style.boxShadow = `0 6px 16px ${zone.rewardColor}50`;
+                            e.currentTarget.style.boxShadow = `0 6px 16px ${zone.rewardColor}60`;
+                            e.currentTarget.style.borderColor = zone.rewardColor;
                           }
                         }}
                         onMouseLeave={(e) => {
                           if (!zone.isComingSoon) {
-                            e.currentTarget.style.background = `linear-gradient(135deg, ${zone.rewardColor}20 0%, ${zone.rewardColor}10 100%)`;
+                            e.currentTarget.style.background = 'rgba(0, 0, 0, 0.6)';
                             e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = `0 4px 12px ${zone.rewardColor}30`;
+                            e.currentTarget.style.boxShadow = `0 4px 12px ${zone.rewardColor}40`;
                           }
                         }}
                       >
@@ -727,7 +805,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
             e.currentTarget.style.borderColor = 'rgba(0, 214, 163, 0.3)';
           }}
         >
-          ← Back to Zones
+          ← Back to Power Up
         </button>
       )}
 

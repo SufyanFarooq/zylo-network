@@ -102,14 +102,14 @@ const ClaimAction: React.FC = () => {
                     <div className="col-12 col-md-8 col-lg-6">
                         <div className="claim-action-card">
                             <div className="text-center mb-4">
-                                <h3 className="text-yellow fw-bold mb-3">Withdraw Your Rewards</h3>
+                                <h3 className="text-yellow fw-bold mb-3">ClaimX Your Rewards</h3>
                                 <p className="text-white-50">
-                                    Withdraw your earned rewards from Power Up, milestones, and team activities.
+                                Your earned rewards from Power Up and Milestone Progress are fully synced and ready for ClaimX.
                                 </p>
                             </div>
 
                             <div className="claim-amount-display mb-4">
-                                <div className="amount-label">Available to Withdraw</div>
+                                <div className="amount-label">Available for ClaimX</div>
                                 <div className="amount-value">
                                     {isLoadingClaimData ? (
                                         <div className="spinner-border spinner-border-sm text-warning" role="status">
@@ -145,7 +145,7 @@ const ClaimAction: React.FC = () => {
                                             ) : (
                                                 <>
                                                     <i className="fas fa-gift me-2"></i>
-                                                    Withdraw Rewards
+                                                    Outgo Reward
                                                 </>
                                             )}
                                         </button>

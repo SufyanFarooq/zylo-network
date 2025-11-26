@@ -26,15 +26,12 @@ const Community: React.FC = () => {
               }}></div>
               <div className="position-relative">
                 <p className="text-dark fw-bold fs-6 mb-2" style={{ letterSpacing: '2px' }}>COMMUNITY & ECOSYSTEM</p>
-                <h2 className="text-dark fw-bold display-4 mb-2" style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.1)' }}>Join the PowerUnit Movement</h2>
+                <h2 className="text-dark fw-bold display-4 mb-2" style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.1)' }}>Power Up Your World</h2>
                 <p className="text-dark mb-3" style={{ fontSize: '1.1rem', lineHeight: '1.8', maxWidth: '800px', margin: '0 auto' }}>
-                  Be part of a fast-growing global movement evolving how users earn with AI.
+                  Step into a global movement where energy, strategy, and innovation unlock real rewards.
                 </p>
-                <p className="text-dark mb-2" style={{ fontSize: '1rem', lineHeight: '1.6', maxWidth: '800px', margin: '0 auto' }}>
-                  Join the world of: <strong>Power miners</strong>, <strong>Early adopters</strong>, <strong>Digital earners</strong>, <strong>Tech innovators</strong>
-                </p>
-                <p className="text-dark fw-bold mb-4" style={{ fontSize: '1.2rem' }}>
-                  Welcome to the PowerUnit Era.
+                <p className="text-dark mb-4" style={{ fontSize: '1rem', lineHeight: '1.6', maxWidth: '800px', margin: '0 auto' }}>
+                  Join the pioneers shaping the PowerUnit Era — where every action fuels growth, every milestone matters, and your potential transforms into digital rewards.
                 </p>
                 <button
                   className="btn btn-dark px-5 py-2 fw-bold fs-5"

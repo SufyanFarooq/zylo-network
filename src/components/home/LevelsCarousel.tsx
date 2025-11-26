@@ -46,71 +46,71 @@ const LevelsCarousel: React.FC = () => {
         { 
             zone: 1, 
             zoneName: 'Spark Lift', 
-            personalRequirement: '1 active unit', 
-            teamRequirement: '3 Spark referrals', 
-            rewardShare: '15%', 
+            personalRequirement: '1 active unit Spark up', 
+            teamRequirement: '2 Active unit Spark up', 
+            rewardShare: '10%', 
             essence: 'The first spark that lights your Zylo fire.',
             color: 'yellow' 
         },
         { 
             zone: 2, 
             zoneName: 'Flicker Growth', 
-            personalRequirement: '2 units (Spark+Flicker)', 
-            teamRequirement: '3 Spark + 3 Flicker', 
-            rewardShare: '12%', 
+            personalRequirement: '2 active unit Spark up', 
+            teamRequirement: '5 Active unit Spark up', 
+            rewardShare: '8%', 
             essence: 'You didn\'t just earn — you duplicated success.',
             color: 'green' 
         },
         { 
             zone: 3, 
             zoneName: 'AI Momentum', 
-            personalRequirement: '3 units', 
-            teamRequirement: '4 Spark + 3 Flicker + 2 AI', 
-            rewardShare: '10%', 
+            personalRequirement: '1 active unit flicker roar', 
+            teamRequirement: '10 Active unit Spark up', 
+            rewardShare: '6%', 
             essence: 'Action-takers only — vision applied, results proven.',
             color: 'yellow' 
         },
         { 
             zone: 4, 
             zoneName: 'Apex Expansion', 
-            personalRequirement: '4 units', 
-            teamRequirement: '5 Spark + 4 Flicker + 3 AI + 2 Apex', 
-            rewardShare: '8%', 
+            personalRequirement: '1 active unit flicker roar', 
+            teamRequirement: '10 Spark up + 1 Flicker', 
+            rewardShare: '5%', 
             essence: 'Leadership isn\'t a title — it\'s performance.',
             color: 'green' 
         },
         { 
             zone: 5, 
             zoneName: 'Universe Gate', 
-            personalRequirement: '5 units', 
-            teamRequirement: '6 Spark + 5 Flicker + 4 AI + 3 Apex + 1 Universe', 
-            rewardShare: '7%', 
+            personalRequirement: '1 active unit flicker roar', 
+            teamRequirement: '12 Spark up + 1 Flicker', 
+            rewardShare: '5%', 
             essence: 'Not just earning — you\'re building a legacy.',
             color: 'yellow' 
         },
         { 
             zone: 6, 
             zoneName: 'Elite Circle', 
-            personalRequirement: '6 units', 
-            teamRequirement: '20 active units', 
-            rewardShare: '5%', 
+            personalRequirement: '2 active unit flicker roar', 
+            teamRequirement: '15 Spark up + 1 Flicker', 
+            rewardShare: '4%', 
             essence: 'Your circle now produces leaders — not followers.',
             color: 'green' 
         },
         { 
             zone: 7, 
             zoneName: 'Prime Network', 
-            personalRequirement: '7 units', 
-            teamRequirement: '30 active units', 
-            rewardShare: '4%', 
+            personalRequirement: '1 active unit Ai overrider', 
+            teamRequirement: '18 Spark up + 2 Flicker', 
+            rewardShare: '3%', 
             essence: 'Scale achieved — your network is a force.',
             color: 'yellow' 
         },
         { 
             zone: 8, 
             zoneName: 'Master Tier', 
-            personalRequirement: '8 units', 
-            teamRequirement: '40 active units + 5 Apex', 
+            personalRequirement: '1 active unit Ai overrider', 
+            teamRequirement: '21 Spark up + 2 Flicker', 
             rewardShare: '3%', 
             essence: 'You are architecting growth — not chasing it.',
             color: 'green' 
@@ -118,17 +118,17 @@ const LevelsCarousel: React.FC = () => {
         { 
             zone: 9, 
             zoneName: 'Crown League', 
-            personalRequirement: '9 units', 
-            teamRequirement: '60 active units + 8 Universe', 
-            rewardShare: '2.5%', 
+            personalRequirement: '2 active unit Ai overrider', 
+            teamRequirement: '25 Spark up + 2 Flicker', 
+            rewardShare: '3%', 
             essence: 'Champions only — results speak.',
             color: 'yellow' 
         },
         { 
             zone: 10, 
             zoneName: 'Infinity Champion', 
-            personalRequirement: '10 units', 
-            teamRequirement: '100 active units + milestone audit', 
+            personalRequirement: '1 active unit Zylo apex', 
+            teamRequirement: '30 Spark up + 3 Flicker', 
             rewardShare: '2%', 
             essence: 'Income becomes impact — name becomes power.',
             color: 'green' 
@@ -143,7 +143,15 @@ const LevelsCarousel: React.FC = () => {
         return (
             <div
                 className={`${className} custom-slick-arrow custom-slick-next`}
-                style={{ ...style, display: 'block', right: '-50px', zIndex: 10 }}
+                style={{ 
+                    ...style, 
+                    display: 'block !important', 
+                    right: '-50px', 
+                    zIndex: 10,
+                    position: 'absolute',
+                    top: '50%',
+                    transform: 'translateY(-50%)'
+                }}
                 onClick={onClick}
             >
                 <button
@@ -156,7 +164,16 @@ const LevelsCarousel: React.FC = () => {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        cursor: 'pointer'
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(0, 204, 112, 0.3)';
+                        e.currentTarget.style.transform = 'scale(1.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(0, 204, 112, 0.1)';
+                        e.currentTarget.style.transform = 'scale(1)';
                     }}
                 >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -175,7 +192,15 @@ const LevelsCarousel: React.FC = () => {
         return (
             <div
                 className={`${className} custom-slick-arrow custom-slick-prev`}
-                style={{ ...style, display: 'block', left: '-50px', zIndex: 10 }}
+                style={{ 
+                    ...style, 
+                    display: 'block !important', 
+                    left: '-50px', 
+                    zIndex: 10,
+                    position: 'absolute',
+                    top: '50%',
+                    transform: 'translateY(-50%)'
+                }}
                 onClick={onClick}
             >
                 <button
@@ -188,7 +213,16 @@ const LevelsCarousel: React.FC = () => {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        cursor: 'pointer'
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(0, 204, 112, 0.3)';
+                        e.currentTarget.style.transform = 'scale(1.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(0, 204, 112, 0.1)';
+                        e.currentTarget.style.transform = 'scale(1)';
                     }}
                 >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -208,7 +242,10 @@ const LevelsCarousel: React.FC = () => {
         autoplay: false,
         pauseOnHover: false,
         initialSlide: 0,
-        arrows: false, // Disable default arrows since we have custom buttons
+        // arrows: true, // Enable arrows to show custom buttons
+        // prevArrow: <div style={{ display: 'none' }} />, // Hide previous arrow
+        // nextArrow: <_NextArrow />, // Only show next (green) arrow
+        // prevArrow: <_PrevArrow />, // Only show previous (yellow) arrow
         responsive: [
             {
                 breakpoint: 1200,
@@ -245,7 +282,7 @@ const LevelsCarousel: React.FC = () => {
         <section className="py-5 levels-carousel-section" style={{
             background: '#032233',
             position: 'relative',
-            overflow: 'hidden'
+            overflow: 'visible'
         }}>
             {/* Background Image */}
             <div
@@ -279,7 +316,7 @@ const LevelsCarousel: React.FC = () => {
                     </h2>
                 </div>
 
-                <div className="levels-carousel-wrapper position-relative" style={{ padding: '0 60px' }}>
+                <div className="levels-carousel-wrapper position-relative" style={{ padding: '0 60px', overflow: 'visible' }}>
                     {isMounted ? (
                         // @ts-expect-error - innerRef is valid for react-slick but not in types for dynamic import
                         <Slider innerRef={setSliderRef} {...settings} className="levels-slider">
@@ -519,11 +556,12 @@ const LevelsCarousel: React.FC = () => {
             <style jsx>{`
         .levels-carousel-section {
           position: relative;
-          overflow: hidden;
+          overflow: visible !important;
         }
         
                  .levels-carousel-wrapper {
            padding: 0 40px;
+           overflow: visible !important;
          }
         
                  .nav-arrow {
@@ -540,10 +578,11 @@ const LevelsCarousel: React.FC = () => {
         }
         
         /* Hide ALL default slick arrows completely */
-        .levels-slider .slick-prev:not(.custom-slick-prev),
-        .levels-slider .slick-next:not(.custom-slick-next),
-        .levels-slider button.slick-prev:not(.custom-slick-prev),
-        .levels-slider button.slick-next:not(.custom-slick-next) {
+        .levels-slider .slick-prev,
+        .levels-slider .slick-next,
+        .levels-slider button.slick-prev,
+        .levels-slider button.slick-next,
+        .levels-slider .slick-arrow {
           display: none !important;
           opacity: 0 !important;
           visibility: hidden !important;
@@ -553,21 +592,54 @@ const LevelsCarousel: React.FC = () => {
         }
         
         /* Hide default slick arrow before/after pseudo-elements */
-        .levels-slider .slick-prev:not(.custom-slick-prev)::before,
-        .levels-slider .slick-next:not(.custom-slick-next)::before {
+        .levels-slider .slick-prev::before,
+        .levels-slider .slick-next::before,
+        .levels-slider .slick-arrow::before {
           display: none !important;
           content: '' !important;
           opacity: 0 !important;
         }
         
-        /* Show only custom arrows */
-        .levels-slider .custom-slick-arrow,
+        /* Hide previous arrow - only show next arrow */
         .levels-slider .custom-slick-prev,
-        .levels-slider .custom-slick-next {
+        .levels-slider .slick-prev-custom {
+          display: none !important;
+          opacity: 0 !important;
+          visibility: hidden !important;
+          pointer-events: none !important;
+          width: 0 !important;
+          height: 0 !important;
+        }
+        
+        /* Hide ALL next arrows except custom green one */
+        .levels-slider .slick-next,
+        .levels-slider button.slick-next,
+        .levels-slider .slick-arrow.slick-next {
+          display: none !important;
+          opacity: 0 !important;
+          visibility: hidden !important;
+          pointer-events: none !important;
+          width: 0 !important;
+          height: 0 !important;
+        }
+        
+        /* Show ONLY custom next arrow (green) */
+        .levels-slider .custom-slick-next,
+        .levels-slider .custom-slick-arrow.custom-slick-next {
           display: block !important;
           opacity: 1 !important;
           visibility: visible !important;
           pointer-events: auto !important;
+          position: absolute !important;
+          right: -50px !important;
+          top: 50% !important;
+          transform: translateY(-50%) !important;
+          z-index: 10 !important;
+        }
+        
+        /* Ensure no duplicate arrows */
+        .levels-carousel-wrapper .slick-arrow:not(.custom-slick-next) {
+          display: none !important;
         }
         
         .level-slide {

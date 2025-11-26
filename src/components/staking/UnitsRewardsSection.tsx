@@ -28,7 +28,7 @@ const UnitsRewardsSection: React.FC<UnitsRewardsSectionProps> = ({
       {/* Ambient glows + dotted texture */}
       <div className="bg-ambient" aria-hidden="true" />
 
-      {/* Back to Zones Button */}
+      {/* Back to Units Button */}
       <div className="container-fluid mb-5" style={{ position: 'relative' }}>
         <div className="d-flex align-items-center">
           <button
@@ -52,7 +52,7 @@ const UnitsRewardsSection: React.FC<UnitsRewardsSectionProps> = ({
               e.currentTarget.style.borderColor = 'rgba(0, 214, 163, 0.3)';
             }}
           >
-            ← Back to Zones
+            ← Back to Power Up
           </button>
         </div>
       </div>

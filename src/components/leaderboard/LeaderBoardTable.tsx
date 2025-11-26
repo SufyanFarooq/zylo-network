@@ -239,7 +239,7 @@ const LeaderBoardTable: React.FC = () => {
                             <div className="card-header">
                                 <div className="d-flex justify-content-between align-items-center">
                                     <h3 className="card-title mb-0">
-                                        {activeTab === 'staking' ? 'TOP STAKERS' : 'TOP TEAM BUILDERS'} - {activePeriod.toUpperCase()}
+                                    {activePeriod.toUpperCase()}&apsos;s - {activeTab === 'staking' ? 'Top Performers' : 'Top Team Builders'} 
                                     </h3>
                                     {isConnected && (
                                         <button

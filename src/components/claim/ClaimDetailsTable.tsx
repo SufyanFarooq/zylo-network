@@ -24,7 +24,7 @@ const ClaimDetailsTable: React.FC = () => {
                         <div className="claim-details-card">
                             <div className="card-header">
                                 <h3 className="card-title text-center w-100">
-                                Withdraw History
+                                Outgo History
                                 </h3>
                             </div>
 

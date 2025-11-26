@@ -59,25 +59,25 @@ const NetworkStats: React.FC = () => {
     {
       icon: '/assets/networkicons/members icon.svg',
       value: isLoading ? 'Loading...' : networkData.totalMembers.toLocaleString(),
-      label: 'All Units in Zylo',
+      label: 'Total Units in PowerUp',
       color: 'green'
     },
     {
       icon: '/assets/networkicons/total staked.svg',
       value: isLoading ? 'Loading...' : networkData.totalDeposit.toLocaleString('en-US', { maximumFractionDigits: 2 }),
-      label: 'Total Power Up in Zylo',
+      label: 'Units in Vortex Zone',
       color: 'yellow'
     },
     {
       icon: '/assets/networkicons/active stake.svg',
       value: isLoading ? 'Loading...' : networkData.totalActiveDeposit.toLocaleString('en-US', { maximumFractionDigits: 2 }),
-      label: 'Total Active Power Up in Zylo',
+      label: 'Active Units in PowerUp',
       color: 'teal'
     },
     {
       icon: '/assets/networkicons/withdrawal.svg',
       value: '0',
-      label: 'Total Quick Outgo in Zylo',
+      label: 'Quick Outgo in PowerUp',
       color: 'yellow'
     }
   ];

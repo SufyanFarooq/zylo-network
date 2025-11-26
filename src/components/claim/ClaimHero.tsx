@@ -29,15 +29,13 @@ const ClaimHero: React.FC = () => {
                             textShadow: '2px 2px 4px rgba(254, 230, 0, 0.3)',
                             letterSpacing: '2px'
                         }}>
-                            ClaimX REWARDS
+                            ClaimX Rewards Center
                         </h1>
                         <p className="text-white fs-5" style={{
                             lineHeight: '1.8',
                             maxWidth: '500px'
                         }}>
-                            ClaimX your earned rewards from milestones, Power Up, and team activities.
-                            Your rewards are automatically calculated and ready to be claimed.
-                            No restrictions, ClaimX anytime with just a small transaction fee.
+                            Unlock all rewards earned through Milestones, Power Boosters, and Circle Activity. Your energy gains are calculated in real-time and ready for instant Outgo. No waiting — ClaimX anytime with a minimal network fee.
                         </p>
                     </div>
                 </div>

@@ -35,8 +35,8 @@ const UsersIcon = () => (
 export default function ZillowStakingCards({ index2Value, index3Value, index4Value, isLoading = false }: ZillowStakingCardsProps) {
   const cards: Stat[] = [
     { label: 'Register Time', value: isLoading ? 'Loading...' : `${index2Value}`, icon: <ZapIcon /> },
-    { label: 'Total Direct Incept', value: isLoading ? 'Loading...' : `${index3Value}`, icon: <GaugeIcon /> },
-    { label: 'Total Team of Incept', value: isLoading ? 'Loading...' : `${index4Value}`, icon: <UsersIcon /> },
+    { label: 'Total Instant Incept', value: isLoading ? 'Loading...' : `${index3Value}`, icon: <GaugeIcon /> },
+    { label: 'Total Force of Incept', value: isLoading ? 'Loading...' : `${index4Value}`, icon: <UsersIcon /> },
   ];
   return (
     <section className="stats-strip">

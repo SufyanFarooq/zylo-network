@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { FaExchangeAlt, FaChevronDown } from "react-icons/fa";
+import { FaChevronDown } from "react-icons/fa";
 import { useAccount } from "wagmi";
 import { Contract, ethers, formatEther, parseEther } from "ethers";
 import swapContractAbi from "./swapContractAbi.json";
 import TokenSelectionModal from "./TokenSelectionModal";
 import TradingChart from "./TradingChart";
+import "bootstrap/dist/css/bootstrap.min.css";
 import "./SwapComponent.css";
 
 // Token ABIs
@@ -129,10 +130,6 @@ const SwapComponent: React.FC = () => {
 
     // Mock order book data
     const [buyOrders] = useState([
-        { price: "0.03250079", amount: "297.131990", total: "9.65702440" },
-        { price: "0.03246907", amount: "150.500000", total: "4.88623450" },
-        { price: "0.03245000", amount: "200.000000", total: "6.49000000" },
-        { price: "0.03240000", amount: "180.750000", total: "5.85870000" },
         { price: "0.03235000", amount: "250.000000", total: "8.08750000" },
         { price: "0.03230000", amount: "175.250000", total: "5.65575000" },
         { price: "0.03225000", amount: "220.500000", total: "7.11112500" },
@@ -144,13 +141,11 @@ const SwapComponent: React.FC = () => {
         { price: "0.03195000", amount: "170.750000", total: "5.44811250" },
         { price: "0.03190000", amount: "225.500000", total: "7.19345000" },
         { price: "0.03185000", amount: "190.250000", total: "6.06246250" },
+        { price: "0.03185000", amount: "190.250000", total: "6.06246250" },
+
     ]);
 
     const [sellOrders] = useState([
-        { price: "0.03260000", amount: "120.500000", total: "3.92853000" },
-        { price: "0.03265000", amount: "180.000000", total: "5.87700000" },
-        { price: "0.03270000", amount: "200.250000", total: "6.54817500" },
-        { price: "0.03275000", amount: "150.000000", total: "4.91250000" },
         { price: "0.03280000", amount: "220.500000", total: "7.23240000" },
         { price: "0.03285000", amount: "165.750000", total: "5.44008750" },
         { price: "0.03290000", amount: "235.000000", total: "7.73150000" },
@@ -162,6 +157,9 @@ const SwapComponent: React.FC = () => {
         { price: "0.03320000", amount: "225.500000", total: "7.48660000" },
         { price: "0.03325000", amount: "160.750000", total: "5.34493750" },
         { price: "0.03330000", amount: "240.000000", total: "7.99200000" },
+        { price: "0.03330000", amount: "240.000000", total: "7.99200000" },
+        { price: "0.03330000", amount: "240.000000", total: "7.99200000" },
+
     ]);
 
     // Mock trade history
@@ -176,6 +174,9 @@ const SwapComponent: React.FC = () => {
         { time: "01:10:15", date: "2024-01-15", type: "SELL", price: "0.03255000", amount: "180.750", total: "5.876", txHash: "0x1234...5678" },
         { time: "01:00:00", date: "2024-01-15", type: "BUY", price: "0.03240000", amount: "250.000", total: "8.100", txHash: "0x2345...6789" },
         { time: "00:50:30", date: "2024-01-15", type: "SELL", price: "0.03260000", amount: "120.500", total: "3.928", txHash: "0x3456...7890" },
+        { time: "00:50:30", date: "2024-01-15", type: "SELL", price: "0.03260000", amount: "120.500", total: "3.928", txHash: "0x3456...7890" },
+        { time: "00:50:30", date: "2024-01-15", type: "SELL", price: "0.03260000", amount: "120.500", total: "3.928", txHash: "0x3456...7890" },
+
     ]);
 
     // User order history
@@ -435,7 +436,7 @@ const SwapComponent: React.FC = () => {
         }
     };
 
-    const handleSwapTokens = () => {
+    const _handleSwapTokens = () => {
         if (!tokenA || !tokenB) return;
         const tempToken = tokenA;
         setTokenA(tokenB);
@@ -620,73 +621,45 @@ const SwapComponent: React.FC = () => {
 
     return (
         <div className="trading-container">
-            {/* Trading Pair Header ha yes  */}
-            <div className="trading-header">
-                <div className="pair-header-section">
-                    <h2 className="pair-title">{currentPair}</h2>
-                    <div className="pair-stats-row">
-                        <div className="stat-item">
-                            <span className="stat-label">Last</span>
-                            <span className="stat-value last">{pairStats.lastPrice}</span>
-                        </div>
-                        <div className="stat-item">
-                            <span className="stat-label">24High</span>
-                            <span className="stat-value high">{pairStats.high24h}</span>
-                        </div>
-                        <div className="stat-item">
-                            <span className="stat-label">24Low</span>
-                            <span className="stat-value low">{pairStats.low24h}</span>
-                        </div>
-                        <div className="stat-item">
-                            <span className="stat-label">24V</span>
-                            <span className="stat-value volume">{pairStats.volume24h} ZYLO</span>
-                        </div>
-                        <div className="stat-item">
-                            <span className="stat-label">Your ZYLO</span>
-                            <span className="stat-value balance">{userBalances.zylo}</span>
-                        </div>
-                        <div className="stat-item">
-                            <span className="stat-label">Your USDT</span>
-                            <span className="stat-value balance">{userBalances.usdt}</span>
+            <div className="container-fluid">
+                {/* Top Header with Pair Title and Stats */}
+                <div className="trading-header mb-3">
+                    <div className="pair-header-section">
+                        <h2 className="pair-title">{currentPair}</h2>
+                        <div className="pair-stats-row">
+                            <div className="stat-item">
+                                <span className="stat-label">LAST</span>
+                                <span className="stat-value last">{pairStats.lastPrice}</span>
+                            </div>
+                            <div className="stat-item">
+                                <span className="stat-label">24HIGH</span>
+                                <span className="stat-value high">{pairStats.high24h}</span>
+                            </div>
+                            <div className="stat-item">
+                                <span className="stat-label">24LOW</span>
+                                <span className="stat-value low">{pairStats.low24h}</span>
+                            </div>
+                            <div className="stat-item">
+                                <span className="stat-label">24V</span>
+                                <span className="stat-value volume">{pairStats.volume24h} ZYLO</span>
+                            </div>
+                            <div className="stat-item">
+                                <span className="stat-label">YOUR ZYLO</span>
+                                <span className="stat-value balance">{userBalances.zylo}</span>
+                            </div>
+                            <div className="stat-item">
+                                <span className="stat-label">YOUR USDT</span>
+                                <span className="stat-value balance">{userBalances.usdt}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            {/* Main Trading Interface */}
-            <div className="trading-main-layout">
-                {/* Left Column: Chart */}
-                <div className="trading-left-column">
-                    <TradingChart pair={currentPair} />
-
-                    {/* Order Books */}
-                    <div className="order-books-section">
-                        <div className="order-book-container">
-                            <div className="order-book-header">
-                                <h4>BUY ORDER</h4>
-                            </div>
-                            <div className="order-book-table">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Price</th>
-                                            <th>Amount</th>
-                                            <th>Total</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {buyOrders.map((order, idx) => (
-                                            <tr key={idx} className="buy-row">
-                                                <td className="price-buy">{order.price}</td>
-                                                <td>{order.amount}</td>
-                                                <td>{order.total}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
+                {/* Main Trading Interface - Bootstrap Grid 3-6-3 */}
+                <div className="row g-3 trading-main-row">
+                    {/* Left Column: Order Books (Sell on top, Buy below) - col-3 */}
+                    <div className="col-lg-3 col-md-12 trading-left-column">
+                        {/* SELL ORDER - Top */}
                         <div className="order-book-container">
                             <div className="order-book-header">
                                 <h4>SELL ORDER</h4>
@@ -695,9 +668,9 @@ const SwapComponent: React.FC = () => {
                                 <table>
                                     <thead>
                                         <tr>
-                                            <th>Price</th>
-                                            <th>Amount</th>
-                                            <th>Total</th>
+                                            <th>PRICE</th>
+                                            <th>AMOUNT</th>
+                                            <th>TOTAL</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -712,238 +685,371 @@ const SwapComponent: React.FC = () => {
                                 </table>
                             </div>
                         </div>
+
+                        {/* BUY ORDER - Bottom */}
+                        <div className="order-book-container">
+                            <div className="order-book-header">
+                                <h4>BUY ORDER</h4>
+                            </div>
+                            <div className="order-book-table">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>PRICE</th>
+                                            <th>AMOUNT</th>
+                                            <th>TOTAL</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {buyOrders.map((order, idx) => (
+                                            <tr key={idx} className="buy-row">
+                                                <td className="price-buy">{order.price}</td>
+                                                <td>{order.amount}</td>
+                                                <td>{order.total}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
 
-                    {/* My Orders Section */}
-                    <div className="orders-history-section">
-                        <div className="orders-container">
-                            <div className="orders-header">
-                                <h4>MY ORDERS</h4>
-                                {/* Order Tab Buttons */}
-                                <div className="order-tab-buttons">
-                                    <button
-                                        className={`order-tab-btn ${activeOrderTab === 'pending' ? 'active' : ''}`}
-                                        onClick={() => setActiveOrderTab('pending')}
-                                    >
-                                        Pending
-                                    </button>
-                                    <button
-                                        className={`order-tab-btn ${activeOrderTab === 'completed' ? 'active' : ''}`}
-                                        onClick={() => setActiveOrderTab('completed')}
-                                    >
-                                        Completed
-                                    </button>
+                    {/* Center Column: Chart and Swap - col-6 */}
+                    <div className="col-lg-6 col-md-12 trading-center-column">
+                        {/* Chart Section - Top */}
+                        <div className="chart-section-center">
+                            <TradingChart pair={currentPair} />
+                        </div>
+
+                        {/* Swap Section - Bottom */}
+                        <div className="swap-section-center">
+                            <h3 className="form-title">SWAP</h3>
+                            
+                            {/* Row 1: FROM Input */}
+                            <div className="swap-row">
+                                <div className="token-input-section-compact">
+                                    <div className="token-header-compact">
+                                        <label className="token-label">FROM</label>
+                                        <span className="balance-amount-compact">{formatBalance(tokenA?.balance)}</span>
+                                    </div>
+                                    <div className="token-input-container-compact">
+                                        <input
+                                            type="text"
+                                            className="token-input-compact"
+                                            placeholder="0.0"
+                                            value={isCalculatingQuoteA ? "Calculating..." : amountA}
+                                            onChange={handleAmountAChange}
+                                            disabled={!isConnected || isCalculatingQuoteA || !tokenA}
+                                        />
+                                        <div className="token-selector-compact" onClick={() => handleTokenSelectorClick('A')}>
+                                            <span className="token-symbol-compact">{tokenInfo.tokenA?.symbol || "SELECT TOKEN"}</span>
+                                            <FaChevronDown className="chevron-compact" />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Pending Orders */}
-                            {activeOrderTab === 'pending' && (
-                                <div className="orders-subsection">
-                                    <div className="orders-table-container">
-                                        <table className="detailed-orders-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>#</th>
-                                                    <th>Type</th>
-                                                    <th>Pair</th>
-                                                    <th>Amount</th>
-                                                    <th>Price</th>
-                                                    <th>Total</th>
-                                                    <th>Date</th>
-                                                    <th>Time</th>
-                                                    <th>Status</th>
-                                                    <th>Tx Hash</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {userOrders.pending.map((order) => (
-                                                    <tr key={order.id}>
-                                                        <td>{order.id}</td>
-                                                        <td className={order.type === "BUY" ? "type-buy" : "type-sell"}>{order.type}</td>
-                                                        <td>{order.pair}</td>
-                                                        <td>{order.amount}</td>
-                                                        <td>{order.price}</td>
-                                                        <td>{order.total}</td>
-                                                        <td>{order.date}</td>
-                                                        <td>{order.time}</td>
-                                                        <td className="status-pending">{order.status}</td>
-                                                        <td className="tx-hash">{order.txHash}</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
+                            {/* Row 2: TO Input */}
+                            <div className="swap-row">
+                                <div className="token-input-section-compact">
+                                    <div className="token-header-compact">
+                                        <label className="token-label">TO</label>
+                                        <span className="balance-amount-compact">{formatBalance(tokenB?.balance)}</span>
+                                    </div>
+                                    <div className="token-input-container-compact">
+                                        <input
+                                            type="text"
+                                            className="token-input-compact"
+                                            placeholder={isCalculatingQuote ? "Calculating..." : "0.0"}
+                                            value={isCalculatingQuote ? "" : amountB}
+                                            onChange={handleAmountBChange}
+                                            disabled={!isConnected || isCalculatingQuote || !tokenB}
+                                        />
+                                        <div className="token-selector-compact" onClick={() => !isCalculatingQuote && handleTokenSelectorClick('B')}>
+                                            {isCalculatingQuote ? (
+                                                <div className="quote-loader">
+                                                    <span className="spinner"></span>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <span className="token-symbol-compact">{tokenInfo.tokenB?.symbol || "SELECT TOKEN"}</span>
+                                                    <FaChevronDown className="chevron-compact" />
+                                                </>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
-                            )}
+                            </div>
 
-                            {/* Completed Orders */}
-                            {activeOrderTab === 'completed' && (
-                                <div className="orders-subsection">
-                                    <div className="orders-table-container">
-                                        <table className="detailed-orders-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>#</th>
-                                                    <th>Type</th>
-                                                    <th>Pair</th>
-                                                    <th>Amount</th>
-                                                    <th>Price</th>
-                                                    <th>Total</th>
-                                                    <th>Date</th>
-                                                    <th>Time</th>
-                                                    <th>Status</th>
-                                                    <th>Tx Hash</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {userOrders.completed.map((order) => (
-                                                    <tr key={order.id}>
-                                                        <td>{order.id}</td>
-                                                        <td className={order.type === "BUY" ? "type-buy" : "type-sell"}>{order.type}</td>
-                                                        <td>{order.pair}</td>
-                                                        <td>{order.amount}</td>
-                                                        <td>{order.price}</td>
-                                                        <td>{order.total}</td>
-                                                        <td>{order.date}</td>
-                                                        <td>{order.time}</td>
-                                                        <td className="status-completed">{order.status}</td>
-                                                        <td className="tx-hash">{order.txHash}</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
+                            {/* Row 3: Action Button */}
+                            <div className="swap-row">
+                                <button
+                                    className={`swap-action-btn-compact ${!isConnected || !amountA || !amountB || hasInsufficientBalance || !tokenA || !tokenB || pairExists === false ? 'disabled' : ''}`}
+                                    onClick={handleSwap}
+                                    disabled={isLoading || !amountA || !amountB || !isConnected || hasInsufficientBalance || !tokenA || !tokenB || pairExists === false}
+                                >
+                                    {isLoading ? (
+                                        <>
+                                            <span className="spinner"></span>
+                                            Swapping...
+                                        </>
+                                    ) : !isConnected ? (
+                                        "Connect Wallet to Swap"
+                                    ) : !tokenA || !tokenB ? (
+                                        "SELECT TOKENS TO SWAP"
+                                    ) : pairExists === false ? (
+                                        "Pair Does Not Exist"
+                                    ) : hasInsufficientBalance ? (
+                                        "Insufficient Balance"
+                                    ) : (
+                                        "Swap Tokens"
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right Column: Pairs Table and Trade History - col-3 */}
+                    <div className="col-lg-3 col-md-12 trading-right-column">
+                        {/* Pairs Table - Top */}
+                        <div className="pairs-table-section">
+                            <div className="pairs-card">
+                                <div className="pairs-card-header">
+                                    <h4>MARKET</h4>
+                                    <input type="text" className="pairs-search" placeholder="Q Search" />
                                 </div>
-                            )}
+                                <div className="pairs-tabs">
+                                    <button className="pair-tab active">TOP</button>
+                                    <button className="pair-tab">BTC</button>
+                                    <button className="pair-tab">ETH</button>
+                                    <button className="pair-tab">USDT</button>
+                                </div>
+                                <div className="pairs-table-container">
+                                    <table className="pairs-table">
+                                        <thead>
+                                            <tr>
+                                                <th>NAME</th>
+                                                <th>PRICE</th>
+                                                <th>CH.</th>
+                                                <th>VOL.</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>ETH</td>
+                                                <td>0.03352149</td>
+                                                <td className="change-negative">-0.9%</td>
+                                                <td>1992.9</td>
+                                            </tr>
+                                            <tr>
+                                                <td>ZYLO</td>
+                                                <td>0.03338129</td>
+                                                <td className="change-positive">+2.5%</td>
+                                                <td>1855.24</td>
+                                            </tr>
+                                            <tr>
+                                                <td>ZEC</td>
+                                                <td>0.00588196</td>
+                                                <td className="change-positive">+3.3%</td>
+                                                <td>879.3</td>
+                                            </tr>
+                                            <tr>
+                                                <td>DASH</td>
+                                                <td>0.00073285</td>
+                                                <td className="change-positive">+15.2%</td>
+                                                <td>380.3</td>
+                                            </tr>
+                                            <tr>
+                                                <td>LTC</td>
+                                                <td>0.00097190</td>
+                                                <td className="change-positive">+0.1%</td>
+                                                <td>172.5</td>
+                                            </tr>
+                                            <tr>
+                                                <td>ETC</td>
+                                                <td>0.00015999</td>
+                                                <td className="change-negative">-2%</td>
+                                                <td>102.2</td>
+                                            </tr>
+                                            <tr>
+                                                <td>BCH</td>
+                                                <td>0.00013462</td>
+                                                <td className="change-positive">+3.6%</td>
+                                                <td>10.3</td>
+                                            </tr>
+                                            <tr>
+                                                <td>DOGE</td>
+                                                <td>0.00000174</td>
+                                                <td className="change-positive">+1.8%</td>
+                                                <td>0.1</td>
+                                            </tr>
+                                            <tr>
+                                                <td>DOGE</td>
+                                                <td>0.00000174</td>
+                                                <td className="change-positive">+1.8%</td>
+                                                <td>0.1</td>
+                                            </tr>
+                                            <tr>
+                                                <td>DOGE</td>
+                                                <td>0.00000174</td>
+                                                <td className="change-positive">+1.8%</td>
+                                                <td>0.1</td>
+                                            </tr>
+                                            <tr>
+                                                <td>DOGE</td>
+                                                <td>0.00000174</td>
+                                                <td className="change-positive">+1.8%</td>
+                                                <td>0.1</td>
+                                            </tr>
+                                            <tr>
+                                                <td>DOGE</td>
+                                                <td>0.00000174</td>
+                                                <td className="change-positive">+1.8%</td>
+                                                <td>0.1</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Trade History Section - Bottom */}
+                        <div className="history-container-right">
+                            <div className="history-header">
+                                <h4>TRADE HISTORY</h4>
+                            </div>
+                            <div className="history-table-container">
+                                <table className="simple-history-table">
+                                    <thead>
+                                        <tr>
+                                            <th>TIME</th>
+                                            <th>TYPE</th>
+                                            <th>PRICE</th>
+                                            <th>AMOUNT</th>
+                                            <th>TOTAL</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {tradeHistory.map((trade, idx) => (
+                                            <tr key={idx}>
+                                                <td>{trade.time}</td>
+                                                <td className={trade.type === "BUY" ? "type-buy" : "type-sell"}>{trade.type}</td>
+                                                <td>{trade.price}</td>
+                                                <td>{trade.amount}</td>
+                                                <td>{trade.total}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Right Column: Swap Form */}
-                <div className="trading-right-column">
-                    {/* Swap Section */}
-                    <div className="swap-section">
-                        <h3 className="form-title">SWAP</h3>
-                        <div className="token-input-section">
-                            <div className="token-header">
-                                <label className="token-label">From</label>
-                                <div className="token-balance">
-                                    <span className="balance-amount">{formatBalance(tokenA?.balance)}</span>
-                                    <span className="balance-symbol">{tokenInfo.tokenA?.symbol || ""}</span>
-                                </div>
-                            </div>
-                            <div className="token-input-container">
-                                <input
-                                    type="text"
-                                    className="token-input"
-                                    placeholder="0.0"
-                                    value={isCalculatingQuoteA ? "Calculating..." : amountA}
-                                    onChange={handleAmountAChange}
-                                    disabled={!isConnected || isCalculatingQuoteA || !tokenA}
-                                />
-                                <div className="token-selector" onClick={() => handleTokenSelectorClick('A')}>
-                                    <span className="token-symbol">{tokenInfo.tokenA?.symbol || "Select Token"}</span>
-                                    <FaChevronDown className="chevron" />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="swap-button-container">
+                {/* My Orders Section - Full Width at Bottom */}
+                <div className="row mt-3">
+                    <div className="col-12 orders-history-section">
+                <div className="orders-container">
+                    <div className="orders-header">
+                        <h4>MY ORDERS</h4>
+                        {/* Order Tab Buttons */}
+                        <div className="order-tab-buttons">
                             <button
-                                className="swap-button"
-                                onClick={handleSwapTokens}
-                                disabled={!isConnected || !tokenA || !tokenB || pairExists === false}
+                                className={`order-tab-btn ${activeOrderTab === 'pending' ? 'active' : ''}`}
+                                onClick={() => setActiveOrderTab('pending')}
                             >
-                                <FaExchangeAlt />
+                                PENDING
+                            </button>
+                            <button
+                                className={`order-tab-btn ${activeOrderTab === 'completed' ? 'active' : ''}`}
+                                onClick={() => setActiveOrderTab('completed')}
+                            >
+                                COMPLETED
                             </button>
                         </div>
-
-                        <div className="token-input-section">
-                            <div className="token-header">
-                                <label className="token-label">To</label>
-                                <div className="token-balance">
-                                    <span className="balance-amount">{formatBalance(tokenB?.balance)}</span>
-                                    <span className="balance-symbol">{tokenInfo.tokenB?.symbol || ""}</span>
-                                </div>
-                            </div>
-                            <div className="token-input-container">
-                                <input
-                                    type="text"
-                                    className="token-input"
-                                    placeholder={isCalculatingQuote ? "Calculating..." : "0.0"}
-                                    value={isCalculatingQuote ? "" : amountB}
-                                    onChange={handleAmountBChange}
-                                    disabled={!isConnected || isCalculatingQuote || !tokenB}
-                                />
-                                <div className="token-selector2" onClick={() => !isCalculatingQuote && handleTokenSelectorClick('B')}>
-                                    {isCalculatingQuote ? (
-                                        <div className="quote-loader">
-                                            <span className="spinner"></span>
-                                        </div>
-                                    ) : (
-                                        <>
-                                            <span className="token-symbol">{tokenInfo.tokenB?.symbol || "Select Token"}</span>
-                                            <FaChevronDown className="chevron" />
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        <button
-                            className={`swap-action-btn ${!isConnected || !amountA || !amountB || hasInsufficientBalance || !tokenA || !tokenB || pairExists === false ? 'disabled' : ''}`}
-                            onClick={handleSwap}
-                            disabled={isLoading || !amountA || !amountB || !isConnected || hasInsufficientBalance || !tokenA || !tokenB || pairExists === false}
-                        >
-                            {isLoading ? (
-                                <>
-                                    <span className="spinner"></span>
-                                    Swapping...
-                                </>
-                            ) : !isConnected ? (
-                                "Connect Wallet to Swap"
-                            ) : !tokenA || !tokenB ? (
-                                "Select Tokens to Swap"
-                            ) : pairExists === false ? (
-                                "Pair Does Not Exist"
-                            ) : hasInsufficientBalance ? (
-                                "Insufficient Balance"
-                            ) : (
-                                "Swap Tokens"
-                            )}
-                        </button>
                     </div>
 
-                    {/* Trade History Section - Below Swap */}
-                    <div className="history-container">
-                        <div className="history-header">
-                            <h4>TRADE HISTORY</h4>
-                        </div>
-                        <div className="history-table-container">
-                            <table className="simple-history-table">
-                                <thead>
-                                    <tr>
-                                        <th>Time</th>
-                                        <th>Type</th>
-                                        <th>Price</th>
-                                        <th>Amount</th>
-                                        <th>Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {tradeHistory.map((trade, idx) => (
-                                        <tr key={idx}>
-                                            <td>{trade.time}</td>
-                                            <td className={trade.type === "BUY" ? "type-buy" : "type-sell"}>{trade.type}</td>
-                                            <td>{trade.price}</td>
-                                            <td>{trade.amount}</td>
-                                            <td>{trade.total}</td>
+                    {/* Pending Orders */}
+                    {activeOrderTab === 'pending' && (
+                        <div className="orders-subsection">
+                            <div className="orders-table-container">
+                                <table className="detailed-orders-table">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>TYPE</th>
+                                            <th>PAIR</th>
+                                            <th>AMOUNT</th>
+                                            <th>PRICE</th>
+                                            <th>TOTAL</th>
+                                            <th>DATE</th>
+                                            <th>TIME</th>
+                                            <th>STATUS</th>
+                                            <th>TX HASH</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        {userOrders.pending.map((order) => (
+                                            <tr key={order.id}>
+                                                <td>{order.id}</td>
+                                                <td className={order.type === "BUY" ? "type-buy" : "type-sell"}>{order.type}</td>
+                                                <td>{order.pair}</td>
+                                                <td>{order.amount}</td>
+                                                <td>{order.price}</td>
+                                                <td>{order.total}</td>
+                                                <td>{order.date}</td>
+                                                <td>{order.time}</td>
+                                                <td className="status-pending">{order.status}</td>
+                                                <td className="tx-hash">{order.txHash}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
+                    )}
+
+                    {/* Completed Orders */}
+                    {activeOrderTab === 'completed' && (
+                        <div className="orders-subsection">
+                            <div className="orders-table-container">
+                                <table className="detailed-orders-table">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>TYPE</th>
+                                            <th>PAIR</th>
+                                            <th>AMOUNT</th>
+                                            <th>PRICE</th>
+                                            <th>TOTAL</th>
+                                            <th>DATE</th>
+                                            <th>TIME</th>
+                                            <th>STATUS</th>
+                                            <th>TX HASH</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {userOrders.completed.map((order) => (
+                                            <tr key={order.id}>
+                                                <td>{order.id}</td>
+                                                <td className={order.type === "BUY" ? "type-buy" : "type-sell"}>{order.type}</td>
+                                                <td>{order.pair}</td>
+                                                <td>{order.amount}</td>
+                                                <td>{order.price}</td>
+                                                <td>{order.total}</td>
+                                                <td>{order.date}</td>
+                                                <td>{order.time}</td>
+                                                <td className="status-completed">{order.status}</td>
+                                                <td className="tx-hash">{order.txHash}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
                     </div>
+                </div>
                 </div>
             </div>
 

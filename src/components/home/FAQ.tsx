@@ -9,28 +9,44 @@ const FAQ: React.FC = () => {
 
   const faqs = [
     {
-      question: "How to get started?",
-      answer: "Getting started is easy! Simply create a wallet, buy Zillow Vortex tokens, and start Power Up to earn rewards immediately."
+      question: "What is Zylo Vortex?",
+      answer: "A digital world where your effort, strategy, and smart choices turn into real rewards."
     },
     {
-      question: "What is Power Up?",
-      answer: "Power Up is the process of locking up your tokens to help secure the network and earn rewards in return. It's like earning interest on your crypto holdings."
+      question: "How do I grow in Zylo Vortex?",
+      answer: "Level up by activating unique Units and progressing through energy-driven Zones."
     },
     {
-      question: "How much can I earn?",
-      answer: "Earnings depend on the amount Power Up and current APY rates. Our platform offers competitive returns ranging from 8-15% annually."
+      question: "What are Units?",
+      answer: "Special gamified assets (Spark Up → Zylo Universe) that evolve and generate rewards as you play."
     },
     {
-      question: "Is it safe to Power Up?",
-      answer: "Yes! Our platform uses audited smart contracts and implements multiple security layers to ensure your funds are always protected."
+      question: "How do I earn rewards?",
+      answer: "Rewards are based on your activity, energy growth, and milestones, not luck or outside factors."
     },
     {
-      question: "Can I unstake anytime?",
-      answer: "Yes, you can unstake your tokens at any time, though there may be a short cooldown period depending on the Power Up pool."
+      question: "What are Mystery Boxes?",
+      answer: "Gamified surprises unlocked when you hit specific Unit combinations or milestone goals."
     },
     {
-      question: "What wallets are supported?",
-      answer: "We support all major wallets including MetaMask, WalletConnect, Trust Wallet, and many others."
+      question: "How does the Leaderboard work?",
+      answer: "It celebrates the most consistent and active players, with daily, weekly, and monthly recognition."
+    },
+    {
+      question: "What is Zylo Universe?",
+      answer: "An exclusive layer of the ecosystem giving active users special privileges and long-term benefits."
+    },
+    {
+      question: "How is token value kept strong?",
+      answer: "Through a dynamic auto-burn system tied to rewards, ensuring scarcity and sustainability."
+    },
+    {
+      question: "Can I control my progress?",
+      answer: "Absolutely — your strategy, timing, and engagement decide your growth and unlocked rewards."
+    },
+    {
+      question: "Why is Zylo Vortex unique?",
+      answer: "Because it's a skill-based, gamified, energy-driven blockchain ecosystem with unique Units, Zones, Mystery Boxes, and a Zylo Universe experience."
     }
   ];
 
@@ -51,18 +67,68 @@ const FAQ: React.FC = () => {
               <div key={index} className="mb-3">
                 <div 
                   className="stats-card border-secondary"
-                  style={{ cursor: 'pointer' }}
+                  style={{ 
+                    cursor: 'pointer',
+                    background: 'rgba(3, 34, 51, 0.8)',
+                    border: '1px solid rgba(0, 214, 163, 0.3)',
+                    borderRadius: '12px',
+                    padding: '1.25rem 1.5rem',
+                    transition: 'all 0.3s ease'
+                  }}
                   onClick={() => toggleFAQ(index)}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(0, 214, 163, 0.5)';
+                    e.currentTarget.style.background = 'rgba(3, 34, 51, 0.95)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(0, 214, 163, 0.3)';
+                    e.currentTarget.style.background = 'rgba(3, 34, 51, 0.8)';
+                  }}
                 >
                   <div className="d-flex justify-content-between align-items-center">
-                    <h5 className="text-white mb-0">{faq.question}</h5>
-                    <span className={`text-yellow fs-4 transition-transform ${openIndex === index ? 'rotate-180' : ''}`}>
+                    <h5 
+                      className="mb-0"
+                      style={{
+                        color: '#ffffff',
+                        fontSize: '1.1rem',
+                        fontWeight: '600',
+                        textShadow: '0 1px 3px rgba(0, 0, 0, 0.5)'
+                      }}
+                    >
+                      {faq.question}
+                    </h5>
+                    <span 
+                      className={`fs-4 transition-transform ${openIndex === index ? 'rotate-180' : ''}`}
+                      style={{
+                        color: '#FEE739',
+                        fontSize: '1rem',
+                        fontWeight: 'bold',
+                        transition: 'transform 0.3s ease'
+                      }}
+                    >
                       ▼
                     </span>
                   </div>
                   {openIndex === index && (
-                    <div className="mt-3 pt-3 border-top border-secondary">
-                      <p className="stats-label mb-0">{faq.answer}</p>
+                    <div 
+                      className="mt-3 pt-3"
+                      style={{
+                        borderTop: '1px solid rgba(0, 214, 163, 0.2)',
+                        paddingTop: '1rem'
+                      }}
+                    >
+                      <p 
+                        className="mb-0"
+                        style={{
+                          color: '#ffffff',
+                          fontSize: '0.95rem',
+                          lineHeight: '1.6',
+                          textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
+                          opacity: 0.9
+                        }}
+                      >
+                        {faq.answer}
+                      </p>
                     </div>
                   )}
                 </div>

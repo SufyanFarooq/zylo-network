@@ -1367,7 +1367,7 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
       {/* Ambient glows + dotted texture */}
       <div className="bg-ambient" aria-hidden="true" />
 
-      {/* Back to Zones Button and Unit Name Display */}
+      {/* Back to Units Button and Unit Name Display */}
       <div className="container-fluid mb-5" style={{ position: 'relative' }}>
         <div className="d-flex align-items-center">
           <button
@@ -1402,7 +1402,7 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
               e.currentTarget.style.borderColor = 'rgba(0, 214, 163, 0.3)';
             }}
           >
-            ← Back to Zones
+            ← Back to Units
           </button>
 
           {/* Unit Name Display - Centered on page */}
@@ -1449,16 +1449,6 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
                     >
                       {unitName}
                     </div>
-                    <div
-                      style={{
-                        fontSize: '0.9rem',
-                        color: 'rgba(255, 255, 255, 0.75)',
-                        fontWeight: '500',
-                        letterSpacing: '0.5px',
-                      }}
-                    >
-                      Power Up Unit
-                    </div>
                   </div>
                 );
               })()}
@@ -1475,7 +1465,7 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
               <div className="card-inner">
                 {/* Frosted "Total Staked" chip - smaller size */}
                 <div className="total-chip total-chip-right mb-3 coin-anchor">
-                  <span className="total-label text-nowrap" style={{ color: '#FEE739' }}>TOTAL USER SELF POWER UP</span>
+                  <span className="total-label text-nowrap" style={{ color: '#FEE739' }}>TOTAL SELF POWER UP</span>
                   <span className="total-value">
                     {isLoadingStakedAmount ? 'Loading...' : `${index6Value} `}
                     <span style={{ color: '#FEE739' }}>ZYLO</span>
@@ -1497,7 +1487,7 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
               <div className="card-inner">
                 {/* Frosted "Total Staked" chip - smaller size */}
                 <div className="total-chip total-chip-right mb-3 coin-anchor">
-                  <span className="total-label text-nowrap" style={{ color: '#FEE739' }}>TOTAL USER ACTIVE POWER UP</span>
+                  <span className="total-label text-nowrap" style={{ color: '#FEE739' }}>TOTAL SELF ACTIVE POWER UP</span>
                   <span className="total-value">
                     {isLoadingStakedAmount ? 'Loading...' : `${index7Value} `}
                     <span style={{ color: '#FEE739' }}>ZYLO</span>

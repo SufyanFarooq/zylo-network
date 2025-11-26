@@ -83,6 +83,7 @@ const SecureTransparent: React.FC = () => {
                   alt="Security and Transparency" 
                   width={700} 
                   height={500}
+                  className="secure-image-float"
                   style={{ 
                     maxWidth: '100%', 
                     width: 'auto',
@@ -106,6 +107,7 @@ const SecureTransparent: React.FC = () => {
                   alt="PowerUnit"
                   width={700}
                   height={500}
+                  className="incept-image-float"
                   style={{
                     maxWidth: '100%',
                     // width: 'auto',
@@ -121,7 +123,7 @@ const SecureTransparent: React.FC = () => {
             <div className="col-lg-6">
               <div className="position-relative what-is-powerunit" style={{ zIndex: '1' }}>
                 <h2 className="text-white fw-bold display-5 mb-4">
-                  What Is PowerUnit?
+                  What Is Power Up Unit Machine?
                 </h2>
                 <p className="lead text-white mb-4">
                   PowerUnit is a next-generation AI reward ecosystem designed to deliver consistent, automated, and dynamic earning power through our advanced digital units.

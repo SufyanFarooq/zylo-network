@@ -13,6 +13,12 @@
   transform: rotate(-8deg) translate(18px, 26px);
   box-shadow: 0 0 28px rgba(0, 255, 163, 0.28);
   z-index: 1;
+  /* Make it easy to center content inside */
+  display: grid;
+  place-items: end center;
+  padding-bottom: 8px;
+  /* Folder animation - starts first */
+  animation: folderMoveGreen 4s ease-in-out infinite;
 }
 
 /* Card front */
@@ -30,6 +36,8 @@
   display: grid;
   place-items: end center;
   padding-bottom: 8px;
+  /* Folder animation - starts after green card (cascading effect) */
+  animation: folderMoveYellow 4s ease-in-out infinite 0.2s;
 }
 
 /* Gorilla image container (keeps image nicely inside the card) */
@@ -50,12 +58,102 @@
     drop-shadow(0 14px 28px rgba(0, 0, 0, 0.35))
     drop-shadow(0 0 18px rgba(254, 230, 0, 0.18));
   animation: gorillaFloat 6s ease-in-out infinite;
-  pointer-events: none; /* don’t block clicks on CTA nearby */
+  pointer-events: none; /* don't block clicks on CTA nearby */
+}
+
+/* Green card character - green glow */
+.card-green .gorilla-img {
+  filter:
+    drop-shadow(0 14px 28px rgba(0, 0, 0, 0.35))
+    drop-shadow(0 0 18px rgba(0, 255, 163, 0.28));
 }
 
 @keyframes gorillaFloat {
-  0%, 100% { transform: translateY(0px); }
-  50%      { transform: translateY(-6px); }
+  0%, 100% { 
+    transform: translateY(0px) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-8px) rotate(2deg);
+  }
+  50% { 
+    transform: translateY(-6px) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-10px) rotate(-2deg);
+  }
+}
+
+/* Folder-like cascading animation */
+@keyframes folderMoveGreen {
+  0%, 100% { 
+    transform: rotate(-8deg) translate(18px, 26px);
+  }
+  25% {
+    transform: rotate(-6deg) translate(20px, 28px);
+  }
+  50% {
+    transform: rotate(-10deg) translate(16px, 30px);
+  }
+  75% {
+    transform: rotate(-6deg) translate(20px, 28px);
+  }
+}
+
+@keyframes folderMoveYellow {
+  0%, 100% { 
+    transform: rotate(6deg) translate(60px, 46px);
+  }
+  25% {
+    transform: rotate(8deg) translate(62px, 48px);
+  }
+  50% {
+    transform: rotate(4deg) translate(58px, 50px);
+  }
+  75% {
+    transform: rotate(8deg) translate(62px, 48px);
+  }
+}
+
+/* Play Button Floating Animation */
+@keyframes playButtonFloat {
+  0%, 100% { 
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% { 
+    transform: translateY(-8px) rotate(5deg);
+  }
+}
+
+/* Live Text Pulse Animation */
+@keyframes liveTextPulse {
+  0%, 100% { 
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+/* Sparkle Floating Animation */
+@keyframes sparkleFloat {
+  0%, 100% { 
+    transform: translateY(0px) translateX(0px) scale(1);
+    opacity: 0.8;
+  }
+  25% { 
+    transform: translateY(-10px) translateX(5px) scale(1.2);
+    opacity: 1;
+  }
+  50% { 
+    transform: translateY(-5px) translateX(-5px) scale(0.9);
+    opacity: 0.9;
+  }
+  75% { 
+    transform: translateY(-12px) translateX(3px) scale(1.1);
+    opacity: 1;
+  }
 }
 
 /* Play Button */
@@ -74,13 +172,15 @@
   border: 2px solid #000;
   z-index: 3;
   transition: transform .2s ease, box-shadow .2s ease;
+  animation: playButtonFloat 3s ease-in-out infinite;
 }
 .play-wrap:hover {
   transform: translateY(-2px);
   box-shadow: 0 0 22px rgba(254, 230, 0, 0.55);
+  animation-play-state: paused;
 }
 
-/* “Zillow is Live” */
+/* "Zillow is Live" */
 .live-text {
   position: absolute;
   top: 22px;
@@ -89,6 +189,7 @@
   color: #fff;
   font-weight: 700;
   z-index: 3;
+  animation: liveTextPulse 2s ease-in-out infinite;
 }
 
 /* Sparkles */
@@ -98,10 +199,23 @@
   font-size: 1rem;
   z-index: 3;
   user-select: none;
+  animation: sparkleFloat 4s ease-in-out infinite;
 }
-.sparkle-a { top: 40px; left: 30px; }
-.sparkle-b { top: 70px; right: 50px; }
-.sparkle-c { bottom: 50px; left: 80px; }
+.sparkle-a { 
+  top: 40px; 
+  left: 30px; 
+  animation-delay: 0s;
+}
+.sparkle-b { 
+  top: 70px; 
+  right: 50px; 
+  animation-delay: 1.3s;
+}
+.sparkle-c { 
+  bottom: 50px; 
+  left: 80px; 
+  animation-delay: 2.6s;
+}
 
 /* Responsive tweaks */
 @media (max-width: 991.98px) {
@@ -115,6 +229,45 @@
 
 
 
+
+/* SecureTransparent Section - Image Animations */
+.secure-image-float {
+  animation: secureImageFloat 5s ease-in-out infinite;
+}
+
+.incept-image-float {
+  animation: inceptImageFloat 5s ease-in-out infinite 0.5s;
+}
+
+@keyframes secureImageFloat {
+  0%, 100% { 
+    transform: translateY(0px) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-12px) rotate(1deg);
+  }
+  50% { 
+    transform: translateY(-8px) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-15px) rotate(-1deg);
+  }
+}
+
+@keyframes inceptImageFloat {
+  0%, 100% { 
+    transform: translateY(0px) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-10px) rotate(-1deg);
+  }
+  50% { 
+    transform: translateY(-6px) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-13px) rotate(1deg);
+  }
+}
 
 /* comunity */
 

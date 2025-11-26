@@ -131,7 +131,7 @@ const Hero: React.FC = () => {
           {/* Left Content */}
           <div className="col-lg-6 mb-5 mb-lg-0">
             <h1 className="hero-title">
-              <span className="text-yellow">Welcome to PowerUnit</span><br />
+              <span className="text-yellow">Welcome to Power Up Unit Machine</span><br />
               <span className="text-white">The Next Evolution of </span><br />
               <span className="text-green">AI-Powered Rewards</span>
             </h1>
@@ -173,7 +173,18 @@ const Hero: React.FC = () => {
           <div className="col-lg-6">
             <div className="hero-graphics position-relative">
               {/* Green Card - behind */}
-              <div className="card-green" />
+              <div className="card-green">
+                <div className="gorilla-wrap">
+                  <Image
+                    src="/assets/heroimg.png"
+                    alt="Baby gorilla holding Z coin"
+                    width={540}
+                    height={540}
+                    priority
+                    className="gorilla-img"
+                  />
+                </div>
+              </div>
 
               {/* Yellow Card - front (gorilla is inside so it rotates with the card) */}
               <div className="card-yellow">
