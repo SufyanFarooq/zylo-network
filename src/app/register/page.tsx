@@ -5,7 +5,7 @@ import Header from '@/components/common/Header';
 import Footer from '@/components/common/Footer';
 import { FaCircle } from 'react-icons/fa';
 import Image from 'next/image';
-import { connectWallet, registerUser, checkUserRegistration, refreshUserRegistrationStatus } from '@/blockchain/instances/ZyloPowerUp';
+import { connectWallet, registerUser, checkUserRegistration, refreshUserRegistrationStatus, addPartnerAccount, getAllPartnerAccounts } from '@/blockchain/instances/ZyloPowerUp';
 import { useAccount, useWalletClient } from 'wagmi';
 import { useAppKit } from '@reown/appkit/react';
 import { useSearchParams } from 'next/navigation';
@@ -28,6 +28,13 @@ const RegisterPage: React.FC = () => {
     const [walletMessageFadeOut, setWalletMessageFadeOut] = useState(false);
     const [isReferralFromURL, setIsReferralFromURL] = useState(false);
     const [isCheckingReferral, setIsCheckingReferral] = useState(true);
+    const [showAddPartnerSection, setShowAddPartnerSection] = useState(false);
+    const [partnerAddresses, setPartnerAddresses] = useState<string[]>(['']);
+    const [partnerPercentages, setPartnerPercentages] = useState<string[]>(['0']);
+    const [isAddingPartners, setIsAddingPartners] = useState(false);
+    const [showPartnerAccountsModal, setShowPartnerAccountsModal] = useState(false);
+    const [partnerAccountsList, setPartnerAccountsList] = useState<Array<{ address: string, percentage: number }>>([]);
+    const [isLoadingPartners, setIsLoadingPartners] = useState(false);
 
     // Wagmi hooks
     const { address, isConnected } = useAccount();
@@ -151,6 +158,9 @@ const RegisterPage: React.FC = () => {
             setReferralAddress(''); // Clear the referral address input
             setIsReferralFromURL(false);
             setIsCheckingReferral(false);
+            setShowAddPartnerSection(false);
+            setPartnerAddresses(['']);
+            setPartnerPercentages(['0']);
         }
     }, [isConnected]);
 
@@ -168,6 +178,9 @@ const RegisterPage: React.FC = () => {
             setCopySuccess(false);
             setReferralAddress('');
             setIsReferralFromURL(false);
+            setShowAddPartnerSection(false);
+            setPartnerAddresses(['']);
+            setPartnerPercentages(['0']);
         }
     }, [address, isConnected]);
 
@@ -281,6 +294,169 @@ const RegisterPage: React.FC = () => {
             setTimeout(() => setCopySuccess(false), 2000); // Hide success message after 2 seconds
         } catch (error) {
             console.error('Failed to copy link:', error);
+        }
+    };
+
+    // Add new partner address input field
+    const handleAddPartnerInput = () => {
+        setPartnerAddresses([...partnerAddresses, '']);
+        setPartnerPercentages([...partnerPercentages, '0']);
+    };
+
+    // Update partner address at specific index
+    const handlePartnerAddressChange = (index: number, value: string) => {
+        const updated = [...partnerAddresses];
+        updated[index] = value;
+        setPartnerAddresses(updated);
+    };
+
+    // Update partner percentage at specific index
+    const handlePartnerPercentageChange = (index: number, value: string) => {
+        // Only allow numbers and decimal point
+        let numericValue = value.replace(/[^0-9.]/g, '');
+
+        // Validate max percentage (100)
+        const numValue = parseFloat(numericValue);
+        if (!isNaN(numValue) && numValue > 100) {
+            numericValue = '100';
+        }
+
+        const updated = [...partnerPercentages];
+        updated[index] = numericValue;
+        setPartnerPercentages(updated);
+    };
+
+    // Remove partner address at specific index
+    const handleRemovePartnerAddress = (index: number) => {
+        if (partnerAddresses.length > 1) {
+            const updatedAddresses = partnerAddresses.filter((_, i) => i !== index);
+            const updatedPercentages = partnerPercentages.filter((_, i) => i !== index);
+            setPartnerAddresses(updatedAddresses);
+            setPartnerPercentages(updatedPercentages);
+        }
+    };
+
+    // Submit partner accounts
+    const handleAddPartnerAccounts = async () => {
+        setIsAddingPartners(true);
+        setMessage('');
+        setMessageType('');
+
+        try {
+            if (!isConnected || !address) {
+                setMessage('Please connect your wallet first');
+                setMessageType('error');
+                setIsAddingPartners(false);
+                return;
+            }
+
+            if (!walletClient) {
+                setMessage('Unable to get wallet client');
+                setMessageType('error');
+                setIsAddingPartners(false);
+                return;
+            }
+
+            // Filter out empty addresses and get corresponding percentages
+            const addressesToAdd: string[] = [];
+            const percentagesToAdd: number[] = [];
+
+            for (let i = 0; i < partnerAddresses.length; i++) {
+                const addr = partnerAddresses[i].trim();
+                const percentage = partnerPercentages[i] ? parseFloat(partnerPercentages[i]) : 0;
+
+                if (addr !== '') {
+                    addressesToAdd.push(addr);
+                    percentagesToAdd.push(percentage);
+                }
+            }
+
+            if (addressesToAdd.length === 0) {
+                setMessage('Please add at least one partner address');
+                setMessageType('error');
+                setIsAddingPartners(false);
+                return;
+            }
+
+            // Check for duplicate addresses
+            const addressSet = new Set<string>();
+            for (let i = 0; i < addressesToAdd.length; i++) {
+                const addr = addressesToAdd[i].toLowerCase();
+                if (addressSet.has(addr)) {
+                    setMessage(`Duplicate address found: ${addressesToAdd[i]}. Each address can only be added once.`);
+                    setMessageType('error');
+                    setIsAddingPartners(false);
+                    return;
+                }
+                addressSet.add(addr);
+            }
+
+            // Validate all percentages are valid (should be <= 100, can be less)
+            for (let i = 0; i < percentagesToAdd.length; i++) {
+                const pct = percentagesToAdd[i];
+                if (isNaN(pct) || pct < 0 || pct > 100) {
+                    setMessage(`Invalid percentage for address ${addressesToAdd[i]}. Percentage must be between 0 and 100.`);
+                    setMessageType('error');
+                    setIsAddingPartners(false);
+                    return;
+                }
+            }
+
+            // Call addPartnerAccount function
+            const result = await addPartnerAccount(walletClient, address, addressesToAdd, percentagesToAdd);
+
+            if (result.success) {
+                setMessage('Successfully added partner accounts!');
+                setMessageType('success');
+                // Clear the partner addresses after success
+                setPartnerAddresses(['']);
+                setPartnerPercentages(['0']);
+                setShowAddPartnerSection(false);
+            } else {
+                setMessage(result.error || 'Failed to add partner accounts');
+                setMessageType('error');
+            }
+        } catch (error: unknown) {
+            const err = error as { message?: string };
+            setMessage(`Error: ${err?.message || 'Unknown error occurred'}`);
+            setMessageType('error');
+        } finally {
+            setIsAddingPartners(false);
+        }
+    };
+
+    // Load and show partner accounts
+    const handleViewPartnerAccounts = async () => {
+        if (!isConnected || !address || !walletClient) {
+            setMessage('Please connect your wallet first');
+            setMessageType('error');
+            return;
+        }
+
+        setIsLoadingPartners(true);
+        setShowPartnerAccountsModal(true);
+        setPartnerAccountsList([]);
+
+        try {
+            // Convert wallet client to ethers provider
+            const { BrowserProvider } = await import('ethers');
+            const provider = new BrowserProvider(walletClient);
+
+            // Get all partner accounts
+            const result = await getAllPartnerAccounts(provider, address);
+
+            if (result.success && result.partners) {
+                setPartnerAccountsList(result.partners);
+            } else {
+                setMessage(result.error || 'Failed to load partner accounts');
+                setMessageType('error');
+            }
+        } catch (error: unknown) {
+            const err = error as { message?: string };
+            setMessage(`Error: ${err?.message || 'Unknown error occurred'}`);
+            setMessageType('error');
+        } finally {
+            setIsLoadingPartners(false);
         }
     };
 
@@ -469,134 +645,135 @@ const RegisterPage: React.FC = () => {
                             {/* Form Section */}
                             <div className="mt-1">
                                 <div className="card border-0 register-card">
-                                        <div className="card-body p-5">
-                                    {!isConnected && showWalletMessage && (
-                                        <div className={`alert alert-warning mb-4 ${walletMessageFadeOut ? 'fade-out' : ''}`}>
-                                            <strong>Wallet Required:</strong> Please connect your wallet using the button in the header to continue.
-                                        </div>
-                                    )}
-
-                                    {/* Message above the form */}
-                                    {message && (
-                                        <div className={`alert ${messageType === 'success' ? 'alert-success' : messageType === 'warning' ? 'alert-warning' : 'alert-danger'} mb-4 ${messageFadeOut ? 'fade-out' : ''}`}>
-                                            {message}
-                                        </div>
-                                    )}
-
-                                    {!isAlreadyRegistered ? (
-                                        <form onSubmit={handleSubmit}>
-                                            <div className="mb-4">
-                                                <label className="form-label text-yellow fw-bold mb-3">Your Name *</label>
-                                                <div className="position-relative">
-                                                    <input
-                                                        type="text"
-                                                        className="form-control register-input"
-                                                        placeholder="Enter your full name (required)"
-                                                        value={userName}
-                                                        onChange={(e) => setUserName(e.target.value)}
-                                                        required
-                                                    />
-                                                    <FaCircle className="position-absolute top-50 end-0 translate-middle-y me-3 referral-dot" />
-                                                </div>
-                                                <small className="text-white mt-2 d-block">
-                                                    Enter your full name to join the Zillow Vortex community
-                                                </small>
+                                    <div className="card-body p-5">
+                                        {!isConnected && showWalletMessage && (
+                                            <div className={`alert alert-warning mb-4 ${walletMessageFadeOut ? 'fade-out' : ''}`}>
+                                                <strong>Wallet Required:</strong> Please connect your wallet using the button in the header to continue.
                                             </div>
+                                        )}
 
-                                            <div className="mb-4">
-                                                <label className="form-label text-yellow fw-bold mb-3">Referral Address *</label>
-                                                <div className="position-relative">
-                                                    <input
-                                                        type="text"
-                                                        className={`form-control register-input ${isReferralFromURL ? 'border-success' : ''}`}
-                                                        placeholder={isReferralFromURL ? "Referral address from link" : "Enter referral address (required)"}
-                                                        value={referralAddress}
-                                                        onChange={(e) => setReferralAddress(e.target.value)}
-                                                        required
-                                                    />
-                                                    <FaCircle className="position-absolute top-50 end-0 translate-middle-y me-3 referral-dot" />
+                                        {/* Message above the form */}
+                                        {message && (
+                                            <div className={`alert ${messageType === 'success' ? 'alert-success' : messageType === 'warning' ? 'alert-warning' : 'alert-danger'} mb-4 ${messageFadeOut ? 'fade-out' : ''}`}>
+                                                {message}
+                                            </div>
+                                        )}
+
+                                        {!isAlreadyRegistered ? (
+                                            <form onSubmit={handleSubmit}>
+                                                <div className="mb-4">
+                                                    <label className="form-label text-yellow fw-bold mb-3">Your Name *</label>
+                                                    <div className="position-relative">
+                                                        <input
+                                                            type="text"
+                                                            className="form-control register-input"
+                                                            placeholder="Enter your full name (required)"
+                                                            value={userName}
+                                                            onChange={(e) => setUserName(e.target.value)}
+                                                            required
+                                                        />
+                                                        <FaCircle className="position-absolute top-50 end-0 translate-middle-y me-3 referral-dot" />
+                                                    </div>
+                                                    <small className="text-white mt-2 d-block">
+                                                        Enter your full name to join the Zillow Vortex community
+                                                    </small>
                                                 </div>
-                                                <small className="text-white mt-2 d-block">
-                                                    Referral address is required to join the Zillow Vortex community
-                                                </small>
-                                                {isReferralFromURL && (
+
+                                                <div className="mb-4">
+                                                    <label className="form-label text-yellow fw-bold mb-3">Referral Address *</label>
+                                                    <div className="position-relative">
+                                                        <input
+                                                            type="text"
+                                                            className={`form-control register-input ${isReferralFromURL ? 'border-success' : ''}`}
+                                                            placeholder={isReferralFromURL ? "Referral address from link" : "Enter referral address (required)"}
+                                                            value={referralAddress}
+                                                            onChange={(e) => setReferralAddress(e.target.value)}
+                                                            required
+                                                        />
+                                                        <FaCircle className="position-absolute top-50 end-0 translate-middle-y me-3 referral-dot" />
+                                                    </div>
+                                                    <small className="text-white mt-2 d-block">
+                                                        Referral address is required to join the Zillow Vortex community
+                                                    </small>
+                                                    {isReferralFromURL && (
+                                                        <small className="text-success mt-2 d-block">
+                                                            {/* ✅ Referral address pre-filled from link: {referralAddress} */}
+                                                        </small>
+                                                    )}
+                                                    {/* Debug info */}
+                                                    {process.env.NODE_ENV === 'development' && (
+                                                        <small className="text-info mt-1 d-block">
+                                                            {/* Debug: {referralAddress || 'No address'} | From URL: {isReferralFromURL ? 'Yes' : 'No'} | Checking: {isCheckingReferral ? 'Yes' : 'No'} */}
+                                                        </small>
+                                                    )}
+                                                    {isCheckingReferral && (
+                                                        <small className="text-warning mt-1 d-block">
+                                                            🔍 Checking for referral address...
+                                                        </small>
+                                                    )}
+                                                </div>
+
+                                                {!isConnected ? (
+                                                    <button
+                                                        type="button"
+                                                        className="btn w-100 py-3 fw-bold fs-5 register-button"
+                                                        onClick={handleConnectWallet}
+                                                    >
+                                                        Connect Wallet
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        type="submit"
+                                                        className="btn w-100 py-3 fw-bold fs-5 register-button"
+                                                        disabled={isLoading || !referralAddress.trim() || !userName.trim()}
+                                                    >
+                                                        {isLoading ? 'Joining Community...' : 'Join with Referral'}
+                                                    </button>
+                                                )}
+
+                                                {isConnected && (!referralAddress.trim() || !userName.trim()) && (
+                                                    <small className="text-warning mt-2 d-block">
+                                                        Please enter both your name and referral address to join
+                                                    </small>
+                                                )}
+
+                                                {!isConnected && (
+                                                    <small className="text-info mt-2 d-block">
+                                                        Connect your wallet to join the community
+                                                    </small>
+                                                )}
+                                            </form>
+                                        ) : (
+                                            /* Show only referral link for registered users */
+                                            <div>
+                                                <div className="referral-link-container">
+                                                    <div className="d-flex justify-content-between align-items-center mb-3">
+                                                        <h6 className="text-yellow fw-bold mb-0">Your Referral Link:</h6>
+                                                    </div>
+                                                    <div className="d-flex align-items-center gap-2">
+                                                        <input
+                                                            type="text"
+                                                            className="form-control form-control-sm referral-link-input"
+                                                            value={referralLink}
+                                                            readOnly
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            className={`btn copy-button btn-sm ${copySuccess ? 'copied' : ''}`}
+                                                            onClick={handleCopyLink}
+                                                        >
+                                                            {copySuccess ? 'Copied!' : 'Copy'}
+                                                        </button>
+                                                    </div>
                                                     <small className="text-success mt-2 d-block">
-                                                        {/* ✅ Referral address pre-filled from link: {referralAddress} */}
+                                                        {copySuccess ? 'Link copied to clipboard!' : 'Share this link to invite others to join the community'}
                                                     </small>
-                                                )}
-                                                {/* Debug info */}
-                                                {process.env.NODE_ENV === 'development' && (
-                                                    <small className="text-info mt-1 d-block">
-                                                        {/* Debug: {referralAddress || 'No address'} | From URL: {isReferralFromURL ? 'Yes' : 'No'} | Checking: {isCheckingReferral ? 'Yes' : 'No'} */}
-                                                    </small>
-                                                )}
-                                                {isCheckingReferral && (
-                                                    <small className="text-warning mt-1 d-block">
-                                                        🔍 Checking for referral address...
-                                                    </small>
-                                                )}
-                                            </div>
 
-                                            {!isConnected ? (
-                                                <button
-                                                    type="button"
-                                                    className="btn w-100 py-3 fw-bold fs-5 register-button"
-                                                    onClick={handleConnectWallet}
-                                                >
-                                                    Connect Wallet
-                                                </button>
-                                            ) : (
-                                                <button
-                                                    type="submit"
-                                                    className="btn w-100 py-3 fw-bold fs-5 register-button"
-                                                    disabled={isLoading || !referralAddress.trim() || !userName.trim()}
-                                                >
-                                                    {isLoading ? 'Joining Community...' : 'Join with Referral'}
-                                                </button>
-                                            )}
+                                                    <div className="contract-address-container mt-4">
+                                                        {/* <h6 className="text-yellow fw-bold mb-3">Your Contract Address:</h6> */}
+                                                        {/* Debug info */}
 
-                                            {isConnected && (!referralAddress.trim() || !userName.trim()) && (
-                                                <small className="text-warning mt-2 d-block">
-                                                    Please enter both your name and referral address to join
-                                                </small>
-                                            )}
-
-                                            {!isConnected && (
-                                                <small className="text-info mt-2 d-block">
-                                                    Connect your wallet to join the community
-                                                </small>
-                                            )}
-                                        </form>
-                                    ) : (
-                                        /* Show only referral link for registered users */
-                                        <div className="referral-link-container">
-                                            <div className="d-flex justify-content-between align-items-center mb-3">
-                                                <h6 className="text-yellow fw-bold mb-0">Your Referral Link:</h6>
-                                            </div>
-                                            <div className="d-flex align-items-center gap-2">
-                                                <input
-                                                    type="text"
-                                                    className="form-control form-control-sm referral-link-input"
-                                                    value={referralLink}
-                                                    readOnly
-                                                />
-                                                <button
-                                                    type="button"
-                                                    className={`btn copy-button btn-sm ${copySuccess ? 'copied' : ''}`}
-                                                    onClick={handleCopyLink}
-                                                >
-                                                    {copySuccess ? 'Copied!' : 'Copy'}
-                                                </button>
-                                            </div>
-                                            <small className="text-success mt-2 d-block">
-                                                {copySuccess ? 'Link copied to clipboard!' : 'Share this link to invite others to join the community'}
-                                            </small>
-
-                                            <div className="contract-address-container mt-4">
-                                                {/* <h6 className="text-yellow fw-bold mb-3">Your Contract Address:</h6> */}
-                                                {/* Debug info */}
-
-                                                {/* {userContractAddress ? (
+                                                        {/* {userContractAddress ? (
                                                     <>
                                                         <div className="d-flex align-items-center gap-2 mb-2">
                                                             <input
@@ -630,11 +807,120 @@ const RegisterPage: React.FC = () => {
                                                         </small>
                                                     </div>
                                                 )} */}
+                                                    </div>
+                                                </div>
+
+                                                {/* Add Partner Account Button */}
+                                                <div className="mt-4">
+                                                    <div className="d-flex gap-2">
+                                                        <button
+                                                            type="button"
+                                                            className="btn flex-grow-1 py-3 fw-bold fs-5 register-button"
+                                                            onClick={() => setShowAddPartnerSection(!showAddPartnerSection)}
+                                                        >
+                                                            {showAddPartnerSection ? 'Hide Add Partner Account' : 'Add Partner Account'}
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            className="btn py-3 fw-bold fs-5"
+                                                            onClick={handleViewPartnerAccounts}
+                                                            style={{
+                                                                background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+                                                                border: 'none',
+                                                                color: '#000',
+                                                                boxShadow: '0 8px 25px rgba(255, 215, 0, 0.3)',
+                                                                minWidth: '200px'
+                                                            }}
+                                                        >
+                                                            View Partner Accounts
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {/* Add Partner Account Section */}
+                                                {showAddPartnerSection && (
+                                                    <div className="mt-4">
+                                                        <div className="card border-0 register-card">
+                                                            <div className="card-body p-5">
+                                                                <h6 className="text-yellow fw-bold mb-4">Add Partner Accounts</h6>
+
+                                                                {partnerAddresses.map((address, index) => (
+                                                                    <div key={index} className="mb-3">
+                                                                        <div className="d-flex align-items-center gap-2">
+                                                                            <div className="position-relative flex-grow-1">
+                                                                                <input
+                                                                                    type="text"
+                                                                                    className="form-control register-input"
+                                                                                    placeholder={`Enter partner address ${index + 1} (0x...)`}
+                                                                                    value={address}
+                                                                                    onChange={(e) => handlePartnerAddressChange(index, e.target.value)}
+                                                                                />
+                                                                                <FaCircle className="position-absolute top-50 end-0 translate-middle-y me-3 referral-dot" />
+                                                                            </div>
+                                                                            <div className="position-relative" style={{ minWidth: '120px' }}>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    className="form-control register-input"
+                                                                                    placeholder="Percentage (0-100)"
+                                                                                    value={partnerPercentages[index] || '0'}
+                                                                                    onChange={(e) => handlePartnerPercentageChange(index, e.target.value)}
+                                                                                />
+                                                                            </div>
+                                                                            {partnerAddresses.length > 1 && (
+                                                                                <button
+                                                                                    type="button"
+                                                                                    className="btn btn-danger btn-sm"
+                                                                                    onClick={() => handleRemovePartnerAddress(index)}
+                                                                                    style={{ minWidth: '80px' }}
+                                                                                >
+                                                                                    Remove
+                                                                                </button>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+
+                                                                <div className="d-flex gap-2 mb-4">
+                                                                    <button
+                                                                        type="button"
+                                                                        className="btn btn-outline-warning btn-sm fw-bold"
+                                                                        onClick={handleAddPartnerInput}
+                                                                        style={{
+                                                                            borderColor: '#FFD700',
+                                                                            color: '#FFD700',
+                                                                            minWidth: '160px'
+                                                                        }}
+                                                                    >
+                                                                        + Add Next Address
+                                                                    </button>
+                                                                </div>
+
+                                                                <button
+                                                                    type="button"
+                                                                    className="btn w-100 py-3 fw-bold fs-5 register-button"
+                                                                    onClick={handleAddPartnerAccounts}
+                                                                    disabled={isAddingPartners || partnerAddresses.every(addr => addr.trim() === '')}
+                                                                >
+                                                                    {isAddingPartners ? 'Adding Partner Accounts...' : 'Add Partner Account'}
+                                                                </button>
+
+                                                                {partnerAddresses.every(addr => addr.trim() === '') && (
+                                                                    <small className="text-warning mt-2 d-block">
+                                                                        Please add at least one partner address
+                                                                    </small>
+                                                                )}
+
+                                                                <small className="text-info mt-2 d-block">
+                                                                    Note: Enter percentage (0-100, maximum 100) for each partner address. Each address must be unique. Percentages represent the share for each partner.
+                                                                </small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
-                                        </div>
-                                    )}
-                                        </div>
+                                        )}
                                     </div>
+                                </div>
                             </div>
 
                             {/* Level Team Details Table Section - Only show for registered users - Outside the card */}
@@ -661,6 +947,86 @@ const RegisterPage: React.FC = () => {
 
             <Footer />
 
+            {/* Partner Accounts Modal */}
+            {showPartnerAccountsModal && (
+                <div
+                    className="modal fade show"
+                    style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}
+                    onClick={() => setShowPartnerAccountsModal(false)}
+                >
+                    <div
+                        className="modal-dialog modal-dialog-centered"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="modal-content" style={{
+                            background: 'rgba(3, 34, 51, 0.95)',
+                            backdropFilter: 'blur(20px)',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            borderRadius: '20px'
+                        }}>
+                            <div className="modal-header" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                                <h5 className="modal-title text-yellow fw-bold">Partner Accounts</h5>
+                                <button
+                                    type="button"
+                                    className="btn-close btn-close-white"
+                                    onClick={() => setShowPartnerAccountsModal(false)}
+                                    aria-label="Close"
+                                ></button>
+                            </div>
+                            <div className="modal-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+                                {isLoadingPartners ? (
+                                    <div className="text-center py-5">
+                                        <div className="spinner-border text-warning" role="status">
+                                            <span className="visually-hidden">Loading...</span>
+                                        </div>
+                                        <p className="text-white mt-3">Loading partner accounts...</p>
+                                    </div>
+                                ) : partnerAccountsList.length === 0 ? (
+                                    <div className="text-center py-5">
+                                        <p className="text-white">No partner accounts found.</p>
+                                    </div>
+                                ) : (
+                                    <div className="table-responsive">
+                                        <table className="table table-dark table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th className="text-yellow">#</th>
+                                                    <th className="text-yellow">Address</th>
+                                                    <th className="text-yellow">Percentage</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {partnerAccountsList.map((partner, index) => (
+                                                    <tr key={index}>
+                                                        <td className="text-white">{index + 1}</td>
+                                                        <td className="text-white" style={{
+                                                            fontFamily: 'monospace',
+                                                            fontSize: '0.9rem',
+                                                            wordBreak: 'break-all'
+                                                        }}>
+                                                            {partner.address}
+                                                        </td>
+                                                        <td className="text-white">{partner.percentage.toFixed(2)}%</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="modal-footer" style={{ borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    onClick={() => setShowPartnerAccountsModal(false)}
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
         </>
     );

@@ -466,6 +466,152 @@ export const registerUser = async (walletClient, address, referralAddress, userN
 };
 
 /**
+ * Claim team power unit
+ * @param {Object} walletClient - Wallet client from wagmi
+ * @param {string} address - User wallet address
+ * @param {number} unit - Unit index
+ * @returns {Promise<{success: boolean, txHash?: string, message?: string, error?: string}>}
+ */
+export const claimTeamPowerUnit = async (walletClient, address, unit) => {
+    try {
+        // Validation checks
+        if (!address) {
+            return {
+                success: false,
+                error: 'Please connect your wallet first'
+            };
+        }
+
+        if (unit === undefined || unit === null || unit < 0) {
+            return {
+                success: false,
+                error: 'Unit index is required'
+            };
+        }
+
+        if (!walletClient) {
+            return {
+                success: false,
+                error: 'Unable to get wallet client'
+            };
+        }
+
+        // Convert wallet client to ethers provider
+        const provider = new BrowserProvider(walletClient);
+        const signer = await provider.getSigner();
+
+        // Create contract instance with signer
+        const contract = createContractInstanceWithSigner(signer);
+
+        try {
+            console.log('Calling claimTeamPowerUnit with:', {
+                unit: unit,
+                from: address
+            });
+
+            let tx;
+            try {
+                // Convert unit to BigInt to ensure correct type
+                const unitBigInt = BigInt(unit);
+
+                console.log('Calling contract with:', {
+                    unit: unitBigInt.toString()
+                });
+
+                // Call claimTeamPowerUnit function on the contract
+                tx = await contract.claimTeamPowerUnit(unitBigInt);
+            } catch (callError) {
+                console.error('Contract call error:', callError);
+                console.error('Error details:', {
+                    code: callError.code,
+                    message: callError.message,
+                    data: callError.data,
+                    reason: callError.reason,
+                    transaction: callError.transaction
+                });
+
+                const errorStr = (callError.message || String(callError)).toLowerCase();
+                const errorCode = callError.code || '';
+                const errorInfo = callError.info || {};
+
+                // Handle "missing revert data" or CALL_EXCEPTION
+                if (errorStr.includes('missing revert data') ||
+                    errorStr.includes('call_exception') ||
+                    errorCode === 'CALL_EXCEPTION' ||
+                    (errorInfo.error && errorInfo.error.code === 'CALL_EXCEPTION')) {
+                    return {
+                        success: false,
+                        error: 'Transaction failed. Please verify the unit index is correct and you have rewards to claim.'
+                    };
+                }
+
+                // Check for user rejection
+                if (errorStr.includes('user rejected') ||
+                    errorStr.includes('user denied') ||
+                    errorStr.includes('rejected') ||
+                    errorCode === 'ACTION_REJECTED' ||
+                    errorCode === 4001 ||
+                    (errorInfo.error && errorInfo.error.code === 4001)) {
+                    return {
+                        success: false,
+                        error: 'Transaction was rejected by user.'
+                    };
+                }
+
+                throw callError;
+            }
+
+            console.log('Claim Team Power Unit transaction sent:', tx.hash);
+
+            // Wait for transaction to be mined
+            const receipt = await tx.wait();
+
+            console.log('Claim Team Power Unit transaction confirmed:', receipt.transactionHash);
+
+            return {
+                success: true,
+                txHash: receipt.transactionHash,
+                message: 'Successfully claimed team rewards!'
+            };
+        } catch (txError) {
+            console.error('Transaction error:', txError);
+
+            if (txError.reason) {
+                return {
+                    success: false,
+                    error: txError.reason
+                };
+            }
+
+            throw txError;
+        }
+    } catch (error) {
+        console.error('Error in claimTeamPowerUnit:', error);
+
+        let errorMessage = 'Unknown error occurred';
+
+        if (error.message) {
+            errorMessage = error.message;
+
+            if (error.message.includes('user rejected') || error.message.includes('User denied') || error.message.includes('rejected')) {
+                errorMessage = 'Transaction was rejected. Please try again.';
+            } else if (error.message.includes('insufficient funds') || error.message.includes('insufficient balance')) {
+                errorMessage = 'Insufficient funds for transaction.';
+            } else if (error.message.includes('no rewards') || error.message.includes('nothing to claim')) {
+                errorMessage = 'No rewards available to claim.';
+            }
+        } else if (error.reason) {
+            errorMessage = error.reason;
+        }
+
+        return {
+            success: false,
+            error: errorMessage
+        };
+    }
+};
+
+/**
  * Refresh user registration status after registration
  * @param {Object} walletClient - Wallet client from wagmi
  * @param {string} address - User wallet address
@@ -745,6 +891,55 @@ export const getLevelTeamDetails = async (provider, walletAddress, level) => {
         return {
             success: false,
             error: error.message || 'Failed to get level team details'
+        };
+    }
+};
+
+/**
+ * Get user unit count of team
+ * @param {Object} provider - Ethers provider
+ * @param {string} walletAddress - User wallet address
+ * @param {number} unitIndex - Unit index (0-4: Spark Up, Flicker Roar, AI Overrider, Zylo Apex, Zylo Universe)
+ * @returns {Promise<{success: boolean, count?: number, error?: string}>}
+ */
+export const getUserUnitCountofTeam = async (provider, walletAddress, unitIndex) => {
+    try {
+        if (!provider) {
+            return {
+                success: false,
+                error: 'Provider is required'
+            };
+        }
+
+        if (!walletAddress) {
+            return {
+                success: false,
+                error: 'Wallet address is required'
+            };
+        }
+
+        if (unitIndex < 0 || unitIndex > 4) {
+            return {
+                success: false,
+                error: 'Unit index must be between 0 and 4'
+            };
+        }
+
+        const contract = createContractInstance(provider);
+        const count = await contract.userUnitCountofTeam(walletAddress, unitIndex);
+
+        // Convert BigInt to number
+        const countNumber = Number(count.toString());
+
+        return {
+            success: true,
+            count: countNumber
+        };
+    } catch (error) {
+        console.error('Error getting user unit count of team:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to get user unit count of team'
         };
     }
 };
@@ -1552,6 +1747,1814 @@ export const getSelfPowerUpReward = async (provider, address, unit, index) => {
 };
 
 /**
+ * Get total self claim in unit
+ * @param {Object} provider - Ethers provider
+ * @param {string} address - User wallet address
+ * @param {number} unit - Unit index
+ * @returns {Promise<{success: boolean, data?: string, error?: string}>}
+ */
+export const getTotalSelfClaimInUnit = async (provider, address, unit) => {
+    try {
+        if (!provider) {
+            return {
+                success: false,
+                error: 'Provider is required'
+            };
+        }
+
+        if (!address) {
+            return {
+                success: false,
+                error: 'Address is required'
+            };
+        }
+
+        if (unit === undefined || unit === null || unit < 0) {
+            return {
+                success: false,
+                error: 'Unit index is required and must be 0 or greater'
+            };
+        }
+
+        const contract = createContractInstance(provider);
+        console.log('Calling totalSelfClaimInUnit with:', { address, unit });
+        const totalClaim = await contract.totalSelfClaimInUnit(address, unit);
+        console.log('Raw totalClaim value:', totalClaim, typeof totalClaim);
+
+        // Format from wei to ether
+        let totalClaimFormatted = '0';
+        try {
+            const { formatEther } = await import('ethers');
+            // Handle BigInt if needed
+            const claimValue = typeof totalClaim === 'bigint' ? totalClaim : BigInt(totalClaim.toString());
+            totalClaimFormatted = formatEther(claimValue);
+            console.log('Formatted totalClaim:', totalClaimFormatted);
+        } catch (formatError) {
+            console.error('Error formatting totalClaim:', formatError);
+            totalClaimFormatted = totalClaim.toString();
+        }
+
+        console.log('Returning totalSelfClaimInUnit result:', { success: true, data: totalClaimFormatted });
+        return {
+            success: true,
+            data: totalClaimFormatted
+        };
+    } catch (error) {
+        console.error('Error in getTotalSelfClaimInUnit:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to get total self claim in unit'
+        };
+    }
+};
+
+/**
+ * Get total team claim in unit
+ * @param {Object} provider - Ethers provider
+ * @param {string} address - User wallet address
+ * @param {number} unit - Unit index
+ * @returns {Promise<{success: boolean, data?: string, error?: string}>}
+ */
+export const getTotalTeamClaimInUnit = async (provider, address, unit) => {
+    try {
+        if (!provider) {
+            return {
+                success: false,
+                error: 'Provider is required'
+            };
+        }
+
+        if (!address) {
+            return {
+                success: false,
+                error: 'Address is required'
+            };
+        }
+
+        if (unit === undefined || unit === null || unit < 0) {
+            return {
+                success: false,
+                error: 'Unit index is required and must be 0 or greater'
+            };
+        }
+
+        const contract = createContractInstance(provider);
+        console.log('Calling totalTeamClaimInUnit with:', { address, unit });
+        const totalClaim = await contract.totalTeamClaimInUnit(address, unit);
+        console.log('Raw totalTeamClaim value:', totalClaim, typeof totalClaim);
+
+        // Format from wei to ether
+        let totalClaimFormatted = '0';
+        try {
+            const { formatEther } = await import('ethers');
+            // Handle BigInt if needed
+            const claimValue = typeof totalClaim === 'bigint' ? totalClaim : BigInt(totalClaim.toString());
+            totalClaimFormatted = formatEther(claimValue);
+            console.log('Formatted totalTeamClaim:', totalClaimFormatted);
+        } catch (formatError) {
+            console.error('Error formatting totalTeamClaim:', formatError);
+            totalClaimFormatted = totalClaim.toString();
+        }
+
+        console.log('Returning totalTeamClaimInUnit result:', { success: true, data: totalClaimFormatted });
+        return {
+            success: true,
+            data: totalClaimFormatted
+        };
+    } catch (error) {
+        console.error('Error in getTotalTeamClaimInUnit:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to get total team claim in unit'
+        };
+    }
+};
+
+/**
+ * Get total self claim in ClaimX
+ * @param {Object} provider - Ethers provider
+ * @param {string} address - User wallet address
+ * @param {number} index - ClaimX index (0-4)
+ * @returns {Promise<{success: boolean, data?: string, error?: string}>}
+ */
+export const getTotalSelfClaimInClaimX = async (provider, address, index) => {
+    try {
+        if (!provider) {
+            return {
+                success: false,
+                error: 'Provider is required'
+            };
+        }
+
+        if (!address) {
+            return {
+                success: false,
+                error: 'Wallet address is required'
+            };
+        }
+
+        if (index === undefined || index === null || index < 0 || index > 4) {
+            return {
+                success: false,
+                error: 'Index must be between 0 and 4'
+            };
+        }
+
+        const contract = createContractInstance(provider);
+        console.log('Calling totalSelfClaimInClaimX with:', { address, index });
+        const totalClaim = await contract.totalSelfClaimInClaimX(address, index);
+        console.log('Raw totalClaim value:', totalClaim, typeof totalClaim);
+
+        // Format from wei to ether
+        let totalClaimFormatted = '0';
+        try {
+            const { formatEther } = await import('ethers');
+            // Handle BigInt if needed
+            const claimValue = typeof totalClaim === 'bigint' ? totalClaim : BigInt(totalClaim.toString());
+            totalClaimFormatted = formatEther(claimValue);
+            console.log('Formatted totalClaim:', totalClaimFormatted);
+        } catch (formatError) {
+            console.error('Error formatting totalClaim:', formatError);
+            totalClaimFormatted = totalClaim.toString();
+        }
+
+        console.log('Returning totalSelfClaimInClaimX result:', { success: true, data: totalClaimFormatted });
+        return {
+            success: true,
+            data: totalClaimFormatted
+        };
+    } catch (error) {
+        console.error('Error in getTotalSelfClaimInClaimX:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to get total self claim in ClaimX'
+        };
+    }
+};
+
+/**
+ * Get total team claim in ClaimX
+ * @param {Object} provider - Ethers provider
+ * @param {string} address - User wallet address
+ * @param {number} index - ClaimX index (0-4)
+ * @returns {Promise<{success: boolean, data?: string, error?: string}>}
+ */
+export const getTotalTeamClaimInClaimX = async (provider, address, index) => {
+    try {
+        if (!provider) {
+            return {
+                success: false,
+                error: 'Provider is required'
+            };
+        }
+
+        if (!address) {
+            return {
+                success: false,
+                error: 'Wallet address is required'
+            };
+        }
+
+        if (index === undefined || index === null || index < 0 || index > 4) {
+            return {
+                success: false,
+                error: 'Index must be between 0 and 4'
+            };
+        }
+
+        const contract = createContractInstance(provider);
+        console.log('Calling totalTeamClaimInClaimX with:', { address, index });
+        const totalClaim = await contract.totalTeamClaimInClaimX(address, index);
+        console.log('Raw totalClaim value:', totalClaim, typeof totalClaim);
+
+        // Format from wei to ether
+        let totalClaimFormatted = '0';
+        try {
+            const { formatEther } = await import('ethers');
+            // Handle BigInt if needed
+            const claimValue = typeof totalClaim === 'bigint' ? totalClaim : BigInt(totalClaim.toString());
+            totalClaimFormatted = formatEther(claimValue);
+            console.log('Formatted totalClaim:', totalClaimFormatted);
+        } catch (formatError) {
+            console.error('Error formatting totalClaim:', formatError);
+            totalClaimFormatted = totalClaim.toString();
+        }
+
+        console.log('Returning totalTeamClaimInClaimX result:', { success: true, data: totalClaimFormatted });
+        return {
+            success: true,
+            data: totalClaimFormatted
+        };
+    } catch (error) {
+        console.error('Error in getTotalTeamClaimInClaimX:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to get total team claim in ClaimX'
+        };
+    }
+};
+
+/**
+ * Get current self claim in unit
+ * @param {Object} provider - Ethers provider
+ * @param {string} address - User wallet address
+ * @param {number} unit - Unit index (0-4)
+ * @returns {Promise<{success: boolean, data?: string, error?: string}>}
+ */
+export const getCurrentSelfClaimInUnit = async (provider, address, unit) => {
+    try {
+        if (!provider) {
+            return {
+                success: false,
+                error: 'Provider is required'
+            };
+        }
+
+        if (!address) {
+            return {
+                success: false,
+                error: 'Wallet address is required'
+            };
+        }
+
+        if (unit === undefined || unit === null || unit < 0 || unit > 4) {
+            return {
+                success: false,
+                error: 'Unit index must be between 0 and 4'
+            };
+        }
+
+        const contract = createContractInstance(provider);
+        console.log('Calling currentSelfClaimInUnit with:', { address, unit });
+        const currentClaim = await contract.currentSelfClaimInUnit(address, unit);
+        console.log('Raw currentClaim value:', currentClaim, typeof currentClaim);
+
+        // Format from wei to ether
+        let currentClaimFormatted = '0';
+        try {
+            const { formatEther } = await import('ethers');
+            // Handle BigInt if needed
+            const claimValue = typeof currentClaim === 'bigint' ? currentClaim : BigInt(currentClaim.toString());
+            currentClaimFormatted = formatEther(claimValue);
+            console.log('Formatted currentClaim:', currentClaimFormatted);
+        } catch (formatError) {
+            console.error('Error formatting currentClaim:', formatError);
+            currentClaimFormatted = currentClaim.toString();
+        }
+
+        console.log('Returning currentSelfClaimInUnit result:', { success: true, data: currentClaimFormatted });
+        return {
+            success: true,
+            data: currentClaimFormatted
+        };
+    } catch (error) {
+        console.error('Error in getCurrentSelfClaimInUnit:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to get current self claim in unit'
+        };
+    }
+};
+
+/**
+ * Get current team claim in unit
+ * @param {Object} provider - Ethers provider
+ * @param {string} address - User wallet address
+ * @param {number} unit - Unit index (0-4)
+ * @returns {Promise<{success: boolean, data?: string, error?: string}>}
+ */
+export const getCurrentTeamClaimInUnit = async (provider, address, unit) => {
+    try {
+        if (!provider) {
+            return {
+                success: false,
+                error: 'Provider is required'
+            };
+        }
+
+        if (!address) {
+            return {
+                success: false,
+                error: 'Wallet address is required'
+            };
+        }
+
+        if (unit === undefined || unit === null || unit < 0 || unit > 4) {
+            return {
+                success: false,
+                error: 'Unit index must be between 0 and 4'
+            };
+        }
+
+        const contract = createContractInstance(provider);
+        console.log('Calling currentTeamClaimInUnit with:', { address, unit });
+        const currentClaim = await contract.currentTeamClaimInUnit(address, unit);
+        console.log('Raw currentClaim value:', currentClaim, typeof currentClaim);
+
+        // Format from wei to ether
+        let currentClaimFormatted = '0';
+        try {
+            const { formatEther } = await import('ethers');
+            // Handle BigInt if needed
+            const claimValue = typeof currentClaim === 'bigint' ? currentClaim : BigInt(currentClaim.toString());
+            currentClaimFormatted = formatEther(claimValue);
+            console.log('Formatted currentClaim:', currentClaimFormatted);
+        } catch (formatError) {
+            console.error('Error formatting currentClaim:', formatError);
+            currentClaimFormatted = currentClaim.toString();
+        }
+
+        console.log('Returning currentTeamClaimInUnit result:', { success: true, data: currentClaimFormatted });
+        return {
+            success: true,
+            data: currentClaimFormatted
+        };
+    } catch (error) {
+        console.error('Error in getCurrentTeamClaimInUnit:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to get current team claim in unit'
+        };
+    }
+};
+
+/**
+ * Get total vesting claim in unit
+ * @param {Object} provider - Ethers provider
+ * @param {string} address - User wallet address
+ * @param {number} unit - Unit index (0-4)
+ * @returns {Promise<{success: boolean, data?: string, error?: string}>}
+ */
+export const getTotalVestingClaimInUnit = async (provider, address, unit) => {
+    try {
+        if (!provider) {
+            return {
+                success: false,
+                error: 'Provider is required'
+            };
+        }
+
+        if (!address) {
+            return {
+                success: false,
+                error: 'Wallet address is required'
+            };
+        }
+
+        if (unit === undefined || unit === null || unit < 0 || unit > 4) {
+            return {
+                success: false,
+                error: 'Unit index must be between 0 and 4'
+            };
+        }
+
+        const contract = createContractInstance(provider);
+        console.log('Calling totalVestingClaimInUnit with:', { address, unit });
+        const totalClaim = await contract.totalVestingClaimInUnit(address, unit);
+        console.log('Raw totalClaim value:', totalClaim, typeof totalClaim);
+
+        // Format from wei to ether
+        let totalClaimFormatted = '0';
+        try {
+            const { formatEther } = await import('ethers');
+            // Handle BigInt if needed
+            const claimValue = typeof totalClaim === 'bigint' ? totalClaim : BigInt(totalClaim.toString());
+            totalClaimFormatted = formatEther(claimValue);
+            console.log('Formatted totalClaim:', totalClaimFormatted);
+        } catch (formatError) {
+            console.error('Error formatting totalClaim:', formatError);
+            totalClaimFormatted = totalClaim.toString();
+        }
+
+        console.log('Returning totalVestingClaimInUnit result:', { success: true, data: totalClaimFormatted });
+        return {
+            success: true,
+            data: totalClaimFormatted
+        };
+    } catch (error) {
+        console.error('Error in getTotalVestingClaimInUnit:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to get total vesting claim in unit'
+        };
+    }
+};
+
+/**
+ * Get total team claim sum
+ * @param {Object} provider - Ethers provider
+ * @param {string} address - User wallet address
+ * @returns {Promise<{success: boolean, totalSelf?: string, totalTeam?: string, sum?: string, error?: string}>}
+ */
+export const getTotalTeamClaimSum = async (provider, address) => {
+    try {
+        if (!provider) {
+            return {
+                success: false,
+                error: 'Provider is required'
+            };
+        }
+
+        if (!address) {
+            return {
+                success: false,
+                error: 'Wallet address is required'
+            };
+        }
+
+        const contract = createContractInstance(provider);
+        console.log('Calling getTotalTeamClaimSum with:', { address });
+        const result = await contract.getTotalTeamClaimSum(address);
+        console.log('Raw getTotalTeamClaimSum result:', result);
+
+        // Extract totalSelf and totalTeam from result
+        let totalSelf = BigInt(0);
+        let totalTeam = BigInt(0);
+
+        try {
+            // Try named properties first (ethers.js tuple)
+            if (result.totalSelf !== undefined) {
+                totalSelf = result.totalSelf;
+            } else if (result[0] !== undefined) {
+                totalSelf = result[0];
+            } else if (Array.isArray(result) && result.length > 0) {
+                totalSelf = result[0];
+            }
+
+            if (result.totalTeam !== undefined) {
+                totalTeam = result.totalTeam;
+            } else if (result[1] !== undefined) {
+                totalTeam = result[1];
+            } else if (Array.isArray(result) && result.length > 1) {
+                totalTeam = result[1];
+            }
+        } catch (e) {
+            console.error('Error extracting getTotalTeamClaimSum values:', e);
+        }
+
+        // Format from wei to ether
+        let totalSelfFormatted = '0';
+        let totalTeamFormatted = '0';
+        let sumFormatted = '0';
+
+        try {
+            const { formatEther } = await import('ethers');
+            totalSelfFormatted = formatEther(totalSelf);
+            totalTeamFormatted = formatEther(totalTeam);
+
+            // Sum both values
+            const totalSelfNum = parseFloat(totalSelfFormatted);
+            const totalTeamNum = parseFloat(totalTeamFormatted);
+            const sum = totalSelfNum + totalTeamNum;
+            sumFormatted = sum.toFixed(5);
+
+            console.log('Formatted values:', { totalSelf: totalSelfFormatted, totalTeam: totalTeamFormatted, sum: sumFormatted });
+        } catch (formatError) {
+            console.error('Error formatting values:', formatError);
+            totalSelfFormatted = totalSelf.toString();
+            totalTeamFormatted = totalTeam.toString();
+            sumFormatted = (parseFloat(totalSelfFormatted) + parseFloat(totalTeamFormatted)).toFixed(5);
+        }
+
+        return {
+            success: true,
+            totalSelf: totalSelfFormatted,
+            totalTeam: totalTeamFormatted,
+            sum: sumFormatted
+        };
+    } catch (error) {
+        console.error('Error in getTotalTeamClaimSum:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to get total team claim sum'
+        };
+    }
+};
+
+/**
+ * OutGo function - withdraw rewards
+ * @param {Object} walletClient - Wallet client from wagmi
+ * @param {string} address - User wallet address
+ * @returns {Promise<{success: boolean, txHash?: string, message?: string, error?: string}>}
+ */
+export const outGo = async (walletClient, address) => {
+    try {
+        // Validation checks
+        if (!address) {
+            return {
+                success: false,
+                error: 'Please connect your wallet first'
+            };
+        }
+
+        if (!walletClient) {
+            return {
+                success: false,
+                error: 'Unable to get wallet client'
+            };
+        }
+
+        // Convert wallet client to ethers provider
+        const provider = new BrowserProvider(walletClient);
+        const signer = await provider.getSigner();
+
+        // Create contract instance with signer
+        const contract = createContractInstanceWithSigner(signer);
+
+        try {
+            console.log('Calling outGo with:', {
+                from: address
+            });
+
+            let tx;
+            try {
+                // Call outGo function on the contract (no parameters)
+                tx = await contract.outGo();
+            } catch (callError) {
+                console.error('Contract call error:', callError);
+                console.error('Error details:', {
+                    code: callError.code,
+                    message: callError.message,
+                    data: callError.data,
+                    reason: callError.reason,
+                    transaction: callError.transaction
+                });
+
+                const errorStr = (callError.message || String(callError)).toLowerCase();
+                const errorCode = callError.code || '';
+                const errorInfo = callError.info || {};
+
+                // Handle "missing revert data" or CALL_EXCEPTION
+                if (errorStr.includes('missing revert data') ||
+                    errorStr.includes('call_exception') ||
+                    errorCode === 'CALL_EXCEPTION' ||
+                    (errorInfo.error && errorInfo.error.code === 'CALL_EXCEPTION')) {
+                    return {
+                        success: false,
+                        error: 'Transaction failed. Please verify you have rewards to withdraw.'
+                    };
+                }
+
+                // Check for user rejection
+                if (errorStr.includes('user rejected') ||
+                    errorStr.includes('user denied') ||
+                    errorStr.includes('rejected') ||
+                    errorCode === 'ACTION_REJECTED' ||
+                    errorCode === 4001 ||
+                    (errorInfo.error && errorInfo.error.code === 4001)) {
+                    return {
+                        success: false,
+                        error: 'Transaction was rejected by user.'
+                    };
+                }
+
+                throw callError;
+            }
+
+            console.log('OutGo transaction sent:', tx.hash);
+
+            // Wait for transaction to be mined
+            const receipt = await tx.wait();
+
+            console.log('OutGo transaction confirmed:', receipt.transactionHash);
+
+            return {
+                success: true,
+                txHash: receipt.transactionHash,
+                message: 'Successfully withdrew rewards!'
+            };
+        } catch (txError) {
+            console.error('Transaction error:', txError);
+
+            if (txError.reason) {
+                return {
+                    success: false,
+                    error: txError.reason
+                };
+            }
+
+            throw txError;
+        }
+    } catch (error) {
+        console.error('Error in outGo:', error);
+
+        let errorMessage = 'Unknown error occurred';
+
+        if (error.message) {
+            errorMessage = error.message;
+
+            if (error.message.includes('user rejected') || error.message.includes('User denied') || error.message.includes('rejected')) {
+                errorMessage = 'Transaction was rejected. Please try again.';
+            } else if (error.message.includes('insufficient funds') || error.message.includes('insufficient balance')) {
+                errorMessage = 'Insufficient funds for transaction.';
+            } else if (error.message.includes('no rewards') || error.message.includes('nothing to claim')) {
+                errorMessage = 'No rewards available to withdraw.';
+            }
+        } else if (error.reason) {
+            errorMessage = error.reason;
+        }
+
+        return {
+            success: false,
+            error: errorMessage
+        };
+    }
+};
+
+/**
+ * Get ClaimX details length
+ * @param {Object} provider - Ethers provider
+ * @param {string} address - User wallet address
+ * @returns {Promise<{success: boolean, length?: number, error?: string}>}
+ */
+export const getClaimXDetailsLength = async (provider, address) => {
+    try {
+        if (!provider) {
+            return {
+                success: false,
+                error: 'Provider is required'
+            };
+        }
+
+        if (!address) {
+            return {
+                success: false,
+                error: 'Wallet address is required'
+            };
+        }
+
+        const contract = createContractInstance(provider);
+        console.log('Calling getClaimXDetailsLength with:', { address });
+        const length = await contract.getClaimXDetailsLength(address);
+        console.log('Raw length value:', length, typeof length);
+
+        // Convert BigInt to number
+        const lengthNumber = Number(length.toString());
+
+        return {
+            success: true,
+            length: lengthNumber
+        };
+    } catch (error) {
+        console.error('Error in getClaimXDetailsLength:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to get ClaimX details length'
+        };
+    }
+};
+
+/**
+ * Get user ClaimX details
+ * @param {Object} provider - Ethers provider
+ * @param {string} address - User wallet address
+ * @param {number} index - Index (0 to length-1)
+ * @returns {Promise<{success: boolean, amount?: string, timestamp?: string, error?: string}>}
+ */
+export const getUserClaimXDetails = async (provider, address, index) => {
+    console.log('=== getUserClaimXDetails called ===');
+    console.log('Parameters:', { provider: !!provider, address, index, indexType: typeof index });
+
+    try {
+        if (!provider) {
+            console.log('ERROR: Provider is required');
+            return {
+                success: false,
+                error: 'Provider is required'
+            };
+        }
+
+        if (!address) {
+            console.log('ERROR: Wallet address is required');
+            return {
+                success: false,
+                error: 'Wallet address is required'
+            };
+        }
+
+        if (index === undefined || index === null || index < 0) {
+            console.log('ERROR: Index validation failed', { index, indexType: typeof index });
+            return {
+                success: false,
+                error: 'Index must be 0 or greater'
+            };
+        }
+
+        console.log('All validations passed, creating contract instance...');
+        const contract = createContractInstance(provider);
+        console.log('Contract instance created, calling userClaimXDetails with:', { address, index });
+
+        try {
+            const result = await contract.userClaimXDetails(address, index);
+            console.log('✅ Contract call successful!');
+            console.log('Raw userClaimXDetails result:', result);
+            console.log('Result type:', typeof result);
+            console.log('Result is array:', Array.isArray(result));
+            console.log('Result keys:', Object.keys(result || {}));
+
+            // If result is an object with properties, log them
+            if (result && typeof result === 'object') {
+                console.log('Result properties:', {
+                    hasClaimXAmount: 'ClaimXAmount' in result,
+                    hasClaimXTimestamp: 'ClaimXTimestamp' in result,
+                    has0: '0' in result,
+                    has1: '1' in result,
+                    resultLength: result.length
+                });
+            }
+
+            // Extract ClaimXAmount and ClaimXTimestamp from result
+            let claimXAmount = BigInt(0);
+            let claimXTimestamp = BigInt(0);
+
+            try {
+                // Try named properties first (ethers.js tuple)
+                if (result && result.ClaimXAmount !== undefined) {
+                    claimXAmount = result.ClaimXAmount;
+                    console.log('Found ClaimXAmount in result.ClaimXAmount:', claimXAmount);
+                } else if (result && result[0] !== undefined) {
+                    claimXAmount = result[0];
+                    console.log('Found ClaimXAmount in result[0]:', claimXAmount);
+                } else if (Array.isArray(result) && result.length > 0) {
+                    claimXAmount = result[0];
+                    console.log('Found ClaimXAmount in array[0]:', claimXAmount);
+                } else {
+                    console.warn('Could not find ClaimXAmount in result');
+                }
+
+                if (result && result.ClaimXTimestamp !== undefined) {
+                    claimXTimestamp = result.ClaimXTimestamp;
+                    console.log('Found ClaimXTimestamp in result.ClaimXTimestamp:', claimXTimestamp);
+                } else if (result && result[1] !== undefined) {
+                    claimXTimestamp = result[1];
+                    console.log('Found ClaimXTimestamp in result[1]:', claimXTimestamp);
+                } else if (Array.isArray(result) && result.length > 1) {
+                    claimXTimestamp = result[1];
+                    console.log('Found ClaimXTimestamp in array[1]:', claimXTimestamp);
+                } else {
+                    console.warn('Could not find ClaimXTimestamp in result');
+                }
+            } catch (e) {
+                console.error('Error extracting userClaimXDetails values:', e);
+            }
+
+            console.log('Extracted values before formatting:', { claimXAmount, claimXTimestamp });
+
+            // Format from wei to ether
+            let amountFormatted = '0';
+            let timestampFormatted = '0';
+
+            try {
+                const { formatEther } = await import('ethers');
+
+                // Convert to BigInt if not already
+                if (typeof claimXAmount !== 'bigint') {
+                    claimXAmount = BigInt(claimXAmount.toString());
+                }
+                if (typeof claimXTimestamp !== 'bigint') {
+                    claimXTimestamp = BigInt(claimXTimestamp.toString());
+                }
+
+                amountFormatted = formatEther(claimXAmount);
+                timestampFormatted = claimXTimestamp.toString();
+
+                console.log('Formatted values:', { amount: amountFormatted, timestamp: timestampFormatted });
+            } catch (formatError) {
+                console.error('Error formatting values:', formatError);
+                amountFormatted = claimXAmount.toString();
+                timestampFormatted = claimXTimestamp.toString();
+            }
+
+            const returnValue = {
+                success: true,
+                amount: amountFormatted,
+                timestamp: timestampFormatted
+            };
+
+            console.log('Returning from getUserClaimXDetails:', returnValue);
+            return returnValue;
+        } catch (contractError) {
+            console.error('❌ Contract call error:', contractError);
+            console.error('Contract error details:', {
+                message: contractError.message,
+                code: contractError.code,
+                data: contractError.data,
+                reason: contractError.reason
+            });
+            throw contractError;
+        }
+    } catch (error) {
+        console.error('❌ Error in getUserClaimXDetails:', error);
+        console.error('Error stack:', error.stack);
+        return {
+            success: false,
+            error: error.message || 'Failed to get user ClaimX details'
+        };
+    }
+};
+
+/**
+ * Get user claim self details length
+ * @param {Object} provider - Ethers provider
+ * @param {string} address - User wallet address
+ * @param {number} unit - Unit index
+ * @param {number} index - Index parameter (required by contract, typically 0 for length)
+ * @returns {Promise<{success: boolean, length?: number, error?: string}>}
+ */
+export const getUserClaimSelfDetailsLength = async (provider, address, unit, index = 0) => {
+    try {
+        if (!provider) {
+            return {
+                success: false,
+                error: 'Provider is required'
+            };
+        }
+
+        if (!address) {
+            return {
+                success: false,
+                error: 'Wallet address is required'
+            };
+        }
+
+        if (unit === undefined || unit === null || unit < 0) {
+            return {
+                success: false,
+                error: 'Unit index must be 0 or greater'
+            };
+        }
+
+        if (index === undefined || index === null || index < 0) {
+            return {
+                success: false,
+                error: 'Index must be 0 or greater'
+            };
+        }
+
+        const contract = createContractInstance(provider);
+        console.log('Calling getUserClaimSelfDetailsLength with:', { address, unit, index });
+
+        // Check if function exists in contract
+        try {
+            const length = await contract.getUserClaimSelfDetailsLength(address, unit, index);
+            console.log('Raw length value:', length, typeof length);
+
+            // Convert BigInt to number
+            const lengthNumber = Number(length.toString());
+
+            return {
+                success: true,
+                length: lengthNumber
+            };
+        } catch (contractError) {
+            // If function doesn't exist, try without index parameter (in case ABI is wrong)
+            if (contractError.code === 'UNSUPPORTED_OPERATION' || contractError.message?.includes('no matching fragment')) {
+                console.warn('getUserClaimSelfDetailsLength with 3 params failed, trying alternative approach...');
+                try {
+                    // Try calling with just address and unit (2 params) - might work if ABI is incorrect
+                    const length = await contract.getUserClaimSelfDetailsLength(address, unit);
+                    const lengthNumber = Number(length.toString());
+                    return {
+                        success: true,
+                        length: lengthNumber
+                    };
+                } catch (altError) {
+                    console.error('Alternative approach also failed:', altError);
+                    return {
+                        success: false,
+                        error: 'Function getUserClaimSelfDetailsLength may not exist in the contract. Please verify the contract ABI.'
+                    };
+                }
+            }
+            throw contractError;
+        }
+    } catch (error) {
+        console.error('Error in getUserClaimSelfDetailsLength:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to get user claim self details length'
+        };
+    }
+};
+
+/**
+ * Get user claim self details
+ * @param {Object} provider - Ethers provider
+ * @param {string} address - User wallet address
+ * @param {number} unit - Unit index
+ * @param {number} index - Index (0 to length-1)
+ * @returns {Promise<{success: boolean, amount?: string, timestamp?: string, error?: string}>}
+ */
+export const getUserClaimSelfDetails = async (provider, address, unit, index) => {
+    try {
+        if (!provider) {
+            return {
+                success: false,
+                error: 'Provider is required'
+            };
+        }
+
+        if (!address) {
+            return {
+                success: false,
+                error: 'Wallet address is required'
+            };
+        }
+
+        if (unit === undefined || unit === null || unit < 0) {
+            return {
+                success: false,
+                error: 'Unit index must be 0 or greater'
+            };
+        }
+
+        if (index === undefined || index === null || index < 0) {
+            return {
+                success: false,
+                error: 'Index must be 0 or greater'
+            };
+        }
+
+        const contract = createContractInstance(provider);
+        console.log('Calling userClaimSelfDetails with:', { address, unit, index });
+        const result = await contract.userClaimSelfDetails(address, unit, index);
+        console.log('Raw userClaimSelfDetails result:', result);
+
+        // Extract claimedAmount and claimedTimestamp from result
+        let claimedAmount = BigInt(0);
+        let claimedTimestamp = BigInt(0);
+
+        try {
+            // Try named properties first (ethers.js tuple)
+            if (result.claimedAmount !== undefined) {
+                claimedAmount = result.claimedAmount;
+            } else if (result[0] !== undefined) {
+                claimedAmount = result[0];
+            } else if (Array.isArray(result) && result.length > 0) {
+                claimedAmount = result[0];
+            }
+
+            if (result.claimedTimestamp !== undefined) {
+                claimedTimestamp = result.claimedTimestamp;
+            } else if (result[1] !== undefined) {
+                claimedTimestamp = result[1];
+            } else if (Array.isArray(result) && result.length > 1) {
+                claimedTimestamp = result[1];
+            }
+        } catch (e) {
+            console.error('Error extracting userClaimSelfDetails values:', e);
+        }
+
+        // Format from wei to ether
+        let amountFormatted = '0';
+        let timestampFormatted = '0';
+
+        try {
+            const { formatEther } = await import('ethers');
+            amountFormatted = formatEther(claimedAmount);
+            timestampFormatted = claimedTimestamp.toString();
+
+            console.log('Formatted values:', { amount: amountFormatted, timestamp: timestampFormatted });
+        } catch (formatError) {
+            console.error('Error formatting values:', formatError);
+            amountFormatted = claimedAmount.toString();
+            timestampFormatted = claimedTimestamp.toString();
+        }
+
+        return {
+            success: true,
+            amount: amountFormatted,
+            timestamp: timestampFormatted
+        };
+    } catch (error) {
+        console.error('Error in getUserClaimSelfDetails:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to get user claim self details'
+        };
+    }
+};
+
+/**
+ * Get user claim team details length
+ * @param {Object} provider - Ethers provider
+ * @param {string} address - User wallet address
+ * @param {number} unit - Unit index
+ * @returns {Promise<{success: boolean, length?: number, error?: string}>}
+ */
+export const getUserClaimTeamDetailsLength = async (provider, address, unit) => {
+    try {
+        if (!provider) {
+            return {
+                success: false,
+                error: 'Provider is required'
+            };
+        }
+
+        if (!address) {
+            return {
+                success: false,
+                error: 'Wallet address is required'
+            };
+        }
+
+        if (unit === undefined || unit === null || unit < 0) {
+            return {
+                success: false,
+                error: 'Unit index must be 0 or greater'
+            };
+        }
+
+        const contract = createContractInstance(provider);
+        console.log('Calling getUserClaimTeamDetailsLength with:', { address, unit });
+        const length = await contract.getUserClaimTeamDetailsLength(address, unit);
+        console.log('Raw length value:', length, typeof length);
+
+        // Convert BigInt to number
+        const lengthNumber = Number(length.toString());
+
+        return {
+            success: true,
+            length: lengthNumber
+        };
+    } catch (error) {
+        console.error('Error in getUserClaimTeamDetailsLength:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to get user claim team details length'
+        };
+    }
+};
+
+/**
+ * Get user claim team details
+ * @param {Object} provider - Ethers provider
+ * @param {string} address - User wallet address
+ * @param {number} unit - Unit index
+ * @param {number} index - Index (0 to length-1)
+ * @returns {Promise<{success: boolean, amount?: string, timestamp?: string, error?: string}>}
+ */
+export const getUserClaimTeamDetails = async (provider, address, unit, index) => {
+    try {
+        if (!provider) {
+            return {
+                success: false,
+                error: 'Provider is required'
+            };
+        }
+
+        if (!address) {
+            return {
+                success: false,
+                error: 'Wallet address is required'
+            };
+        }
+
+        if (unit === undefined || unit === null || unit < 0) {
+            return {
+                success: false,
+                error: 'Unit index must be 0 or greater'
+            };
+        }
+
+        if (index === undefined || index === null || index < 0) {
+            return {
+                success: false,
+                error: 'Index must be 0 or greater'
+            };
+        }
+
+        const contract = createContractInstance(provider);
+        console.log('Calling userClaimTeamDetails with:', { address, unit, index });
+        const result = await contract.userClaimTeamDetails(address, unit, index);
+        console.log('Raw userClaimTeamDetails result:', result);
+
+        // Extract claimedAmount and claimedTimestamp from result
+        let claimedAmount = BigInt(0);
+        let claimedTimestamp = BigInt(0);
+
+        try {
+            // Try named properties first (ethers.js tuple)
+            if (result.claimedAmount !== undefined) {
+                claimedAmount = result.claimedAmount;
+            } else if (result[0] !== undefined) {
+                claimedAmount = result[0];
+            } else if (Array.isArray(result) && result.length > 0) {
+                claimedAmount = result[0];
+            }
+
+            if (result.claimedTimestamp !== undefined) {
+                claimedTimestamp = result.claimedTimestamp;
+            } else if (result[1] !== undefined) {
+                claimedTimestamp = result[1];
+            } else if (Array.isArray(result) && result.length > 1) {
+                claimedTimestamp = result[1];
+            }
+        } catch (e) {
+            console.error('Error extracting userClaimTeamDetails values:', e);
+        }
+
+        // Format from wei to ether
+        let amountFormatted = '0';
+        let timestampFormatted = '0';
+
+        try {
+            const { formatEther } = await import('ethers');
+            amountFormatted = formatEther(claimedAmount);
+            timestampFormatted = claimedTimestamp.toString();
+
+            console.log('Formatted values:', { amount: amountFormatted, timestamp: timestampFormatted });
+        } catch (formatError) {
+            console.error('Error formatting values:', formatError);
+            amountFormatted = claimedAmount.toString();
+            timestampFormatted = claimedTimestamp.toString();
+        }
+
+        return {
+            success: true,
+            amount: amountFormatted,
+            timestamp: timestampFormatted
+        };
+    } catch (error) {
+        console.error('Error in getUserClaimTeamDetails:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to get user claim team details'
+        };
+    }
+};
+
+/**
+ * Get network month, week and day
+ * @param {Object} provider - Ethers provider
+ * @returns {Promise<{success: boolean, month?: number, week?: number, day?: number, error?: string}>}
+ */
+export const getNetworkMonthWeekAndDay = async (provider) => {
+    try {
+        if (!provider) {
+            return {
+                success: false,
+                error: 'Provider is required'
+            };
+        }
+
+        const contract = createContractInstance(provider);
+        console.log('Calling networkMonthWeekAndDay...');
+        const result = await contract.networkMonthWeekAndDay();
+        console.log('Raw networkMonthWeekAndDay result:', result);
+
+        // Extract _month, _week, _day from result
+        let month = 0;
+        let week = 0;
+        let day = 0;
+
+        try {
+            if (result && result._month !== undefined) {
+                month = Number(result._month.toString());
+            } else if (result && result[0] !== undefined) {
+                month = Number(result[0].toString());
+            } else if (Array.isArray(result) && result.length > 0) {
+                month = Number(result[0].toString());
+            }
+
+            if (result && result._week !== undefined) {
+                week = Number(result._week.toString());
+            } else if (result && result[1] !== undefined) {
+                week = Number(result[1].toString());
+            } else if (Array.isArray(result) && result.length > 1) {
+                week = Number(result[1].toString());
+            }
+
+            if (result && result._day !== undefined) {
+                day = Number(result._day.toString());
+            } else if (result && result[2] !== undefined) {
+                day = Number(result[2].toString());
+            } else if (Array.isArray(result) && result.length > 2) {
+                day = Number(result[2].toString());
+            }
+        } catch (e) {
+            console.error('Error extracting networkMonthWeekAndDay values:', e);
+        }
+
+        console.log('Extracted values:', { month, week, day });
+
+        return {
+            success: true,
+            month: month,
+            week: week,
+            day: day
+        };
+    } catch (error) {
+        console.error('Error in getNetworkMonthWeekAndDay:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to get network month week and day'
+        };
+    }
+};
+
+/**
+ * Get monthly power up user
+ * @param {Object} provider - Ethers provider
+ * @param {number} month - Month value
+ * @returns {Promise<{success: boolean, address?: string, amount?: string, error?: string}>}
+ */
+export const getMonthlyPowerUpUser = async (provider, month) => {
+    try {
+        if (!provider) {
+            return {
+                success: false,
+                error: 'Provider is required'
+            };
+        }
+
+        if (month === undefined || month === null || month < 0) {
+            return {
+                success: false,
+                error: 'Month must be 0 or greater'
+            };
+        }
+
+        const contract = createContractInstance(provider);
+        console.log('Calling monthlyPowerUpUser with month:', month);
+        const result = await contract.monthlyPowerUpUser(month);
+        console.log('Raw monthlyPowerUpUser result:', result);
+
+        // Extract topUser and topAmount
+        let topUser = null;
+        let topAmount = BigInt(0);
+
+        try {
+            if (result && result.topUser !== undefined) {
+                topUser = result.topUser;
+            } else if (result && result[0] !== undefined) {
+                topUser = result[0];
+            } else if (Array.isArray(result) && result.length > 0) {
+                topUser = result[0];
+            }
+
+            if (result && result.topAmount !== undefined) {
+                topAmount = result.topAmount;
+            } else if (result && result[1] !== undefined) {
+                topAmount = result[1];
+            } else if (Array.isArray(result) && result.length > 1) {
+                topAmount = result[1];
+            }
+        } catch (e) {
+            console.error('Error extracting monthlyPowerUpUser values:', e);
+        }
+
+        // Format amount
+        let amountFormatted = '0';
+        try {
+            const { formatEther } = await import('ethers');
+            amountFormatted = formatEther(topAmount);
+        } catch (formatError) {
+            amountFormatted = topAmount.toString();
+        }
+
+        return {
+            success: true,
+            address: topUser ? String(topUser) : null,
+            amount: amountFormatted
+        };
+    } catch (error) {
+        console.error('Error in getMonthlyPowerUpUser:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to get monthly power up user'
+        };
+    }
+};
+
+/**
+ * Get weekly power up user
+ * @param {Object} provider - Ethers provider
+ * @param {number} week - Week value
+ * @returns {Promise<{success: boolean, address?: string, amount?: string, error?: string}>}
+ */
+export const getWeeklyPowerUpUser = async (provider, week) => {
+    try {
+        if (!provider) {
+            return {
+                success: false,
+                error: 'Provider is required'
+            };
+        }
+
+        if (week === undefined || week === null || week < 0) {
+            return {
+                success: false,
+                error: 'Week must be 0 or greater'
+            };
+        }
+
+        const contract = createContractInstance(provider);
+        console.log('Calling weeklyPowerUpUser with week:', week);
+        const result = await contract.weeklyPowerUpUser(week);
+        console.log('Raw weeklyPowerUpUser result:', result);
+
+        // Extract topUser and topAmount
+        let topUser = null;
+        let topAmount = BigInt(0);
+
+        try {
+            if (result && result.topUser !== undefined) {
+                topUser = result.topUser;
+            } else if (result && result[0] !== undefined) {
+                topUser = result[0];
+            } else if (Array.isArray(result) && result.length > 0) {
+                topUser = result[0];
+            }
+
+            if (result && result.topAmount !== undefined) {
+                topAmount = result.topAmount;
+            } else if (result && result[1] !== undefined) {
+                topAmount = result[1];
+            } else if (Array.isArray(result) && result.length > 1) {
+                topAmount = result[1];
+            }
+        } catch (e) {
+            console.error('Error extracting weeklyPowerUpUser values:', e);
+        }
+
+        // Format amount
+        let amountFormatted = '0';
+        try {
+            const { formatEther } = await import('ethers');
+            amountFormatted = formatEther(topAmount);
+        } catch (formatError) {
+            amountFormatted = topAmount.toString();
+        }
+
+        return {
+            success: true,
+            address: topUser ? String(topUser) : null,
+            amount: amountFormatted
+        };
+    } catch (error) {
+        console.error('Error in getWeeklyPowerUpUser:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to get weekly power up user'
+        };
+    }
+};
+
+/**
+ * Get daily power up user
+ * @param {Object} provider - Ethers provider
+ * @param {number} day - Day value
+ * @returns {Promise<{success: boolean, address?: string, amount?: string, error?: string}>}
+ */
+export const getDailyPowerUpUser = async (provider, day) => {
+    try {
+        if (!provider) {
+            return {
+                success: false,
+                error: 'Provider is required'
+            };
+        }
+
+        if (day === undefined || day === null || day < 0) {
+            return {
+                success: false,
+                error: 'Day must be 0 or greater'
+            };
+        }
+
+        const contract = createContractInstance(provider);
+        console.log('Calling dailyPowerUpUser with day:', day);
+        const result = await contract.dailyPowerUpUser(day);
+        console.log('Raw dailyPowerUpUser result:', result);
+
+        // Extract topUser and topAmount
+        let topUser = null;
+        let topAmount = BigInt(0);
+
+        try {
+            if (result && result.topUser !== undefined) {
+                topUser = result.topUser;
+            } else if (result && result[0] !== undefined) {
+                topUser = result[0];
+            } else if (Array.isArray(result) && result.length > 0) {
+                topUser = result[0];
+            }
+
+            if (result && result.topAmount !== undefined) {
+                topAmount = result.topAmount;
+            } else if (result && result[1] !== undefined) {
+                topAmount = result[1];
+            } else if (Array.isArray(result) && result.length > 1) {
+                topAmount = result[1];
+            }
+        } catch (e) {
+            console.error('Error extracting dailyPowerUpUser values:', e);
+        }
+
+        // Format amount
+        let amountFormatted = '0';
+        try {
+            const { formatEther } = await import('ethers');
+            amountFormatted = formatEther(topAmount);
+        } catch (formatError) {
+            amountFormatted = topAmount.toString();
+        }
+
+        return {
+            success: true,
+            address: topUser ? String(topUser) : null,
+            amount: amountFormatted
+        };
+    } catch (error) {
+        console.error('Error in getDailyPowerUpUser:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to get daily power up user'
+        };
+    }
+};
+
+/**
+ * Get monthly power up incept
+ * @param {Object} provider - Ethers provider
+ * @param {number} month - Month value
+ * @returns {Promise<{success: boolean, address?: string, amount?: string, error?: string}>}
+ */
+export const getMonthlyPowerUpIncept = async (provider, month) => {
+    try {
+        if (!provider) {
+            return {
+                success: false,
+                error: 'Provider is required'
+            };
+        }
+
+        if (month === undefined || month === null || month < 0) {
+            return {
+                success: false,
+                error: 'Month must be 0 or greater'
+            };
+        }
+
+        const contract = createContractInstance(provider);
+        console.log('Calling monthlyPowerUpIncept with month:', month);
+        const result = await contract.monthlyPowerUpIncept(month);
+        console.log('Raw monthlyPowerUpIncept result:', result);
+
+        // Extract topUser and topAmount
+        let topUser = null;
+        let topAmount = BigInt(0);
+
+        try {
+            if (result && result.topUser !== undefined) {
+                topUser = result.topUser;
+            } else if (result && result[0] !== undefined) {
+                topUser = result[0];
+            } else if (Array.isArray(result) && result.length > 0) {
+                topUser = result[0];
+            }
+
+            if (result && result.topAmount !== undefined) {
+                topAmount = result.topAmount;
+            } else if (result && result[1] !== undefined) {
+                topAmount = result[1];
+            } else if (Array.isArray(result) && result.length > 1) {
+                topAmount = result[1];
+            }
+        } catch (e) {
+            console.error('Error extracting monthlyPowerUpIncept values:', e);
+        }
+
+        // Format amount
+        let amountFormatted = '0';
+        try {
+            const { formatEther } = await import('ethers');
+            amountFormatted = formatEther(topAmount);
+        } catch (formatError) {
+            amountFormatted = topAmount.toString();
+        }
+
+        return {
+            success: true,
+            address: topUser ? String(topUser) : null,
+            amount: amountFormatted
+        };
+    } catch (error) {
+        console.error('Error in getMonthlyPowerUpIncept:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to get monthly power up incept'
+        };
+    }
+};
+
+/**
+ * Get weekly power up incept
+ * @param {Object} provider - Ethers provider
+ * @param {number} week - Week value
+ * @returns {Promise<{success: boolean, address?: string, amount?: string, error?: string}>}
+ */
+export const getWeeklyPowerUpIncept = async (provider, week) => {
+    try {
+        if (!provider) {
+            return {
+                success: false,
+                error: 'Provider is required'
+            };
+        }
+
+        if (week === undefined || week === null || week < 0) {
+            return {
+                success: false,
+                error: 'Week must be 0 or greater'
+            };
+        }
+
+        const contract = createContractInstance(provider);
+        console.log('Calling weeklyPowerUpIncept with week:', week);
+        const result = await contract.weeklyPowerUpIncept(week);
+        console.log('Raw weeklyPowerUpIncept result:', result);
+
+        // Extract topUser and topAmount
+        let topUser = null;
+        let topAmount = BigInt(0);
+
+        try {
+            if (result && result.topUser !== undefined) {
+                topUser = result.topUser;
+            } else if (result && result[0] !== undefined) {
+                topUser = result[0];
+            } else if (Array.isArray(result) && result.length > 0) {
+                topUser = result[0];
+            }
+
+            if (result && result.topAmount !== undefined) {
+                topAmount = result.topAmount;
+            } else if (result && result[1] !== undefined) {
+                topAmount = result[1];
+            } else if (Array.isArray(result) && result.length > 1) {
+                topAmount = result[1];
+            }
+        } catch (e) {
+            console.error('Error extracting weeklyPowerUpIncept values:', e);
+        }
+
+        // Format amount
+        let amountFormatted = '0';
+        try {
+            const { formatEther } = await import('ethers');
+            amountFormatted = formatEther(topAmount);
+        } catch (formatError) {
+            amountFormatted = topAmount.toString();
+        }
+
+        return {
+            success: true,
+            address: topUser ? String(topUser) : null,
+            amount: amountFormatted
+        };
+    } catch (error) {
+        console.error('Error in getWeeklyPowerUpIncept:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to get weekly power up incept'
+        };
+    }
+};
+
+/**
+ * Get daily power up incept
+ * @param {Object} provider - Ethers provider
+ * @param {number} day - Day value
+ * @returns {Promise<{success: boolean, address?: string, amount?: string, error?: string}>}
+ */
+export const getDailyPowerUpIncept = async (provider, day) => {
+    try {
+        if (!provider) {
+            return {
+                success: false,
+                error: 'Provider is required'
+            };
+        }
+
+        if (day === undefined || day === null || day < 0) {
+            return {
+                success: false,
+                error: 'Day must be 0 or greater'
+            };
+        }
+
+        const contract = createContractInstance(provider);
+        console.log('Calling dailyPowerUpIncept with day:', day);
+        const result = await contract.dailyPowerUpIncept(day);
+        console.log('Raw dailyPowerUpIncept result:', result);
+
+        // Extract topUser and topAmount
+        let topUser = null;
+        let topAmount = BigInt(0);
+
+        try {
+            if (result && result.topUser !== undefined) {
+                topUser = result.topUser;
+            } else if (result && result[0] !== undefined) {
+                topUser = result[0];
+            } else if (Array.isArray(result) && result.length > 0) {
+                topUser = result[0];
+            }
+
+            if (result && result.topAmount !== undefined) {
+                topAmount = result.topAmount;
+            } else if (result && result[1] !== undefined) {
+                topAmount = result[1];
+            } else if (Array.isArray(result) && result.length > 1) {
+                topAmount = result[1];
+            }
+        } catch (e) {
+            console.error('Error extracting dailyPowerUpIncept values:', e);
+        }
+
+        // Format amount
+        let amountFormatted = '0';
+        try {
+            const { formatEther } = await import('ethers');
+            amountFormatted = formatEther(topAmount);
+        } catch (formatError) {
+            amountFormatted = topAmount.toString();
+        }
+
+        return {
+            success: true,
+            address: topUser ? String(topUser) : null,
+            amount: amountFormatted
+        };
+    } catch (error) {
+        console.error('Error in getDailyPowerUpIncept:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to get daily power up incept'
+        };
+    }
+};
+
+/**
+ * Get current referral power up
+ * @param {Object} provider - Ethers provider
+ * @param {string} address - User wallet address
+ * @param {number} unit - Unit index
+ * @returns {Promise<{success: boolean, data?: string, error?: string}>}
+ */
+export const getCurrentReferralPowerUp = async (provider, address, unit) => {
+    try {
+        if (!provider) {
+            return {
+                success: false,
+                error: 'Provider is required'
+            };
+        }
+
+        if (!address) {
+            return {
+                success: false,
+                error: 'Address is required'
+            };
+        }
+
+        if (unit === undefined || unit === null || unit < 0) {
+            return {
+                success: false,
+                error: 'Unit index is required and must be 0 or greater'
+            };
+        }
+
+        const contract = createContractInstance(provider);
+        console.log('Calling currentReferralPowerUp with:', { address, unit });
+        const referralPowerUp = await contract.currentReferralPowerUp(address, unit);
+        console.log('Raw currentReferralPowerUp value:', referralPowerUp, typeof referralPowerUp);
+
+        // Format from wei to ether
+        let referralPowerUpFormatted = '0';
+        try {
+            const { formatEther } = await import('ethers');
+            // Handle BigInt if needed
+            const powerUpValue = typeof referralPowerUp === 'bigint' ? referralPowerUp : BigInt(referralPowerUp.toString());
+            referralPowerUpFormatted = formatEther(powerUpValue);
+            console.log('Formatted currentReferralPowerUp:', referralPowerUpFormatted);
+        } catch (formatError) {
+            console.error('Error formatting currentReferralPowerUp:', formatError);
+            referralPowerUpFormatted = referralPowerUp.toString();
+        }
+
+        console.log('Returning getCurrentReferralPowerUp result:', { success: true, data: referralPowerUpFormatted });
+        return {
+            success: true,
+            data: referralPowerUpFormatted
+        };
+    } catch (error) {
+        console.error('Error in getCurrentReferralPowerUp:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to get current referral power up'
+        };
+    }
+};
+
+/**
+ * Get current power up reward
+ * @param {Object} provider - Ethers provider
+ * @param {string} address - User wallet address
+ * @param {number} unit - Unit index
+ * @returns {Promise<{success: boolean, data?: string, error?: string}>}
+ */
+export const getCurrentPowerUpReward = async (provider, address, unit) => {
+    try {
+        if (!provider) {
+            return {
+                success: false,
+                error: 'Provider is required'
+            };
+        }
+
+        if (!address) {
+            return {
+                success: false,
+                error: 'Address is required'
+            };
+        }
+
+        if (unit === undefined || unit === null || unit < 0) {
+            return {
+                success: false,
+                error: 'Unit index is required and must be 0 or greater'
+            };
+        }
+
+        const contract = createContractInstance(provider);
+        const reward = await contract.currentPowerUpReward(address, unit);
+
+        // Format reward from wei to ether
+        let rewardFormatted = '0';
+        try {
+            const { formatEther } = await import('ethers');
+            rewardFormatted = formatEther(reward);
+        } catch {
+            rewardFormatted = reward.toString();
+        }
+
+        return {
+            success: true,
+            data: rewardFormatted
+        };
+    } catch (error) {
+        console.error('Error in getCurrentPowerUpReward:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to get current power up reward'
+        };
+    }
+};
+
+/**
  * Get total staked amount
  * @param {Object} provider - Ethers provider
  * @returns {Promise<{success: boolean, data?: any, error?: string}>}
@@ -1876,6 +3879,662 @@ export const approveTokens = async (signer, spender, amount) => {
         return {
             success: false,
             error: errorMsg
+        };
+    }
+};
+
+/**
+ * Add Partner Accounts Function
+ * Adds multiple partner addresses with percentages to the user's account
+ * @param {Object} walletClient - Wallet client from wagmi
+ * @param {string} address - User wallet address
+ * @param {Array<string>} partnerAddresses - Array of partner addresses to add
+ * @param {Array<number>} partnerPercentages - Array of percentages for each partner (0-100)
+ * @returns {Promise<{success: boolean, error?: string, txHash?: string}>}
+ */
+export const addPartnerAccount = async (walletClient, address, partnerAddresses, partnerPercentages) => {
+    try {
+        // Validation checks
+        if (!address) {
+            return {
+                success: false,
+                error: 'Please connect your wallet first'
+            };
+        }
+
+        if (!partnerAddresses || !Array.isArray(partnerAddresses) || partnerAddresses.length === 0) {
+            return {
+                success: false,
+                error: 'At least one partner address is required'
+            };
+        }
+
+        if (!partnerPercentages || !Array.isArray(partnerPercentages) || partnerPercentages.length === 0) {
+            return {
+                success: false,
+                error: 'Percentages are required for each partner address'
+            };
+        }
+
+        if (partnerAddresses.length !== partnerPercentages.length) {
+            return {
+                success: false,
+                error: 'Number of addresses must match number of percentages'
+            };
+        }
+
+        if (!walletClient) {
+            return {
+                success: false,
+                error: 'Unable to get wallet client'
+            };
+        }
+
+        // Check for duplicate addresses (case-insensitive)
+        const addressSet = new Set();
+        const duplicateAddresses = [];
+        for (let i = 0; i < partnerAddresses.length; i++) {
+            const addr = partnerAddresses[i].trim().toLowerCase();
+            if (addr && addressSet.has(addr)) {
+                duplicateAddresses.push(partnerAddresses[i].trim());
+            }
+            if (addr) {
+                addressSet.add(addr);
+            }
+        }
+
+        if (duplicateAddresses.length > 0) {
+            return {
+                success: false,
+                error: `Duplicate addresses found. Each address can only be added once: ${duplicateAddresses.join(', ')}`
+            };
+        }
+
+        // Validate all addresses
+        const validAddresses = [];
+        const validPercentages = [];
+        const invalidAddresses = [];
+
+        for (let i = 0; i < partnerAddresses.length; i++) {
+            const addr = partnerAddresses[i];
+            const percentage = partnerPercentages[i];
+
+            const trimmedAddr = addr.trim();
+            if (trimmedAddr.startsWith('0x') && trimmedAddr.length === 42) {
+                // Additional validation: check for valid hex
+                if (/^0x[a-fA-F0-9]{40}$/.test(trimmedAddr)) {
+                    // Validate percentage (0-100, cannot exceed 100)
+                    const percentNum = parseFloat(percentage);
+                    if (isNaN(percentNum) || percentNum < 0) {
+                        return {
+                            success: false,
+                            error: `Invalid percentage for address ${trimmedAddr}. Percentage must be 0 or greater.`
+                        };
+                    }
+                    if (percentNum > 100) {
+                        return {
+                            success: false,
+                            error: `Percentage cannot exceed 100 for address ${trimmedAddr}.`
+                        };
+                    }
+                    validAddresses.push(trimmedAddr);
+                    validPercentages.push(percentNum);
+                } else {
+                    invalidAddresses.push(trimmedAddr);
+                }
+            } else {
+                invalidAddresses.push(trimmedAddr);
+            }
+        }
+
+        if (invalidAddresses.length > 0) {
+            return {
+                success: false,
+                error: 'address valid ni ha',
+                invalidAddresses: invalidAddresses
+            };
+        }
+
+        if (validAddresses.length === 0) {
+            return {
+                success: false,
+                error: 'Please provide at least one valid partner address'
+            };
+        }
+
+        // Convert wallet client to ethers provider
+        const provider = new BrowserProvider(walletClient);
+        const signer = await provider.getSigner();
+
+        // Create contract instance with signer
+        const contract = createContractInstanceWithSigner(signer);
+
+        try {
+            // Call addPartnerAccount function on the contract
+            // Contract requires: address[] _accounts, uint256[] _percentages
+            // Percentages are typically stored in basis points in Solidity contracts
+            // Basis points: 10000 = 100%, 5000 = 50%, 100 = 1%
+            // User inputs 0-100, we convert to basis points by multiplying by 100
+            const percentagesAsBigInt = validPercentages.map(p => {
+                // Convert percentage (0-100) to basis points (0-10000)
+                // Example: 50% becomes 5000, 1% becomes 100
+                return BigInt(Math.floor(p * 100));
+            });
+
+            console.log('Calling addPartnerAccount with:', {
+                partnerAddresses: validAddresses,
+                partnerPercentages: validPercentages,
+                percentagesAsBigInt: percentagesAsBigInt.map(p => p.toString()),
+                from: address
+            });
+
+            let tx;
+            try {
+                // Call the function with both addresses and percentages arrays
+                tx = await contract.addPartnerAccount(validAddresses, percentagesAsBigInt);
+            } catch (callError) {
+                console.error('Contract call error:', callError);
+
+                // Check if it's a revert error
+                const errorStr = (callError.message || String(callError)).toLowerCase();
+                const errorCode = callError.code || '';
+
+                // Handle "missing revert data" or CALL_EXCEPTION
+                if (errorStr.includes('missing revert data') ||
+                    errorStr.includes('call_exception') ||
+                    errorCode === 'CALL_EXCEPTION') {
+                    return {
+                        success: false,
+                        error: 'Transaction failed. Please verify the addresses are valid and you have sufficient balance.'
+                    };
+                }
+
+                // Check for user rejection
+                if (errorStr.includes('user rejected') || errorStr.includes('user denied')) {
+                    return {
+                        success: false,
+                        error: 'Transaction was rejected by user.'
+                    };
+                }
+
+                // Re-throw if it's a different error
+                throw callError;
+            }
+
+            console.log('Add Partner Account transaction sent:', tx.hash);
+
+            // Wait for transaction to be mined
+            const receipt = await tx.wait();
+
+            console.log('Add Partner Account transaction confirmed:', receipt.transactionHash);
+
+            return {
+                success: true,
+                txHash: receipt.transactionHash,
+                message: 'Successfully added partner accounts!'
+            };
+        } catch (txError) {
+            console.error('Transaction error:', txError);
+
+            // Try to extract revert reason
+            if (txError.reason) {
+                return {
+                    success: false,
+                    error: txError.reason
+                };
+            }
+
+            // Check error data
+            if (txError.data) {
+                try {
+                    const errorStr = String(txError.data);
+                    if (errorStr.includes('invalid address') || errorStr.includes('invalid')) {
+                        return {
+                            success: false,
+                            error: 'address valid ni ha'
+                        };
+                    }
+                } catch (e) {
+                    console.error('Error decoding error data:', e);
+                }
+            }
+
+            throw txError; // Re-throw to be caught by outer catch
+        }
+    } catch (error) {
+        console.error('Error in addPartnerAccount:', error);
+
+        // Handle specific error cases
+        let errorMessage = 'Unknown error occurred';
+
+        if (error.message) {
+            errorMessage = error.message;
+
+            // User-friendly error messages
+            if (error.message.includes('user rejected') || error.message.includes('User denied') || error.message.includes('rejected')) {
+                errorMessage = 'Transaction was rejected. Please try again.';
+            } else if (error.message.includes('insufficient funds') || error.message.includes('insufficient balance')) {
+                errorMessage = 'Insufficient funds for transaction.';
+            } else if (error.message.includes('invalid address') || error.message.includes('invalid')) {
+                errorMessage = 'address valid ni ha';
+            }
+        } else if (error.reason) {
+            errorMessage = error.reason;
+        }
+
+        return {
+            success: false,
+            error: errorMessage
+        };
+    }
+};
+
+/**
+ * Get Partner Count Function
+ * Gets the count of partner accounts for a user
+ * @param {Object} provider - Ethers provider
+ * @param {string} userAddress - User wallet address
+ * @returns {Promise<{success: boolean, count?: number, error?: string}>}
+ */
+export const getPartnerCount = async (provider, userAddress) => {
+    try {
+        if (!provider) {
+            return {
+                success: false,
+                error: 'Provider is required'
+            };
+        }
+
+        if (!userAddress) {
+            return {
+                success: false,
+                error: 'User address is required'
+            };
+        }
+
+        const contract = createContractInstance(provider);
+
+        // Try to call getPartnerCount function
+        let count;
+        try {
+            count = await contract.getPartnerCount(userAddress);
+        } catch (error) {
+            console.error('Error calling getPartnerCount:', error);
+            return {
+                success: false,
+                error: 'getPartnerCount function not found in contract'
+            };
+        }
+
+        // Convert BigInt to number
+        const countNumber = Number(count.toString());
+
+        return {
+            success: true,
+            count: countNumber
+        };
+    } catch (error) {
+        console.error('Error getting partner count:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to get partner count'
+        };
+    }
+};
+
+/**
+ * Get Partner Account Function
+ * Gets partner account details (address and percentage) at a specific index
+ * @param {Object} provider - Ethers provider
+ * @param {string} userAddress - User wallet address
+ * @param {number} index - Index of the partner account
+ * @returns {Promise<{success: boolean, address?: string, percentage?: number, error?: string}>}
+ */
+export const getPartnerAccount = async (provider, userAddress, index) => {
+    try {
+        if (!provider) {
+            return {
+                success: false,
+                error: 'Provider is required'
+            };
+        }
+
+        if (!userAddress) {
+            return {
+                success: false,
+                error: 'User address is required'
+            };
+        }
+
+        if (index === undefined || index === null || index < 0) {
+            return {
+                success: false,
+                error: 'Index is required and must be 0 or greater'
+            };
+        }
+
+        const contract = createContractInstance(provider);
+
+        // Call partnerAccounts function with userAddress and index
+        const result = await contract.partnerAccounts(userAddress, index);
+
+        // Extract address and percentage from the result
+        let partnerAddress = null;
+        let percentage = BigInt(0);
+
+        try {
+            // Try named properties first (ethers.js tuple)
+            if (result.account !== undefined) {
+                partnerAddress = result.account;
+            } else if (result.address !== undefined) {
+                partnerAddress = result.address;
+            } else if (Array.isArray(result) && result.length > 0) {
+                partnerAddress = result[0];
+            } else if (result[0] !== undefined) {
+                partnerAddress = result[0];
+            }
+
+            if (result.percentage !== undefined) {
+                percentage = result.percentage;
+            } else if (Array.isArray(result) && result.length > 1) {
+                percentage = result[1];
+            } else if (result[1] !== undefined) {
+                percentage = result[1];
+            }
+        } catch (e) {
+            console.error('Error extracting partner account details:', e);
+        }
+
+        if (!partnerAddress) {
+            return {
+                success: false,
+                error: 'Failed to extract partner address from contract response'
+            };
+        }
+
+        // Convert percentage from basis points (if stored as 0-10000) to percentage (0-100)
+        const percentageNumber = Number(percentage.toString());
+        // Assuming percentages are stored in basis points (10000 = 100%), convert to 0-100
+        const percentageFormatted = percentageNumber / 100;
+
+        return {
+            success: true,
+            address: partnerAddress.toString(),
+            percentage: percentageFormatted
+        };
+    } catch (error) {
+        console.error('Error getting partner account:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to get partner account'
+        };
+    }
+};
+
+/**
+ * Get All Partner Accounts Function
+ * Gets all partner accounts for a user
+ * @param {Object} provider - Ethers provider
+ * @param {string} userAddress - User wallet address
+ * @returns {Promise<{success: boolean, partners?: Array<{address: string, percentage: number}>, error?: string}>}
+ */
+export const getAllPartnerAccounts = async (provider, userAddress) => {
+    try {
+        // First get the count
+        const countResult = await getPartnerCount(provider, userAddress);
+
+        if (!countResult.success) {
+            return {
+                success: false,
+                error: countResult.error || 'Failed to get partner count'
+            };
+        }
+
+        const count = countResult.count || 0;
+
+        if (count === 0) {
+            return {
+                success: true,
+                partners: []
+            };
+        }
+
+        // Loop through all indices and get partner accounts
+        const partners = [];
+
+        for (let i = 0; i < count; i++) {
+            try {
+                const partnerResult = await getPartnerAccount(provider, userAddress, i);
+
+                if (partnerResult.success && partnerResult.address) {
+                    partners.push({
+                        address: partnerResult.address,
+                        percentage: partnerResult.percentage || 0
+                    });
+                } else {
+                    console.warn(`Failed to get partner account at index ${i}:`, partnerResult.error);
+                }
+            } catch (error) {
+                console.error(`Error getting partner account at index ${i}:`, error);
+                // Continue to next partner
+            }
+        }
+
+        return {
+            success: true,
+            partners: partners
+        };
+    } catch (error) {
+        console.error('Error getting all partner accounts:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to get all partner accounts'
+        };
+    }
+};
+
+/**
+ * Claim Self Power Unit Function
+ * Claims rewards for a specific power up within a unit
+ * @param {Object} walletClient - Wallet client from wagmi
+ * @param {string} address - User wallet address
+ * @param {number} unit - Unit index (0=Spark, 1=Flicker Roar, 3=AI Override, 4=Zylo Apex, 5=Zylo Universe)
+ * @param {number} index - Index of the power up within the unit
+ * @returns {Promise<{success: boolean, error?: string, txHash?: string}>}
+ */
+export const claimSelfPowerUnit = async (walletClient, address, unit, index) => {
+    try {
+        // Validation checks
+        if (!address) {
+            return {
+                success: false,
+                error: 'Please connect your wallet first'
+            };
+        }
+
+        if (unit === undefined || unit === null || unit < 0) {
+            return {
+                success: false,
+                error: 'Unit index is required'
+            };
+        }
+
+        if (index === undefined || index === null || index < 0) {
+            return {
+                success: false,
+                error: 'Index is required and must be 0 or greater'
+            };
+        }
+
+        if (!walletClient) {
+            return {
+                success: false,
+                error: 'Unable to get wallet client'
+            };
+        }
+
+        // Convert wallet client to ethers provider
+        const provider = new BrowserProvider(walletClient);
+        const signer = await provider.getSigner();
+
+        // Create contract instance with signer
+        const contract = createContractInstanceWithSigner(signer);
+
+        try {
+            console.log('Calling claimSelfPowerUnit with:', {
+                unit: unit,
+                index: index,
+                from: address
+            });
+
+            // First, verify that the power up exists and has rewards
+            try {
+                const rewardResult = await getSelfPowerUpReward(provider, address, unit, index);
+                if (rewardResult.success) {
+                    const rewardAmount = parseFloat(rewardResult.data || '0');
+                    if (rewardAmount <= 0) {
+                        return {
+                            success: false,
+                            error: 'No rewards available to claim for this power up.'
+                        };
+                    }
+                    console.log(`Reward available: ${rewardAmount} ZYLO`);
+                } else {
+                    console.warn('Could not verify reward amount:', rewardResult.error);
+                }
+            } catch (rewardCheckError) {
+                console.warn('Error checking reward before claim:', rewardCheckError);
+                // Continue anyway - let the contract handle validation
+            }
+
+            let tx;
+            try {
+                // Convert unit and index to BigInt to ensure correct type
+                const unitBigInt = BigInt(unit);
+                const indexBigInt = BigInt(index);
+
+                console.log('Calling contract with:', {
+                    unit: unitBigInt.toString(),
+                    index: indexBigInt.toString()
+                });
+
+                // Call claimSelfPowerUnit function on the contract
+                tx = await contract.claimSelfPowerUnit(unitBigInt, indexBigInt);
+            } catch (callError) {
+                console.error('Contract call error:', callError);
+                console.error('Error details:', {
+                    code: callError.code,
+                    message: callError.message,
+                    data: callError.data,
+                    reason: callError.reason,
+                    transaction: callError.transaction
+                });
+
+                const errorStr = (callError.message || String(callError)).toLowerCase();
+                const errorCode = callError.code || '';
+                const errorInfo = callError.info || {};
+
+                // Handle "missing revert data" or CALL_EXCEPTION
+                if (errorStr.includes('missing revert data') ||
+                    errorStr.includes('call_exception') ||
+                    errorCode === 'CALL_EXCEPTION' ||
+                    (errorInfo.error && errorInfo.error.code === 'CALL_EXCEPTION')) {
+
+                    // Try to get more specific error info
+                    let specificError = 'Transaction failed. ';
+
+                    // Check if power up exists
+                    try {
+                        const detailsResult = await userPowerUpDetails(provider, address, unit, index);
+                        if (!detailsResult.success) {
+                            specificError += 'Power up does not exist at this unit and index.';
+                        } else {
+                            // Check if there are rewards
+                            const rewardResult = await getSelfPowerUpReward(provider, address, unit, index);
+                            if (rewardResult.success) {
+                                const rewardAmount = parseFloat(rewardResult.data || '0');
+                                if (rewardAmount <= 0) {
+                                    specificError += 'No rewards available to claim.';
+                                } else {
+                                    specificError += 'Unable to claim. Please verify the unit and index are correct and you have sufficient balance.';
+                                }
+                            } else {
+                                specificError += 'Unable to verify rewards. Please check the unit and index.';
+                            }
+                        }
+                    } catch (verifyError) {
+                        console.error('Error verifying power up:', verifyError);
+                        specificError += 'Please verify the unit and index are valid and you have rewards to claim.';
+                    }
+
+                    return {
+                        success: false,
+                        error: specificError
+                    };
+                }
+
+                // Check for user rejection
+                if (errorStr.includes('user rejected') ||
+                    errorStr.includes('user denied') ||
+                    errorStr.includes('rejected') ||
+                    errorCode === 'ACTION_REJECTED' ||
+                    errorCode === 4001 ||
+                    (errorInfo.error && errorInfo.error.code === 4001)) {
+                    return {
+                        success: false,
+                        error: 'Transaction was rejected by user.'
+                    };
+                }
+
+                throw callError;
+            }
+
+            console.log('Claim Self Power Unit transaction sent:', tx.hash);
+
+            // Wait for transaction to be mined
+            const receipt = await tx.wait();
+
+            console.log('Claim Self Power Unit transaction confirmed:', receipt.transactionHash);
+
+            return {
+                success: true,
+                txHash: receipt.transactionHash,
+                message: 'Successfully claimed rewards!'
+            };
+        } catch (txError) {
+            console.error('Transaction error:', txError);
+
+            if (txError.reason) {
+                return {
+                    success: false,
+                    error: txError.reason
+                };
+            }
+
+            throw txError;
+        }
+    } catch (error) {
+        console.error('Error in claimSelfPowerUnit:', error);
+
+        let errorMessage = 'Unknown error occurred';
+
+        if (error.message) {
+            errorMessage = error.message;
+
+            if (error.message.includes('user rejected') || error.message.includes('User denied') || error.message.includes('rejected')) {
+                errorMessage = 'Transaction was rejected. Please try again.';
+            } else if (error.message.includes('insufficient funds') || error.message.includes('insufficient balance')) {
+                errorMessage = 'Insufficient funds for transaction.';
+            } else if (error.message.includes('no rewards') || error.message.includes('nothing to claim')) {
+                errorMessage = 'No rewards available to claim.';
+            }
+        } else if (error.reason) {
+            errorMessage = error.reason;
+        }
+
+        return {
+            success: false,
+            error: errorMessage
         };
     }
 };

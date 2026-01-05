@@ -1,6 +1,9 @@
 'use client';
 
-import React, { JSX } from 'react';
+import React, { JSX, useState, useEffect } from 'react';
+import { useAccount, useWalletClient } from 'wagmi';
+import { BrowserProvider } from 'ethers';
+import { getTotalSelfClaimInClaimX, getTotalTeamClaimInClaimX, getCurrentSelfClaimInUnit, getCurrentTeamClaimInUnit, getTotalVestingClaimInUnit } from '@/blockchain/instances/ZyloPowerUp';
 import './ClaimStaticsCards.css';
 
 type Card = { title: string; icon: 'stake' | 'level' | 'waste' | 'wallet' | 'coins' | 'bars' | 'wasteMini' | 'trophy' };
@@ -99,13 +102,338 @@ interface ClaimStaticsCardsProps {
 
 const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
     const cardStyle: 'neon' | 'soft' | 'split' = 'neon';
+    const { address, isConnected } = useAccount();
+    const { data: walletClient } = useWalletClient();
 
-    // Static values - all set to 0.00
-    const userTotalCSRAmount = '0.00';
-    const userTotalCTRAmount = '0.00';
-    const currentSelfReward = '0.00';
-    const currentTeamReward = '0.00';
-    const wastingAmount = '0.00';
+    // State for Total Claimed Self Reward
+    const [userTotalCSRAmount, setUserTotalCSRAmount] = useState<string>('0.00');
+    const [isLoadingTotalCSR, setIsLoadingTotalCSR] = useState<boolean>(false);
+
+    // State for Total Claimed Team Reward
+    const [userTotalCTRAmount, setUserTotalCTRAmount] = useState<string>('0.00');
+    const [isLoadingTotalCTR, setIsLoadingTotalCTR] = useState<boolean>(false);
+
+    // State for Current Self Reward
+    const [currentSelfReward, setCurrentSelfReward] = useState<string>('0.00');
+    const [isLoadingCurrentSelfReward, setIsLoadingCurrentSelfReward] = useState<boolean>(false);
+
+    // State for Current Team Reward
+    const [currentTeamReward, setCurrentTeamReward] = useState<string>('0.00');
+    const [isLoadingCurrentTeamReward, setIsLoadingCurrentTeamReward] = useState<boolean>(false);
+
+    // State for Wasting Reward
+    const [wastingAmount, setWastingAmount] = useState<string>('0.00');
+    const [isLoadingWastingAmount, setIsLoadingWastingAmount] = useState<boolean>(false);
+
+    // Fetch total self claim in ClaimX (sum of indices 0-4)
+    useEffect(() => {
+        const fetchTotalSelfClaimInClaimX = async () => {
+            if (!isConnected || !address || !walletClient) {
+                setUserTotalCSRAmount('0.00');
+                setIsLoadingTotalCSR(false);
+                return;
+            }
+
+            try {
+                setIsLoadingTotalCSR(true);
+                const provider = new BrowserProvider(walletClient);
+
+                let totalSum = 0;
+
+                // Loop through indices 0-4
+                for (let index = 0; index <= 4; index++) {
+                    try {
+                        const result = await getTotalSelfClaimInClaimX(provider, address, index);
+                        if (result.success && result.data) {
+                            const value = parseFloat(result.data || '0');
+                            totalSum += value;
+                            console.log(`Total Self Claim in ClaimX index ${index}:`, result.data);
+                        }
+                    } catch (err) {
+                        console.error(`Error fetching totalSelfClaimInClaimX for index ${index}:`, err);
+                    }
+                }
+
+                setUserTotalCSRAmount(totalSum.toFixed(2));
+            } catch (error) {
+                console.error('Error fetching total self claim in ClaimX:', error);
+                setUserTotalCSRAmount('0.00');
+            } finally {
+                setIsLoadingTotalCSR(false);
+            }
+        };
+
+        fetchTotalSelfClaimInClaimX();
+    }, [isConnected, address, walletClient]);
+
+    // Fetch total team claim in ClaimX (sum of indices 0-4)
+    useEffect(() => {
+        const fetchTotalTeamClaimInClaimX = async () => {
+            if (!isConnected || !address || !walletClient) {
+                setUserTotalCTRAmount('0.00');
+                setIsLoadingTotalCTR(false);
+                return;
+            }
+
+            try {
+                setIsLoadingTotalCTR(true);
+                const provider = new BrowserProvider(walletClient);
+
+                let totalSum = 0;
+
+                // Loop through indices 0-4
+                for (let index = 0; index <= 4; index++) {
+                    try {
+                        const result = await getTotalTeamClaimInClaimX(provider, address, index);
+                        if (result.success && result.data) {
+                            const value = parseFloat(result.data || '0');
+                            totalSum += value;
+                            console.log(`Total Team Claim in ClaimX index ${index}:`, result.data);
+                        }
+                    } catch (err) {
+                        console.error(`Error fetching totalTeamClaimInClaimX for index ${index}:`, err);
+                    }
+                }
+
+                setUserTotalCTRAmount(totalSum.toFixed(2));
+            } catch (error) {
+                console.error('Error fetching total team claim in ClaimX:', error);
+                setUserTotalCTRAmount('0.00');
+            } finally {
+                setIsLoadingTotalCTR(false);
+            }
+        };
+
+        fetchTotalTeamClaimInClaimX();
+    }, [isConnected, address, walletClient]);
+
+    // Fetch current self claim in unit (sum of indices 0-4)
+    useEffect(() => {
+        const fetchCurrentSelfClaimInUnit = async () => {
+            if (!isConnected || !address || !walletClient) {
+                setCurrentSelfReward('0.00');
+                setIsLoadingCurrentSelfReward(false);
+                return;
+            }
+
+            try {
+                setIsLoadingCurrentSelfReward(true);
+                const provider = new BrowserProvider(walletClient);
+
+                let totalSum = 0;
+
+                // Loop through indices 0-4
+                for (let index = 0; index <= 4; index++) {
+                    try {
+                        const result = await getCurrentSelfClaimInUnit(provider, address, index);
+                        if (result.success && result.data) {
+                            const value = parseFloat(result.data || '0');
+                            totalSum += value;
+                            console.log(`Current Self Claim in Unit index ${index}:`, result.data);
+                        }
+                    } catch (err) {
+                        console.error(`Error fetching currentSelfClaimInUnit for index ${index}:`, err);
+                    }
+                }
+
+                setCurrentSelfReward(totalSum.toFixed(2));
+            } catch (error) {
+                console.error('Error fetching current self claim in unit:', error);
+                setCurrentSelfReward('0.00');
+            } finally {
+                setIsLoadingCurrentSelfReward(false);
+            }
+        };
+
+        fetchCurrentSelfClaimInUnit();
+    }, [isConnected, address, walletClient]);
+
+    // Fetch current team claim in unit (sum of indices 0-4)
+    useEffect(() => {
+        const fetchCurrentTeamClaimInUnit = async () => {
+            if (!isConnected || !address || !walletClient) {
+                setCurrentTeamReward('0.00');
+                setIsLoadingCurrentTeamReward(false);
+                return;
+            }
+
+            try {
+                setIsLoadingCurrentTeamReward(true);
+                const provider = new BrowserProvider(walletClient);
+
+                let totalSum = 0;
+
+                // Loop through indices 0-4
+                for (let index = 0; index <= 4; index++) {
+                    try {
+                        const result = await getCurrentTeamClaimInUnit(provider, address, index);
+                        if (result.success && result.data) {
+                            const value = parseFloat(result.data || '0');
+                            totalSum += value;
+                            console.log(`Current Team Claim in Unit index ${index}:`, result.data);
+                        }
+                    } catch (err) {
+                        console.error(`Error fetching currentTeamClaimInUnit for index ${index}:`, err);
+                    }
+                }
+
+                setCurrentTeamReward(totalSum.toFixed(2));
+            } catch (error) {
+                console.error('Error fetching current team claim in unit:', error);
+                setCurrentTeamReward('0.00');
+            } finally {
+                setIsLoadingCurrentTeamReward(false);
+            }
+        };
+
+        fetchCurrentTeamClaimInUnit();
+    }, [isConnected, address, walletClient]);
+
+    // Fetch total vesting claim in unit (sum of indices 0-4)
+    useEffect(() => {
+        const fetchTotalVestingClaimInUnit = async () => {
+            if (!isConnected || !address || !walletClient) {
+                setWastingAmount('0.00');
+                setIsLoadingWastingAmount(false);
+                return;
+            }
+
+            try {
+                setIsLoadingWastingAmount(true);
+                const provider = new BrowserProvider(walletClient);
+
+                let totalSum = 0;
+
+                // Loop through indices 0-4
+                for (let index = 0; index <= 4; index++) {
+                    try {
+                        const result = await getTotalVestingClaimInUnit(provider, address, index);
+                        if (result.success && result.data) {
+                            const value = parseFloat(result.data || '0');
+                            totalSum += value;
+                            console.log(`Total Vesting Claim in Unit index ${index}:`, result.data);
+                        }
+                    } catch (err) {
+                        console.error(`Error fetching totalVestingClaimInUnit for index ${index}:`, err);
+                    }
+                }
+
+                setWastingAmount(totalSum.toFixed(2));
+            } catch (error) {
+                console.error('Error fetching total vesting claim in unit:', error);
+                setWastingAmount('0.00');
+            } finally {
+                setIsLoadingWastingAmount(false);
+            }
+        };
+
+        fetchTotalVestingClaimInUnit();
+    }, [isConnected, address, walletClient]);
+
+    // Listen for claim completed event to refresh all cards
+    useEffect(() => {
+        const handleClaimCompleted = async () => {
+            console.log('Claim completed event received, refreshing all claim statics cards...');
+
+            if (!isConnected || !address || !walletClient) {
+                return;
+            }
+
+            try {
+                const provider = new BrowserProvider(walletClient);
+
+                // Refresh Total Claimed Self Reward
+                setIsLoadingTotalCSR(true);
+                let totalSelfSum = 0;
+                for (let index = 0; index <= 4; index++) {
+                    try {
+                        const result = await getTotalSelfClaimInClaimX(provider, address, index);
+                        if (result.success && result.data) {
+                            totalSelfSum += parseFloat(result.data || '0');
+                        }
+                    } catch (err) {
+                        console.error(`Error refreshing totalSelfClaimInClaimX for index ${index}:`, err);
+                    }
+                }
+                setUserTotalCSRAmount(totalSelfSum.toFixed(2));
+                setIsLoadingTotalCSR(false);
+
+                // Refresh Total Claimed Team Reward
+                setIsLoadingTotalCTR(true);
+                let totalTeamSum = 0;
+                for (let index = 0; index <= 4; index++) {
+                    try {
+                        const result = await getTotalTeamClaimInClaimX(provider, address, index);
+                        if (result.success && result.data) {
+                            totalTeamSum += parseFloat(result.data || '0');
+                        }
+                    } catch (err) {
+                        console.error(`Error refreshing totalTeamClaimInClaimX for index ${index}:`, err);
+                    }
+                }
+                setUserTotalCTRAmount(totalTeamSum.toFixed(2));
+                setIsLoadingTotalCTR(false);
+
+                // Refresh Current Self Reward
+                setIsLoadingCurrentSelfReward(true);
+                let currentSelfSum = 0;
+                for (let index = 0; index <= 4; index++) {
+                    try {
+                        const result = await getCurrentSelfClaimInUnit(provider, address, index);
+                        if (result.success && result.data) {
+                            currentSelfSum += parseFloat(result.data || '0');
+                        }
+                    } catch (err) {
+                        console.error(`Error refreshing currentSelfClaimInUnit for index ${index}:`, err);
+                    }
+                }
+                setCurrentSelfReward(currentSelfSum.toFixed(2));
+                setIsLoadingCurrentSelfReward(false);
+
+                // Refresh Current Team Reward
+                setIsLoadingCurrentTeamReward(true);
+                let currentTeamSum = 0;
+                for (let index = 0; index <= 4; index++) {
+                    try {
+                        const result = await getCurrentTeamClaimInUnit(provider, address, index);
+                        if (result.success && result.data) {
+                            currentTeamSum += parseFloat(result.data || '0');
+                        }
+                    } catch (err) {
+                        console.error(`Error refreshing currentTeamClaimInUnit for index ${index}:`, err);
+                    }
+                }
+                setCurrentTeamReward(currentTeamSum.toFixed(2));
+                setIsLoadingCurrentTeamReward(false);
+
+                // Refresh Wasting Reward
+                setIsLoadingWastingAmount(true);
+                let wastingSum = 0;
+                for (let index = 0; index <= 4; index++) {
+                    try {
+                        const result = await getTotalVestingClaimInUnit(provider, address, index);
+                        if (result.success && result.data) {
+                            wastingSum += parseFloat(result.data || '0');
+                        }
+                    } catch (err) {
+                        console.error(`Error refreshing totalVestingClaimInUnit for index ${index}:`, err);
+                    }
+                }
+                setWastingAmount(wastingSum.toFixed(2));
+                setIsLoadingWastingAmount(false);
+
+                console.log('All claim statics cards refreshed');
+            } catch (error) {
+                console.error('Error refreshing claim statics cards:', error);
+            }
+        };
+
+        window.addEventListener('claimCompleted', handleClaimCompleted);
+
+        return () => {
+            window.removeEventListener('claimCompleted', handleClaimCompleted);
+        };
+    }, [isConnected, address, walletClient]);
 
 
     return (
@@ -135,9 +463,11 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
                                 </div>
                                 <div className="flex-grow-1">
                                     <div className="main-value">
-                                        <span className="value-text">{userTotalCSRAmount} Token</span>
+                                        <span className="value-text">
+                                            {isLoadingTotalCSR ? 'Loading...' : `${userTotalCSRAmount} Token`}
+                                        </span>
                                     </div>
-                                    <div className="value-label">Total Claimed Self Reward</div>
+                                    <div className="value-label">Total ClaimX Self Reward</div>
                                 </div>
                             </div>
                         </div>
@@ -155,9 +485,11 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
                                 </div>
                                 <div className="flex-grow-1">
                                     <div className="main-value">
-                                        <span className="value-text">{userTotalCTRAmount} Token</span>
+                                        <span className="value-text">
+                                            {isLoadingTotalCTR ? 'Loading...' : `${userTotalCTRAmount} Token`}
+                                        </span>
                                     </div>
-                                    <div className="value-label">Total Claimed Team Reward</div>
+                                    <div className="value-label">Total ClaimX Team Reward</div>
                                 </div>
                             </div>
                         </div>
@@ -175,9 +507,11 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
                                 </div>
                                 <div className="flex-grow-1">
                                     <div className="main-value">
-                                        <span className="value-text">{currentSelfReward} Token</span>
+                                        <span className="value-text">
+                                            {isLoadingCurrentSelfReward ? 'Loading...' : `${currentSelfReward} Token`}
+                                        </span>
                                     </div>
-                                    <div className="value-label">Current Self Reward</div>
+                                    <div className="value-label">Current ClaimX Self Reward</div>
                                 </div>
                             </div>
                         </div>
@@ -195,16 +529,18 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
                                 </div>
                                 <div className="flex-grow-1">
                                     <div className="main-value">
-                                        <span className="value-text">{currentTeamReward} Token</span>
+                                        <span className="value-text">
+                                            {isLoadingCurrentTeamReward ? 'Loading...' : `${currentTeamReward} Token`}
+                                        </span>
                                     </div>
-                                    <div className="value-label">Current Team Reward</div>
+                                    <div className="value-label">Current ClaimX Team Reward</div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                     {/* Current Wasting Card */}
-                     <div className="col-12 col-md-12 col-lg-10">
+                    {/* Current Wasting Card */}
+                    <div className="col-12 col-md-12 col-lg-10">
                         <div className={`z-card z-card--${cardStyle} h-100 yellow-card`}>
                             <div className="z-card-ambient" aria-hidden="true" />
                             <div className="z-card-body d-flex align-items-center">
@@ -215,9 +551,11 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
                                 </div>
                                 <div className="flex-grow-1">
                                     <div className="main-value">
-                                        <span className="value-text">{wastingAmount} Token</span>
+                                        <span className="value-text">
+                                            {isLoadingWastingAmount ? 'Loading...' : `${wastingAmount} Token`}
+                                        </span>
                                     </div>
-                                    <div className="value-label">Wasting Reward</div>
+                                    <div className="value-label">Wasting ClaimX Reward</div>
                                 </div>
                             </div>
                         </div>

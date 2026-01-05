@@ -2,6 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import Slider, { Settings } from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -188,6 +189,11 @@ const Arrow = ({ dir, onClick }: { dir: "prev" | "next"; onClick?: () => void })
 
 export default function LevelCardsCarousel({ levels }: Props) {
     const data = levels ?? DEFAULT_LEVELS;
+    const router = useRouter();
+
+    const handleCardClick = (levelId: number) => {
+        router.push(`/levels/${levelId}`);
+    };
 
     const settings: Settings = {
         dots: true,
@@ -255,9 +261,20 @@ export default function LevelCardsCarousel({ levels }: Props) {
                                 <div key={lvl.id} className="px-2" style={{ paddingTop: '1rem', paddingBottom: '1rem' }}>
                                     <article
                                         className="level-card-pro h-100"
+                                        onClick={() => handleCardClick(lvl.id)}
                                         style={{
                                             minHeight: '480px',
                                             padding: '1.25rem',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.3s ease',
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.transform = 'translateY(-8px)';
+                                            e.currentTarget.style.boxShadow = '0 12px 32px rgba(254, 231, 57, 0.3)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.transform = 'translateY(0)';
+                                            e.currentTarget.style.boxShadow = 'none';
                                         }}
                                     >
                                         <header className="d-flex align-items-center justify-content-between mb-3" style={{ paddingTop: '0.5rem' }}>

@@ -65,6 +65,7 @@ const UnitsRewardsSection: React.FC<UnitsRewardsSectionProps> = ({
           currentSelfReward={currentSelfReward}
           currentTeamReward={currentTeamReward}
           isLoadingRewards={isLoadingRewards}
+          selectedUnit={selectedUnit}
         />
 
         {/* Power Up Unit Cards Section - Show ONLY selected unit's power ups */}

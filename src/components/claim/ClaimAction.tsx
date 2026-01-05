@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAccount, useWalletClient } from 'wagmi';
 import { BrowserProvider } from 'ethers';
-import { getClaimData, claimed } from '@/blockchain/instances/ZyloPowerUp';
+import { getTotalTeamClaimSum, outGo } from '@/blockchain/instances/ZyloPowerUp';
 
 const ClaimAction: React.FC = () => {
     const [isConnected, setIsConnected] = useState(false);
@@ -19,30 +19,36 @@ const ClaimAction: React.FC = () => {
         setIsConnected(wagmiConnected);
     }, [wagmiConnected]);
 
-    // Fetch claim data to get getClaimedReward value
+    // Fetch total team claim sum (totalSelf + totalTeam)
     useEffect(() => {
-        const fetchClaimData = async () => {
+        const fetchTotalTeamClaimSum = async () => {
             if (!isConnected || !address || !walletClient) {
+                setClaimAmount('0.00');
+                setIsLoadingClaimData(false);
                 return;
             }
 
             setIsLoadingClaimData(true);
             try {
                 const provider = new BrowserProvider(walletClient);
-                const claimResult = await getClaimData(provider, address);
+                const result = await getTotalTeamClaimSum(provider, address);
 
-                if (claimResult.success && claimResult.data) {
-                    setClaimAmount(claimResult.data.getClaimedReward);
-                    console.log('Claim amount loaded:', claimResult.data.getClaimedReward);
+                if (result.success && result.sum) {
+                    setClaimAmount(result.sum);
+                    console.log('Total team claim sum loaded:', result.sum, 'totalSelf:', result.totalSelf, 'totalTeam:', result.totalTeam);
+                } else {
+                    setClaimAmount('0.00');
+                    console.error('Failed to fetch total team claim sum:', result.error);
                 }
             } catch (error) {
-                console.error('Error fetching claim data:', error);
+                console.error('Error fetching total team claim sum:', error);
+                setClaimAmount('0.00');
             } finally {
                 setIsLoadingClaimData(false);
             }
         };
 
-        fetchClaimData();
+        fetchTotalTeamClaimSum();
     }, [isConnected, address, walletClient]);
 
     const handleClaimRewards = async () => {
@@ -54,42 +60,84 @@ const ClaimAction: React.FC = () => {
         setIsClaiming(true);
         setClaimMessage('');
 
+        let shouldShowErrorTimeout = false;
+
         try {
-            const provider = new BrowserProvider(walletClient);
+            // Call the outGo function
+            console.log('Calling outGo function');
+            const result = await outGo(walletClient, address);
 
-            // Call the claimed function
-            console.log('Calling claimed function');
-            const signer = await provider.getSigner();
-            // Note: claimed function requires unit and index parameters
-            // Using 0, 0 as default values since function is not yet implemented
-            const claimResult = await claimed(signer, 0, 0);
+            if (result.success) {
+                setClaimMessage('Rewards ClaimX Successfully!');
+                console.log('OutGo successful');
 
-            if (claimResult.success) {
-                setClaimMessage('Rewards claimed successfully!');
-                console.log('Claim successful');
+                // Wait a bit for blockchain to update, then refresh
+                setTimeout(async () => {
+                    try {
+                        // Refresh claim data after successful withdrawal
+                        const provider = new BrowserProvider(walletClient);
+                        const updatedData = await getTotalTeamClaimSum(provider, address);
+                        if (updatedData.success && updatedData.sum) {
+                            setClaimAmount(updatedData.sum);
+                        }
+                    } catch (error) {
+                        console.error('Error refreshing claim amount:', error);
+                    }
+                }, 2000); // Wait 2 seconds for blockchain to update
 
-                // Refresh claim data after successful claim
-                const updatedClaimData = await getClaimData(provider, address);
-                if (updatedClaimData.success && updatedClaimData.data) {
-                    setClaimAmount(updatedClaimData.data.getClaimedReward);
-                }
-
-                // Dispatch event to refresh all claim components
-                window.dispatchEvent(new CustomEvent('claimCompleted'));
-                console.log('🔄 Claim completed event dispatched - refreshing all claim data...');
+                // Dispatch event to refresh all claim components (with delay for blockchain update)
+                setTimeout(() => {
+                    window.dispatchEvent(new CustomEvent('claimCompleted'));
+                    console.log('OutGo completed event dispatched - refreshing all claim data...');
+                }, 2000);
             } else {
-                setClaimMessage(claimResult.error || 'Failed to claim rewards');
-                console.error('Claim failed:', claimResult.error);
+                // Check if error is due to user rejection - handle silently
+                const errorMessage = result.error || '';
+                const isUserRejection =
+                    errorMessage.toLowerCase().includes('rejected') ||
+                    errorMessage.toLowerCase().includes('denied') ||
+                    errorMessage.toLowerCase().includes('user rejected') ||
+                    errorMessage.toLowerCase().includes('user denied');
+
+                if (isUserRejection) {
+                    // Silently handle user rejection - don't show error message
+                    setClaimMessage('');
+                } else {
+                    setClaimMessage(result.error || 'Failed to ClaimX rewards');
+                    shouldShowErrorTimeout = true;
+                }
             }
 
-            // Reset message after 5 seconds
-            setTimeout(() => {
-                setClaimMessage('');
-            }, 5000);
+            // Only set timeout for error messages, not for silent rejections
+            if (shouldShowErrorTimeout) {
+                setTimeout(() => {
+                    setClaimMessage('');
+                }, 5000);
+            }
+        } catch (error: any) {
+            // Check if error is due to user rejection
+            const errorMessage = error?.message || '';
+            const errorCode = error?.code || '';
+            const errorInfo = error?.info || {};
 
-        } catch (error) {
-            console.error('Error claiming rewards:', error);
-            setClaimMessage('Error claiming rewards. Please try again.');
+            const isUserRejection =
+                errorMessage.toLowerCase().includes('user rejected') ||
+                errorMessage.toLowerCase().includes('user denied') ||
+                errorMessage.toLowerCase().includes('rejected') ||
+                errorCode === 'ACTION_REJECTED' ||
+                errorCode === 4001 ||
+                (errorInfo.error && errorInfo.error.code === 4001);
+
+            if (isUserRejection) {
+                // Silently handle user rejection - don't show error message
+                setClaimMessage('');
+            } else {
+                setClaimMessage(errorMessage || 'Error ClaimX rewards. Please try again.');
+                shouldShowErrorTimeout = true;
+                setTimeout(() => {
+                    setClaimMessage('');
+                }, 5000);
+            }
         } finally {
             setIsClaiming(false);
         }
@@ -104,7 +152,7 @@ const ClaimAction: React.FC = () => {
                             <div className="text-center mb-4">
                                 <h3 className="text-yellow fw-bold mb-3">ClaimX Your Rewards</h3>
                                 <p className="text-white-50">
-                                Your earned rewards from Power Up and Milestone Progress are fully synced and ready for ClaimX.
+                                    Your earned rewards from Power Up and Milestone Progress are fully synced and ready for ClaimX.
                                 </p>
                             </div>
 
@@ -140,7 +188,7 @@ const ClaimAction: React.FC = () => {
                                             {isClaiming ? (
                                                 <>
                                                     <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                                    Withdraw...
+                                                    ClaimX...
                                                 </>
                                             ) : (
                                                 <>

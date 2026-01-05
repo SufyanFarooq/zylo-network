@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useMemo, useState, useEffect } from 'react';
-import TeamRewardsTable from '@/components/common/TeamRewardsTable';
+import React, { useState, useEffect } from 'react';
+import InceptNodeDetailsTable from '@/components/levels/InceptNodeDetailsTable';
 // import { useRouter } from 'next/navigation';
 import { useLevelUnlockStatus } from '@/hooks/useLevelUnlockStatus';
-import { getLevelTeamRewards, getTeamReward } from '@/blockchain/instances/ZyloPowerUp';
+import { getTeamReward } from '@/blockchain/instances/ZyloPowerUp';
 import { getInviterLevelUnLockTime } from '@/blockchain/instances/ZyloPowerUp';
 import { useAccount, useWalletClient } from 'wagmi';
 import { BrowserProvider } from 'ethers';
@@ -31,14 +31,6 @@ const LevelDetails: React.FC<LevelDetailsProps> = ({ id }) => {
   // Get level unlock status
   const { unlockStatus, isLoading: isLoadingUnlock, isLevelUnlocked, error: unlockError } = useLevelUnlockStatus(levelId);
 
-  // Team rewards state
-  const [teamRewards, setTeamRewards] = useState<Array<{
-    address: string;
-    totalSelfDepositedAmount: string;
-    teamReward: string;
-  }>>([]);
-  const [isLoadingTeamRewards, setIsLoadingTeamRewards] = useState(false);
-  const [teamRewardsError, setTeamRewardsError] = useState<string | null>(null);
 
   // Unlock time state
   const [unlockTime, setUnlockTime] = useState<string | null>(null);
@@ -50,6 +42,9 @@ const LevelDetails: React.FC<LevelDetailsProps> = ({ id }) => {
   const [isLoadingTeamReward, setIsLoadingTeamReward] = useState(false);
   const [teamRewardError, setTeamRewardError] = useState<string | null>(null);
 
+  // Incept node details state
+  const [showInceptNodeDetails, setShowInceptNodeDetails] = useState<boolean>(false);
+
   // Debug logging
   console.log(`LevelDetails - Level ${levelId}:`, {
     unlockStatus,
@@ -58,39 +53,6 @@ const LevelDetails: React.FC<LevelDetailsProps> = ({ id }) => {
     unlockError
   });
 
-  // Fetch team rewards data
-  useEffect(() => {
-    const fetchTeamRewards = async () => {
-      if (!isConnected || !address || !walletClient) {
-        setTeamRewards([]);
-        return;
-      }
-
-      setIsLoadingTeamRewards(true);
-      setTeamRewardsError(null);
-
-      try {
-        const provider = new BrowserProvider(walletClient);
-        const result = await getLevelTeamRewards(provider, address, levelId);
-
-        if (result.success && result.data) {
-          setTeamRewards(result.data.teamRewards || []);
-          console.log(`Team rewards for level ${levelId}:`, result.data);
-        } else {
-          setTeamRewardsError(result.error || 'Failed to fetch team rewards');
-          setTeamRewards([]);
-        }
-      } catch (error) {
-        console.error('Error fetching team rewards:', error);
-        setTeamRewardsError(error instanceof Error ? error.message : 'Unknown error');
-        setTeamRewards([]);
-      } finally {
-        setIsLoadingTeamRewards(false);
-      }
-    };
-
-    fetchTeamRewards();
-  }, [isConnected, address, walletClient, levelId]);
 
   // Fetch unlock time data
   useEffect(() => {
@@ -179,26 +141,6 @@ const LevelDetails: React.FC<LevelDetailsProps> = ({ id }) => {
     fetchTeamReward();
   }, [isConnected, address, walletClient, levelId]);
 
-  const topStats = useMemo(
-    () => [
-      {
-        label: 'Vortex Zone Status',
-        value: isLevelUnlocked(levelId) ? 'Unlocked' : 'Locked',
-        variant: isLevelUnlocked(levelId) ? 'yellow' as const : 'red' as const
-      },
-      {
-        label: 'Unlock Time',
-        value: isLoadingUnlockTime ? 'Loading...' : unlockTime || 'Not available',
-        variant: 'green' as const
-      },
-      {
-        label: 'Team Reward',
-        value: isLoadingTeamReward ? 'Loading...' : `${parseFloat(teamReward).toFixed(4)} ZYLO`,
-        variant: 'yellow' as const
-      },
-    ],
-    [levelId, isLevelUnlocked, isLoadingUnlockTime, unlockTime, isLoadingTeamReward, teamReward]
-  );
 
 
   return (
@@ -247,55 +189,13 @@ const LevelDetails: React.FC<LevelDetailsProps> = ({ id }) => {
           </div>
         </div>
 
-        {/* Top 3 boxes - styled like staking page */}
-        <div className="row g-3 mb-5">
-          {topStats.map((s, idx) => (
-            <div className="col-12 col-md-6 col-lg-4" key={idx}>
-              <div className={`level-stat ${s.variant}`}>
-                <div className="inner">
-                  <div className="value">{s.value}</div>
-                  <div className="label">{s.label}</div>
-                </div>
-              </div>
-            </div>
-          ))}
+        {/* Incept Node Details Table - Always Visible */}
+        <div style={{ width: '100%', marginTop: '2rem', marginBottom: '2rem' }} key={`incept-table-${levelId}`}>
+          <InceptNodeDetailsTable
+            key={`incept-table-component-${levelId}`}
+            levelIndex={levelId - 1}
+          />
         </div>
-
-        {/* Team Rewards Table section */}
-        <div className="mb-1 d-flex justify-content-between align-items-end flex-wrap gap-2">
-          <div>
-            <h2 className="fw-bold mb-0 text-yellow" style={{ fontSize: '1.25rem' }}>Team Members & Rewards</h2>
-          </div>
-        </div>
-
-        {isLoadingTeamRewards && (
-          <div className="text-center py-4">
-            <small className="text-yellow">Loading team rewards...</small>
-          </div>
-        )}
-
-        {teamRewardsError && (
-          <div className="text-center py-4">
-            <small className="text-red">Error: {teamRewardsError}</small>
-          </div>
-        )}
-
-        {teamRewardError && (
-          <div className="text-center py-2">
-            <small className="text-red">Team Reward Error: {teamRewardError}</small>
-          </div>
-        )}
-
-        <TeamRewardsTable
-          teamRewards={teamRewards}
-          onRewardSelect={(reward) => {
-            console.log('Selected reward:', reward);
-            // Handle reward selection if needed
-          }}
-          showActions={true}
-          className="level-details-table"
-          itemsPerPage={10}
-        />
       </div>
     </section>
   );

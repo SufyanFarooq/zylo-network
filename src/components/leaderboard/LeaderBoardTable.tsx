@@ -5,12 +5,13 @@ import { useAccount, useWalletClient } from 'wagmi';
 import { BrowserProvider } from 'ethers';
 import Image from 'next/image';
 import {
-    getDailyDeposits,
-    getWeeklyDeposits,
-    getMonthlyDeposits,
-    getDailyDepositsReferral,
-    getWeeklyDepositsReferral,
-    getMonthlyDepositsReferral
+    getNetworkMonthWeekAndDay,
+    getMonthlyPowerUpUser,
+    getWeeklyPowerUpUser,
+    getDailyPowerUpUser,
+    getMonthlyPowerUpIncept,
+    getWeeklyPowerUpIncept,
+    getDailyPowerUpIncept
 } from '../../blockchain/instances/ZyloPowerUp';
 import './LeaderBoardTable.css';
 
@@ -45,7 +46,7 @@ const LeaderBoardTable: React.FC = () => {
 
     // Fetch real blockchain data
     const fetchLeaderboardData = useCallback(async () => {
-        if (!isConnected || !walletClient || !address) {
+        if (!isConnected || !walletClient) {
             console.log("Wallet not connected");
             return;
         }
@@ -62,87 +63,68 @@ const LeaderBoardTable: React.FC = () => {
                 return;
             }
 
-            let blockchainData;
+            // Step 1: Get month, week, and day from networkMonthWeekAndDay
+            console.log("Fetching networkMonthWeekAndDay...");
+            const timeResult = await getNetworkMonthWeekAndDay(provider);
 
-            // Call appropriate function based on period and category
+            if (!timeResult.success || !timeResult.month || !timeResult.week || !timeResult.day) {
+                console.error("Failed to get network month, week, and day:", timeResult.error);
+                setLeaderboardData([]);
+                setIsLoading(false);
+                return;
+            }
+
+            const { month, week, day } = timeResult;
+            console.log("Network time values:", { month, week, day });
+
+            let result;
+
+            // Step 2: Call appropriate function based on tab and period
             if (activeTab === 'staking') {
-                // Top Stakers - use regular deposit functions
+                // Top Power Ups
                 if (activePeriod === 'today') {
-                    console.log("Fetching daily deposits...");
-                    blockchainData = await getDailyDeposits(provider, address);
+                    console.log("Fetching dailyPowerUpUser with day:", day);
+                    result = await getDailyPowerUpUser(provider, day);
                 } else if (activePeriod === 'week') {
-                    console.log("Fetching weekly deposits...");
-                    blockchainData = await getWeeklyDeposits(provider, address);
+                    console.log("Fetching weeklyPowerUpUser with week:", week);
+                    result = await getWeeklyPowerUpUser(provider, week);
                 } else if (activePeriod === 'month') {
-                    console.log("Fetching monthly deposits...");
-                    blockchainData = await getMonthlyDeposits(provider, address);
+                    console.log("Fetching monthlyPowerUpUser with month:", month);
+                    result = await getMonthlyPowerUpUser(provider, month);
                 }
             } else if (activeTab === 'team') {
-                // Top Team Builders - use referral deposit functions
+                // Top Team Builders
                 if (activePeriod === 'today') {
-                    console.log("Fetching daily referral deposits...");
-                    blockchainData = await getDailyDepositsReferral(provider, address);
+                    console.log("Fetching dailyPowerUpIncept with day:", day);
+                    result = await getDailyPowerUpIncept(provider, day);
                 } else if (activePeriod === 'week') {
-                    console.log("Fetching weekly referral deposits...");
-                    blockchainData = await getWeeklyDepositsReferral(provider, address);
+                    console.log("Fetching weeklyPowerUpIncept with week:", week);
+                    result = await getWeeklyPowerUpIncept(provider, week);
                 } else if (activePeriod === 'month') {
-                    console.log("Fetching monthly referral deposits...");
-                    blockchainData = await getMonthlyDepositsReferral(provider, address);
+                    console.log("Fetching monthlyPowerUpIncept with month:", month);
+                    result = await getMonthlyPowerUpIncept(provider, month);
                 }
             }
 
-            if (blockchainData && blockchainData.success && blockchainData.data) {
-                // Check if data is an array (as per function return type)
-                if (Array.isArray(blockchainData.data)) {
-                    // Data is an array - process it accordingly
-                    if (blockchainData.data.length > 0) {
-                        // Process array data if needed
-                        setLeaderboardData([]);
-                    } else {
-                        setLeaderboardData([]);
-                    }
-                } else if (blockchainData.data && typeof blockchainData.data === 'object') {
-                    // Check if contract time functions are not available
-                    const dataObj = blockchainData.data as { message?: string; topUserAddress?: string; topAmountFormatted?: string };
-                    if (dataObj.message && dataObj.message.includes("not available")) {
-                        console.log("Contract time functions not available:", dataObj.message);
-                        setLeaderboardData([]);
-                    } else if (dataObj.topUserAddress && dataObj.topAmountFormatted) {
-                        const leaderboardEntry = {
-                            rank: 1,
-                            address: dataObj.topUserAddress,
-                            totalStaked: dataObj.topAmountFormatted
-                        };
-                        setLeaderboardData([leaderboardEntry]);
-                        console.log("Leaderboard data updated:", leaderboardEntry);
-                    } else {
-                        setLeaderboardData([]);
-                    }
-                } else {
-                    setLeaderboardData([]);
-                }
+            if (result && result.success && result.address && result.amount) {
+                const leaderboardEntry = {
+                    rank: 1,
+                    address: result.address,
+                    totalStaked: parseFloat(result.amount).toFixed(4)
+                };
+                setLeaderboardData([leaderboardEntry]);
+                console.log("Leaderboard data updated:", leaderboardEntry);
             } else {
-                console.log("No blockchain data available");
+                console.log("No leaderboard data available or invalid result:", result);
                 setLeaderboardData([]);
             }
         } catch (error) {
             console.error("Error fetching leaderboard data:", error);
-
-            // Handle specific error types
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            if (errorMessage.includes("missing revert data")) {
-                console.warn("Blockchain functions not implemented, showing empty state");
-            } else if (errorMessage.includes("Provider is required")) {
-                console.warn("Provider not available");
-            } else {
-                console.error("Unexpected error:", error);
-            }
-
             setLeaderboardData([]);
         } finally {
             setIsLoading(false);
         }
-    }, [isConnected, walletClient, address, activeTab, activePeriod]);
+    }, [isConnected, walletClient, activeTab, activePeriod]);
 
     // Fetch data when period or tab changes
     useEffect(() => {
@@ -215,12 +197,12 @@ const LeaderBoardTable: React.FC = () => {
                                                 style={{ cursor: 'pointer' }}
                                             >
                                                 <div className="period-card-image">
-                                                    <Image 
-                                                        src={period.image} 
+                                                    <Image
+                                                        src={period.image}
                                                         alt={period.label}
                                                         width={300}
                                                         height={200}
-                                                        style={{ 
+                                                        style={{
                                                             width: '100%',
                                                             height: '100%',
                                                             objectFit: 'cover'
@@ -239,7 +221,7 @@ const LeaderBoardTable: React.FC = () => {
                             <div className="card-header">
                                 <div className="d-flex justify-content-between align-items-center">
                                     <h3 className="card-title mb-0">
-                                    {activePeriod.toUpperCase()}&apsos;s - {activeTab === 'staking' ? 'Top Performers' : 'Top Team Builders'} 
+                                        {activePeriod.toUpperCase()}&apsos;s - {activeTab === 'staking' ? 'Top Performers' : 'Top Team Builders'}
                                     </h3>
                                     {isConnected && (
                                         <button

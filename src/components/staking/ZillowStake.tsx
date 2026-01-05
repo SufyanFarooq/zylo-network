@@ -1304,6 +1304,7 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
             currentSelfReward={currentSelfReward}
             currentTeamReward={currentTeamReward}
             isLoadingRewards={isLoadingRewards}
+            selectedUnit={selectedZoneUnit}
           />
 
           {/* Power Up Unit Cards Section - Show all units' power ups */}

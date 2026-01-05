@@ -3,7 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAccount, useWalletClient } from 'wagmi';
 import { BrowserProvider } from 'ethers';
-import { getUserWithdrawInfo } from '@/blockchain/instances/ZyloPowerUp';
+import { getClaimXDetailsLength } from '@/blockchain/instances/ZyloPowerUp';
+import { Contract, formatEther } from 'ethers';
+import { ZyloPowerUp_ADDRESS } from '@/blockchain/addresses/addresses.js';
+import ZyloPowerUp_ABI from '@/blockchain/abis/ZyloPowerUp.json';
 import './WithdrawDetailsTable.css';
 
 interface WithdrawRecord {
@@ -28,9 +31,9 @@ const WithdrawDetailsTable: React.FC<WithdrawDetailsTableProps> = ({ className =
     const { address, isConnected } = useAccount();
     const { data: walletClient } = useWalletClient();
 
-    // Load withdraw history when wallet connects
+    // Load ClaimX history when wallet connects
     useEffect(() => {
-        const loadWithdrawHistory = async () => {
+        const loadClaimXHistory = async () => {
             if (!isConnected || !address || !walletClient) {
                 setWithdrawRecords([]);
                 return;
@@ -43,31 +46,113 @@ const WithdrawDetailsTable: React.FC<WithdrawDetailsTableProps> = ({ className =
                 // Convert wallet client to ethers provider
                 const provider = new BrowserProvider(walletClient);
 
-                console.log('Loading withdraw history for address:', address);
+                console.log('Loading ClaimX history for address:', address);
 
-                // Get withdraw info using the new function
-                const result = await getUserWithdrawInfo(provider, address);
+                // Step 1: Get ClaimX details length
+                const lengthResult = await getClaimXDetailsLength(provider, address);
 
-                if (result && result.success && result.data && result.data.withdrawInfo) {
-                    console.log(`Loaded ${result.data.withdrawInfo.length} withdraw records`);
-                    setWithdrawRecords(result.data.withdrawInfo);
-                    setCurrentPage(1); // Reset to first page
-                } else if (result && result.success && result.data && result.data.fallback) {
-                    console.log('Withdraw info functions not available in contract:', result.data.message);
+                if (!lengthResult.success) {
+                    console.error('Failed to get ClaimX details length:', lengthResult.error);
                     setWithdrawRecords([]);
-                    // Don't show error for fallback case, just show empty state
-                } else {
-                    console.warn('No withdraw data found:', result?.error || 'No withdraw info available');
-                    setWithdrawRecords([]);
-                    // Don't show error for no data case, just show empty state
+                    setIsLoading(false);
+                    return;
                 }
+
+                const length = lengthResult.length || 0;
+                console.log('ClaimX details length:', length);
+
+                if (length === 0) {
+                    setWithdrawRecords([]);
+                    setIsLoading(false);
+                    return;
+                }
+
+                // Step 2: Loop through length and get details
+                const records: WithdrawRecord[] = [];
+                const contract = new Contract(ZyloPowerUp_ADDRESS, ZyloPowerUp_ABI, provider);
+
+                for (let i = 0; i < length; i++) {
+                    try {
+                        console.log(`Fetching ClaimX details at index ${i}...`);
+
+                        // Call contract function directly
+                        const result = await contract.userClaimXDetails(address, i);
+                        console.log(`Raw result for index ${i}:`, result);
+                        console.log(`Result type:`, typeof result);
+                        console.log(`Result is array:`, Array.isArray(result));
+
+                        // Extract values from result
+                        let claimXAmount = BigInt(0);
+                        let claimXTimestamp = BigInt(0);
+
+                        // Try different ways to extract the values
+                        if (result && result.ClaimXAmount !== undefined) {
+                            claimXAmount = result.ClaimXAmount;
+                        } else if (result && result[0] !== undefined) {
+                            claimXAmount = result[0];
+                        } else if (Array.isArray(result) && result.length > 0) {
+                            claimXAmount = result[0];
+                        }
+
+                        if (result && result.ClaimXTimestamp !== undefined) {
+                            claimXTimestamp = result.ClaimXTimestamp;
+                        } else if (result && result[1] !== undefined) {
+                            claimXTimestamp = result[1];
+                        } else if (Array.isArray(result) && result.length > 1) {
+                            claimXTimestamp = result[1];
+                        }
+
+                        console.log(`Extracted values for index ${i}:`, { claimXAmount, claimXTimestamp });
+
+                        // Format values
+                        const amountFormatted = formatEther(claimXAmount);
+                        const timestampStr = claimXTimestamp.toString();
+                        const timestamp = parseInt(timestampStr);
+
+                        console.log(`Formatted values for index ${i}:`, { amount: amountFormatted, timestamp });
+
+                        if (timestamp > 0) {
+                            const date = new Date(timestamp * 1000);
+                            const formattedTime = date.toLocaleString('en-US', {
+                                timeZone: 'UTC',
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit',
+                                hour12: false
+                            }) + ' UTC';
+
+                            const record = {
+                                index: i,
+                                amount: amountFormatted,
+                                timestamp: timestampStr,
+                                formattedTime: formattedTime,
+                                rawData: result
+                            };
+                            console.log(`Adding record for index ${i}:`, record);
+                            records.push(record);
+                        } else {
+                            console.warn(`Invalid timestamp for index ${i}:`, timestamp);
+                        }
+                    } catch (err) {
+                        console.error(`Error fetching ClaimX details at index ${i}:`, err);
+                    }
+                }
+
+                // Reverse to show latest first
+                records.reverse();
+                console.log(`Loaded ${records.length} ClaimX records:`, records);
+                console.log('Setting withdrawRecords state with:', records);
+                setWithdrawRecords(records);
+                setCurrentPage(1); // Reset to first page
             } catch (err: unknown) {
-                console.error('Error loading withdraw history:', err);
-                // Only set error for critical errors, not contract call failures
+                console.error('Error loading ClaimX history:', err);
                 if (err instanceof Error && err.message && err.message.includes('Provider is required')) {
-                    setError('Please connect your wallet to view withdraw history');
+                    setError('Please connect your wallet to view Quick Outgo history');
                 } else {
-                    console.warn('Non-critical error loading withdraw history, showing empty state');
+                    console.warn('Non-critical error loading ClaimX history, showing empty state');
                     setWithdrawRecords([]);
                 }
             } finally {
@@ -75,13 +160,13 @@ const WithdrawDetailsTable: React.FC<WithdrawDetailsTableProps> = ({ className =
             }
         };
 
-        loadWithdrawHistory();
+        loadClaimXHistory();
     }, [isConnected, address, walletClient]);
 
-    // Listen for withdraw completed event to refresh withdraw history
+    // Listen for claim completed event to refresh ClaimX history
     useEffect(() => {
-        const handleWithdrawCompleted = async () => {
-            console.log('🔄 Withdraw completed event received, refreshing withdraw history...');
+        const handleClaimCompleted = async () => {
+            console.log('Claim completed event received, refreshing ClaimX history...');
 
             if (isConnected && address && walletClient) {
                 setIsLoading(true);
@@ -89,27 +174,93 @@ const WithdrawDetailsTable: React.FC<WithdrawDetailsTableProps> = ({ className =
 
                 try {
                     const provider = new BrowserProvider(walletClient);
-                    console.log('Loading withdraw history for address:', address);
+                    console.log('Loading ClaimX history for address:', address);
 
-                    // Get withdraw info using the new function
-                    const result = await getUserWithdrawInfo(provider, address);
+                    // Step 1: Get ClaimX details length
+                    const lengthResult = await getClaimXDetailsLength(provider, address);
 
-                    if (result && result.success && result.data && result.data.withdrawInfo) {
-                        console.log(`Loaded ${result.data.withdrawInfo.length} withdraw records after withdraw completion`);
-                        setWithdrawRecords(result.data.withdrawInfo);
-                        setCurrentPage(1); // Reset to first page
-                    } else if (result && result.success && result.data && result.data.fallback) {
-                        console.log('Withdraw info functions not available in contract:', result.data.message);
-                        setWithdrawRecords([]);
-                        // Don't show error for fallback case
-                    } else {
-                        console.warn('No withdraw data found after withdraw completion:', result?.error || 'No withdraw info available');
-                        setWithdrawRecords([]);
-                        // Don't show error for no data case
+                    if (!lengthResult.success) {
+                        console.error('Failed to get ClaimX details length:', lengthResult.error);
+                        setIsLoading(false);
+                        return;
                     }
+
+                    const length = lengthResult.length || 0;
+
+                    if (length === 0) {
+                        setWithdrawRecords([]);
+                        setIsLoading(false);
+                        return;
+                    }
+
+                    // Step 2: Loop through length and get details
+                    const records: WithdrawRecord[] = [];
+
+                    const contract = new Contract(ZyloPowerUp_ADDRESS, ZyloPowerUp_ABI, provider);
+
+                    for (let i = 0; i < length; i++) {
+                        try {
+                            // Call contract function directly
+                            const result = await contract.userClaimXDetails(address, i);
+
+                            // Extract values from result
+                            let claimXAmount = BigInt(0);
+                            let claimXTimestamp = BigInt(0);
+
+                            if (result && result.ClaimXAmount !== undefined) {
+                                claimXAmount = result.ClaimXAmount;
+                            } else if (result && result[0] !== undefined) {
+                                claimXAmount = result[0];
+                            } else if (Array.isArray(result) && result.length > 0) {
+                                claimXAmount = result[0];
+                            }
+
+                            if (result && result.ClaimXTimestamp !== undefined) {
+                                claimXTimestamp = result.ClaimXTimestamp;
+                            } else if (result && result[1] !== undefined) {
+                                claimXTimestamp = result[1];
+                            } else if (Array.isArray(result) && result.length > 1) {
+                                claimXTimestamp = result[1];
+                            }
+
+                            // Format values
+                            const amountFormatted = formatEther(claimXAmount);
+                            const timestampStr = claimXTimestamp.toString();
+                            const timestamp = parseInt(timestampStr);
+
+                            if (timestamp > 0) {
+                                const date = new Date(timestamp * 1000);
+                                const formattedTime = date.toLocaleString('en-US', {
+                                    timeZone: 'UTC',
+                                    year: 'numeric',
+                                    month: '2-digit',
+                                    day: '2-digit',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    second: '2-digit',
+                                    hour12: false
+                                }) + ' UTC';
+
+                                records.push({
+                                    index: i,
+                                    amount: amountFormatted,
+                                    timestamp: timestampStr,
+                                    formattedTime: formattedTime,
+                                    rawData: result
+                                });
+                            }
+                        } catch (err) {
+                            console.error(`Error fetching ClaimX details at index ${i}:`, err);
+                        }
+                    }
+
+                    // Reverse to show latest first
+                    records.reverse();
+                    console.log(`Loaded ${records.length} ClaimX records after claim completion`);
+                    setWithdrawRecords(records);
+                    setCurrentPage(1);
                 } catch (err: unknown) {
-                    console.error('Error refreshing withdraw history after withdraw completion:', err);
-                    // Don't show error for refresh failures, just log it
+                    console.error('Error refreshing ClaimX history after claim completion:', err);
                     console.warn('Non-critical error during refresh, continuing with current data');
                 } finally {
                     setIsLoading(false);
@@ -117,10 +268,10 @@ const WithdrawDetailsTable: React.FC<WithdrawDetailsTableProps> = ({ className =
             }
         };
 
-        window.addEventListener('withdrawCompleted', handleWithdrawCompleted);
+        window.addEventListener('claimCompleted', handleClaimCompleted);
 
         return () => {
-            window.removeEventListener('withdrawCompleted', handleWithdrawCompleted);
+            window.removeEventListener('claimCompleted', handleClaimCompleted);
         };
     }, [isConnected, address, walletClient]);
 
@@ -163,6 +314,16 @@ const WithdrawDetailsTable: React.FC<WithdrawDetailsTableProps> = ({ className =
     const endIndex = startIndex + itemsPerPage;
     const currentRecords = withdrawRecords.slice(startIndex, endIndex);
 
+    // Debug logging
+    console.log('WithdrawDetailsTable render:', {
+        isLoading,
+        error,
+        recordsLength: withdrawRecords.length,
+        currentRecordsLength: currentRecords.length,
+        totalPages,
+        currentPage
+    });
+
     return (
         <div className={`level-team-details-table ${className}`}>
             {/* Section Title */}
@@ -192,11 +353,11 @@ const WithdrawDetailsTable: React.FC<WithdrawDetailsTableProps> = ({ className =
                 </div>
             )}
 
-            {/* Table */}
-            {!isLoading && !error && (
+            {/* Table - Always show when not loading or when we have records */}
+            {(!isLoading || withdrawRecords.length > 0) && (
                 <div className="table-container">
 
-                    {withdrawRecords.length === 0 ? (
+                    {withdrawRecords.length === 0 && !isLoading ? (
                         <div className="text-center py-4">
                             <p className="text-muted">No Quick Outgo history found</p>
                             <small className="text-muted d-block mt-2">

@@ -129,7 +129,7 @@ const StakingPage: React.FC = () => {
     urlUnit ? parseInt(urlUnit, 10) : null
   );
   const [currentSection, setCurrentSection] = useState<'zones' | 'powerup' | 'units'>(
-    urlSection || 'zones'
+    urlSection || 'powerup'
   );
   
   // Update URL when section or unit changes

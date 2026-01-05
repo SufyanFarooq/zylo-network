@@ -25,7 +25,9 @@ const Slider = dynamic(() => import('react-slick'), {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SlideWrapper: React.FC<{ children: React.ReactNode; [key: string]: any }> = ({ children, currentSlide, slideCount, ...rest }) => {
     // Filter out react-slick internal props (currentSlide, slideCount) before passing to DOM
-    return <div {...rest}>{children}</div>;
+    // Explicitly remove these props from rest to prevent them from reaching DOM
+    const { currentSlide: _, slideCount: __, ...domProps } = rest;
+    return <div {...domProps}>{children}</div>;
 };
 
 const LevelsCarousel: React.FC = () => {
@@ -140,6 +142,8 @@ const LevelsCarousel: React.FC = () => {
     const _NextArrow = (props: any) => {
         // Destructure only the props we need, exclude react-slick internal props
         const { className, style, onClick, currentSlide, slideCount, ...rest } = props;
+        // Explicitly filter out react-slick props to prevent them from reaching DOM
+        const { currentSlide: _, slideCount: __, ...domProps } = rest;
         return (
             <div
                 className={`${className} custom-slick-arrow custom-slick-next`}
@@ -153,6 +157,7 @@ const LevelsCarousel: React.FC = () => {
                     transform: 'translateY(-50%)'
                 }}
                 onClick={onClick}
+                {...domProps}
             >
                 <button
                     style={{
@@ -189,6 +194,8 @@ const LevelsCarousel: React.FC = () => {
     const _PrevArrow = (props: any) => {
         // Destructure only the props we need, exclude react-slick internal props
         const { className, style, onClick, currentSlide, slideCount, ...rest } = props;
+        // Explicitly filter out react-slick props to prevent them from reaching DOM
+        const { currentSlide: _, slideCount: __, ...domProps } = rest;
         return (
             <div
                 className={`${className} custom-slick-arrow custom-slick-prev`}
@@ -202,6 +209,7 @@ const LevelsCarousel: React.FC = () => {
                     transform: 'translateY(-50%)'
                 }}
                 onClick={onClick}
+                {...domProps}
             >
                 <button
                     style={{
