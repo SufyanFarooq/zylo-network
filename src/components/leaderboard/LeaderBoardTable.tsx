@@ -198,6 +198,7 @@ const LeaderBoardTable: React.FC = () => {
                                             >
                                                 <div className="period-card-image">
                                                     <Image
+
                                                         src={period.image}
                                                         alt={period.label}
                                                         width={300}
