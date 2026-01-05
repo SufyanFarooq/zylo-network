@@ -64,21 +64,21 @@ const CoinSVG = () => (
 );
 
 interface ZillowStakeProps {
-  onShowZoneCardsChange?: (showZoneCards: boolean) => void;
-  onPowerUpClick?: (unitIndex: number) => void;
-  onUnitsClick?: (unitIndex: number) => void;
+  onShowZoneCardsChange?: (_showZoneCards: boolean) => void;
+  onPowerUpClick?: (_unitIndex: number) => void;
+  onUnitsClick?: (_unitIndex: number) => void;
   showRewardsSection?: boolean;
   enableStakingForm?: boolean;
   externalShowZoneCards?: boolean;
   initialSelectedUnit?: number | null; // Pass selected unit from parent
 }
 
-const ZillowStake: React.FC<ZillowStakeProps> = ({ 
+const ZillowStake: React.FC<ZillowStakeProps> = ({
   onShowZoneCardsChange,
   onPowerUpClick,
   onUnitsClick,
   showRewardsSection = false,
-  enableStakingForm = true,
+  enableStakingForm: _enableStakingForm = true,
   externalShowZoneCards,
   initialSelectedUnit = null,
 }) => {
@@ -114,7 +114,7 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
   const [userCategory, setUserCategory] = useState<number>(0);
   const [internalShowZoneCards, setInternalShowZoneCards] = useState(true); // Show zone cards initially
   const [selectedZoneUnit, setSelectedZoneUnit] = useState<number | null>(initialSelectedUnit || null);
-  
+
   // Sync with external prop if provided
   useEffect(() => {
     if (initialSelectedUnit !== undefined && initialSelectedUnit !== null) {
@@ -1289,7 +1289,7 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
   // Early return for Units tab (showRewardsSection === true)
   // DEBUG: Uncomment to verify condition
   // console.log('ZillowStake render - showRewardsSection:', showRewardsSection);
-  
+
   if (showRewardsSection === true) {
     return (
       <section className="ido-section position-relative pb-5" style={{ paddingTop: '60px' }}>
@@ -1362,7 +1362,7 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
   // This return statement is ONLY for Power UP tab (showRewardsSection === false)
   // Reward cards are ONLY shown in the if block above (showRewardsSection === true)
   // At this point, showRewardsSection MUST be false, so reward cards will NEVER render
-  
+
   return (
     <section className="ido-section position-relative pb-5" style={{ paddingTop: '60px' }}>
       {/* Ambient glows + dotted texture */}

@@ -19,9 +19,9 @@ const StakingSteps = dynamic(() => import('./StakingSteps'), {
   loading: () => <div style={{ minHeight: '300px' }} />,
 });
 
-const WhyChoosePowerUnit = dynamic(() => import('./WhyChoosePowerUnit'), {
-  loading: () => <div style={{ minHeight: '300px' }} />,
-});
+// const WhyChoosePowerUnit = dynamic(() => import('./WhyChoosePowerUnit'), {
+//   loading: () => <div style={{ minHeight: '300px' }} />,
+// });
 
 const DownloadApp = dynamic(() => import('./DownloadApp'), {
   loading: () => <div style={{ minHeight: '200px' }} />,
@@ -36,38 +36,38 @@ const Community = dynamic(() => import('./Community'), {
 });
 
 const Home: React.FC = () => {
-    return (
-        <div className="home-wrapper">
-            {/* Content Sections */}
-            <div className="position-relative" style={{background: "#032233"}}>
-                <Hero />
-                <NetworkStats />
-            </div>
+  return (
+    <div className="home-wrapper">
+      {/* Content Sections */}
+      <div className="position-relative" style={{ background: "#032233" }}>
+        <Hero />
+        <NetworkStats />
+      </div>
 
-            {/* Other sections without background - Lazy loaded */}
-            <Suspense fallback={<div style={{ minHeight: '200px' }} />}>
-                <SecureTransparent />
-            </Suspense>
-            <Suspense fallback={<div style={{ minHeight: '400px' }} />}>
-                <LevelsCarousel />
-            </Suspense>
-            <Suspense fallback={<div style={{ minHeight: '300px' }} />}>
-                <StakingSteps />
-            </Suspense>
-            {/* <Suspense fallback={<div style={{ minHeight: '300px' }} />}>
+      {/* Other sections without background - Lazy loaded */}
+      <Suspense fallback={<div style={{ minHeight: '200px' }} />}>
+        <SecureTransparent />
+      </Suspense>
+      <Suspense fallback={<div style={{ minHeight: '400px' }} />}>
+        <LevelsCarousel />
+      </Suspense>
+      <Suspense fallback={<div style={{ minHeight: '300px' }} />}>
+        <StakingSteps />
+      </Suspense>
+      {/* <Suspense fallback={<div style={{ minHeight: '300px' }} />}>
                 <WhyChoosePowerUnit />
             </Suspense> */}
-            <Suspense fallback={<div style={{ minHeight: '200px' }} />}>
-                <DownloadApp />
-            </Suspense>
-            <Suspense fallback={<div style={{ minHeight: '300px' }} />}>
-                <FAQ />
-            </Suspense>
-            <Suspense fallback={<div style={{ minHeight: '200px' }} />}>
-                <Community />
-            </Suspense>
-        </div>
-    );
+      <Suspense fallback={<div style={{ minHeight: '200px' }} />}>
+        <DownloadApp />
+      </Suspense>
+      <Suspense fallback={<div style={{ minHeight: '300px' }} />}>
+        <FAQ />
+      </Suspense>
+      <Suspense fallback={<div style={{ minHeight: '200px' }} />}>
+        <Community />
+      </Suspense>
+    </div>
+  );
 };
 
 export default Home; 

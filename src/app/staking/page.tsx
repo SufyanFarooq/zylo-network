@@ -34,9 +34,9 @@ interface BlockchainStake {
 const StakingContent: React.FC<{
   currentSection: 'zones' | 'powerup' | 'units';
   selectedUnit: number | null;
-  setCurrentSection: (section: 'zones' | 'powerup' | 'units') => void;
-  setSelectedUnit: (unit: number | null) => void;
-  updateURL: (section: 'zones' | 'powerup' | 'units', unit: number | null) => void;
+  setCurrentSection: (_section: 'zones' | 'powerup' | 'units') => void;
+  setSelectedUnit: (_unit: number | null) => void;
+  updateURL: (_section: 'zones' | 'powerup' | 'units', _unit: number | null) => void;
   claimedSelfReward: string;
   claimedTeamReward: string;
   currentSelfReward: string;

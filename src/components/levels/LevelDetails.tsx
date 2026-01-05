@@ -42,7 +42,8 @@ const LevelDetails: React.FC<LevelDetailsProps> = ({ id }) => {
   const [isLoadingTeamReward, setIsLoadingTeamReward] = useState(false);
   const [teamRewardError, setTeamRewardError] = useState<string | null>(null);
 
-  // Incept node details state
+  // Incept node details state (unused - kept for potential future use)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [showInceptNodeDetails, setShowInceptNodeDetails] = useState<boolean>(false);
 
   // Debug logging

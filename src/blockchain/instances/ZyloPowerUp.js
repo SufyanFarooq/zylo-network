@@ -3049,7 +3049,7 @@ export const getMonthlyPowerUpUser = async (provider, month) => {
         try {
             const { formatEther } = await import('ethers');
             amountFormatted = formatEther(topAmount);
-        } catch (formatError) {
+        } catch {
             amountFormatted = topAmount.toString();
         }
 
@@ -3123,7 +3123,7 @@ export const getWeeklyPowerUpUser = async (provider, week) => {
         try {
             const { formatEther } = await import('ethers');
             amountFormatted = formatEther(topAmount);
-        } catch (formatError) {
+        } catch {
             amountFormatted = topAmount.toString();
         }
 
@@ -3197,7 +3197,7 @@ export const getDailyPowerUpUser = async (provider, day) => {
         try {
             const { formatEther } = await import('ethers');
             amountFormatted = formatEther(topAmount);
-        } catch (formatError) {
+        } catch {
             amountFormatted = topAmount.toString();
         }
 
@@ -3271,7 +3271,7 @@ export const getMonthlyPowerUpIncept = async (provider, month) => {
         try {
             const { formatEther } = await import('ethers');
             amountFormatted = formatEther(topAmount);
-        } catch (formatError) {
+        } catch {
             amountFormatted = topAmount.toString();
         }
 
@@ -3345,7 +3345,7 @@ export const getWeeklyPowerUpIncept = async (provider, week) => {
         try {
             const { formatEther } = await import('ethers');
             amountFormatted = formatEther(topAmount);
-        } catch (formatError) {
+        } catch {
             amountFormatted = topAmount.toString();
         }
 
@@ -3419,7 +3419,7 @@ export const getDailyPowerUpIncept = async (provider, day) => {
         try {
             const { formatEther } = await import('ethers');
             amountFormatted = formatEther(topAmount);
-        } catch (formatError) {
+        } catch {
             amountFormatted = topAmount.toString();
         }
 

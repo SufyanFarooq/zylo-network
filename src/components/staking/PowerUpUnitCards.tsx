@@ -25,18 +25,17 @@ const Slider = dynamic(() => import('react-slick'), {
 });
 
 // Wrapper component to filter out react-slick props from DOM elements
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const SlideWrapper: React.FC<{ children: React.ReactNode;[key: string]: any }> = (props) => {
+const SlideWrapper: React.FC<{ children: React.ReactNode;[key: string]: unknown }> = (props) => {
   // Filter out react-slick internal props (currentSlide, slideCount) before passing to DOM
-  const { children, currentSlide, slideCount, ...domProps } = props;
+  const { children, currentSlide: _currentSlide, slideCount: _slideCount, ...domProps } = props;
   return <div {...domProps}>{children}</div>;
 };
 
 // Arrow components that filter out react-slick props
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const CustomPrevArrow: React.FC<any> = ({ currentSlide, slideCount, ...props }) => {
+const CustomPrevArrow: React.FC<any> = ({ currentSlide: _currentSlide, slideCount: _slideCount, ...props }) => {
   // Explicitly filter out react-slick props to prevent them from reaching DOM
-  const { currentSlide: _, slideCount: __, ...domProps } = props;
+  const { ...domProps } = props;
   return (
     <div className="slick-arrow-custom slick-prev-custom" {...domProps}>
       <span className="slick-arrow-icon">←</span>
@@ -45,9 +44,9 @@ const CustomPrevArrow: React.FC<any> = ({ currentSlide, slideCount, ...props }) 
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const CustomNextArrow: React.FC<any> = ({ currentSlide, slideCount, ...props }) => {
+const CustomNextArrow: React.FC<any> = ({ currentSlide: _currentSlide, slideCount: _slideCount, ...props }) => {
   // Explicitly filter out react-slick props to prevent them from reaching DOM
-  const { currentSlide: _, slideCount: __, ...domProps } = props;
+  const { ...domProps } = props;
   return (
     <div className="slick-arrow-custom slick-next-custom" {...domProps}>
       <span className="slick-arrow-icon">→</span>
@@ -60,7 +59,7 @@ interface SelfPowerUpRewardDisplayProps {
   address: string;
   unitIndex: number;
   cardIndex: number;
-  walletClient: any;
+  walletClient: unknown;
 }
 
 const SelfPowerUpRewardDisplay: React.FC<SelfPowerUpRewardDisplayProps> = ({ address, unitIndex, cardIndex, walletClient }) => {
@@ -77,7 +76,7 @@ const SelfPowerUpRewardDisplay: React.FC<SelfPowerUpRewardDisplayProps> = ({ add
       try {
         setIsLoading(true);
         // Create provider from wallet client
-        const provider = new BrowserProvider(walletClient);
+        const provider = new BrowserProvider(walletClient as never);
         // Call getSelfPowerUpReward with wallet address, unit index, and card index
         const rewardResult = await getSelfPowerUpReward(provider, address, unitIndex, cardIndex);
         if (rewardResult.success && rewardResult.data) {
@@ -113,7 +112,7 @@ interface CurrentSelfPowerUpRewardDisplayProps {
   address: string;
   unitIndex: number;
   cardIndex: number;
-  walletClient: any;
+  walletClient: unknown;
 }
 
 const CurrentSelfPowerUpRewardDisplay: React.FC<CurrentSelfPowerUpRewardDisplayProps> = ({ address, unitIndex, cardIndex, walletClient }) => {
@@ -129,7 +128,7 @@ const CurrentSelfPowerUpRewardDisplay: React.FC<CurrentSelfPowerUpRewardDisplayP
 
       try {
         setIsLoading(true);
-        const provider = new BrowserProvider(walletClient);
+        const provider = new BrowserProvider(walletClient as never);
 
         // Step 1: Call getSelfPowerUpReward
         const rewardResult = await getSelfPowerUpReward(provider, address, unitIndex, cardIndex);
@@ -144,7 +143,7 @@ const CurrentSelfPowerUpRewardDisplay: React.FC<CurrentSelfPowerUpRewardDisplayP
 
         // Access index 7 (unPowerUp)
         let index7Value = 0;
-        let index7RawValue: any = null;
+        let index7RawValue: unknown = null;
 
         if (Array.isArray(rawDetails) && rawDetails.length > 7) {
           index7RawValue = rawDetails[7];
@@ -352,7 +351,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
     ));
 
     try {
-      const provider = new BrowserProvider(walletClient);
+      const provider = new BrowserProvider(walletClient as never);
 
       // Step 1: Get power up length for this unit
       const lengthResult = await getPowerUpLength(provider, address, unitIndex);
@@ -420,7 +419,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
 
           // Access index 7 from the raw response
           // Structure: [powerUpToken, powerUpTime, powerUpMonth, powerUpBlock, powerUpRemainingBlock, assetsNo, unitAssetX, unPowerUp]
-          let index7Value: any = null;
+          let index7Value: unknown = null;
 
           // Ethers.js returns tuples as objects with both array access and named properties
           // Try to access index 7 (unPowerUp) from raw contract response
@@ -453,7 +452,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                 const bigIntValue = typeof index7Value === 'bigint' ? index7Value : BigInt(index7Value.toString());
                 const formattedValue = formatEther(bigIntValue);
                 index7NegatedValue = (-parseFloat(formattedValue)).toFixed(4);
-              } catch (formatError) {
+              } catch {
                 // If formatting fails, use as number
                 const numValue = typeof index7Value === 'number' ? index7Value : Number(index7Value.toString());
                 index7NegatedValue = (-numValue).toFixed(4);
@@ -621,11 +620,12 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
           shouldShowErrorTimeout = true;
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Check if error is due to user rejection
-      const errorMessage = error?.message || '';
-      const errorCode = error?.code || '';
-      const errorInfo = error?.info || {};
+      const errorObj = error as { message?: string; code?: string | number; info?: { error?: { code?: number } } };
+      const errorMessage = errorObj?.message || '';
+      const errorCode = errorObj?.code || '';
+      const errorInfo = errorObj?.info || {};
 
       const isUserRejection =
         errorMessage.toLowerCase().includes('user rejected') ||
@@ -1956,7 +1956,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                   if (!showSelfClaimHistory) {
                     setIsLoadingSelfHistory(true);
                     try {
-                      const provider = new BrowserProvider(walletClient);
+                      const provider = new BrowserProvider(walletClient as never);
 
                       // Get length
                       const lengthResult = await getUserClaimSelfDetailsLength(provider, address, selectedZoneUnit);
@@ -2049,7 +2049,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                   if (!showTeamClaimHistory) {
                     setIsLoadingTeamHistory(true);
                     try {
-                      const provider = new BrowserProvider(walletClient);
+                      const provider = new BrowserProvider(walletClient as never);
 
                       // Get length
                       const lengthResult = await getUserClaimTeamDetailsLength(provider, address, selectedZoneUnit);

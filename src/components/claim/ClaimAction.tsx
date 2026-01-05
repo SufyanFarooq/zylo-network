@@ -114,11 +114,12 @@ const ClaimAction: React.FC = () => {
                     setClaimMessage('');
                 }, 5000);
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             // Check if error is due to user rejection
-            const errorMessage = error?.message || '';
-            const errorCode = error?.code || '';
-            const errorInfo = error?.info || {};
+            const errorObj = error as { message?: string; code?: string | number; info?: { error?: { code?: number } } };
+            const errorMessage = errorObj?.message || '';
+            const errorCode = errorObj?.code || '';
+            const errorInfo = errorObj?.info || {};
 
             const isUserRejection =
                 errorMessage.toLowerCase().includes('user rejected') ||

@@ -61,14 +61,14 @@ interface RewardSummaryCardsProps {
   isLoadingRewards: boolean;
   onClaimRewards?: () => void;
   selectedUnit?: number | null;
-  powerUpCards?: Array<{ index: number, [key: string]: any }>; // Array of power up cards with their indices
+  powerUpCards?: Array<{ index: number, [key: string]: unknown }>; // Array of power up cards with their indices
 }
 
 const RewardSummaryCards: React.FC<RewardSummaryCardsProps> = ({
-  claimedSelfReward,
-  claimedTeamReward,
+  claimedSelfReward: _claimedSelfReward,
+  claimedTeamReward: _claimedTeamReward,
   currentSelfReward,
-  currentTeamReward,
+  currentTeamReward: _currentTeamReward,
   isLoadingRewards,
   onClaimRewards,
   selectedUnit = null,
@@ -282,11 +282,12 @@ const RewardSummaryCards: React.FC<RewardSummaryCardsProps> = ({
           shouldShowErrorTimeout = true;
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Check if error is due to user rejection
-      const errorMessage = error?.message || '';
-      const errorCode = error?.code || '';
-      const errorInfo = error?.info || {};
+      const errorObj = error as { message?: string; code?: string | number; info?: { error?: { code?: number } } };
+      const errorMessage = errorObj?.message || '';
+      const errorCode = errorObj?.code || '';
+      const errorInfo = errorObj?.info || {};
 
       const isUserRejection =
         errorMessage.toLowerCase().includes('user rejected') ||
@@ -353,11 +354,12 @@ const RewardSummaryCards: React.FC<RewardSummaryCardsProps> = ({
           shouldShowErrorTimeout = true;
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Check if error is due to user rejection
-      const errorMessage = error?.message || '';
-      const errorCode = error?.code || '';
-      const errorInfo = error?.info || {};
+      const errorObj = error as { message?: string; code?: string | number; info?: { error?: { code?: number } } };
+      const errorMessage = errorObj?.message || '';
+      const errorCode = errorObj?.code || '';
+      const errorInfo = errorObj?.info || {};
 
       const isUserRejection =
         errorMessage.toLowerCase().includes('user rejected') ||

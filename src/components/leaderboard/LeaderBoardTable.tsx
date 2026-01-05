@@ -36,7 +36,7 @@ const LeaderBoardTable: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
 
-    const { address, isConnected } = useAccount();
+    const { isConnected } = useAccount();
     const { data: walletClient } = useWalletClient();
 
     const timePeriods: TimePeriod[] = [

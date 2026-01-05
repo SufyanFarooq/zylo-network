@@ -24,7 +24,7 @@ interface InceptNodeDetailsTableProps {
 
 const UNIT_NAMES = ['Spark Up', 'Flicker Roar', 'AI Overrider', 'Zylo Apex', 'Zylo Universe'];
 
-const InceptNodeDetailsTable: React.FC<InceptNodeDetailsTableProps> = ({ levelIndex, onClose }) => {
+const InceptNodeDetailsTable: React.FC<InceptNodeDetailsTableProps> = ({ levelIndex, onClose: _onClose }) => {
   const { address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   
