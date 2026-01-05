@@ -15,6 +15,7 @@ import {
 } from '../../blockchain/instances/ZyloPowerUp';
 import './LeaderBoardTable.css';
 
+
 interface LeaderBoardEntry {
     rank: number;
     address: string;
