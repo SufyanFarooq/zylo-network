@@ -43,16 +43,14 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 60,
   },
 
-  // ESLint configuration for build
-  eslint: {
-    ignoreDuringBuilds: false,
-    dirs: ['src'],
-  },
-
   // TypeScript configuration
   typescript: {
     ignoreBuildErrors: false,
   },
+
+  // Turbopack configuration (Next.js 16 uses Turbopack by default)
+  // Adding empty config to allow webpack config to work
+  turbopack: {},
 
   // Webpack configuration for blockchain libraries
   webpack: (config: any, { isServer, dev }) => {
