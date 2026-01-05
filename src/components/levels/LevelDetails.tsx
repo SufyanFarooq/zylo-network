@@ -33,18 +33,17 @@ const LevelDetails: React.FC<LevelDetailsProps> = ({ id }) => {
 
 
   // Unlock time state
-  const [unlockTime, setUnlockTime] = useState<string | null>(null);
-  const [isLoadingUnlockTime, setIsLoadingUnlockTime] = useState(false);
+  const [_unlockTime, setUnlockTime] = useState<string | null>(null);
+  const [_isLoadingUnlockTime, setIsLoadingUnlockTime] = useState(false);
   const [unlockTimeError, setUnlockTimeError] = useState<string | null>(null);
 
   // Team reward state
-  const [teamReward, setTeamReward] = useState<string>('0');
-  const [isLoadingTeamReward, setIsLoadingTeamReward] = useState(false);
-  const [teamRewardError, setTeamRewardError] = useState<string | null>(null);
+  const [_teamReward, setTeamReward] = useState<string>('0');
+  const [_isLoadingTeamReward, setIsLoadingTeamReward] = useState(false);
+  const [_teamRewardError, setTeamRewardError] = useState<string | null>(null);
 
   // Incept node details state (unused - kept for potential future use)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [showInceptNodeDetails, setShowInceptNodeDetails] = useState<boolean>(false);
+  const [_showInceptNodeDetails, _setShowInceptNodeDetails] = useState<boolean>(false);
 
   // Debug logging
   console.log(`LevelDetails - Level ${levelId}:`, {
