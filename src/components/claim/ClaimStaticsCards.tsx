@@ -103,29 +103,28 @@ interface ClaimStaticsCardsProps {
 }
 
 const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
-    const cardStyle: 'neon' | 'soft' | 'split' = 'neon';
     const { address, isConnected } = useAccount();
     const { data: walletClient } = useWalletClient();
 
-    // State for Total Claimed Self Reward
-    const [userTotalCSRAmount, setUserTotalCSRAmount] = useState<string>('0.00');
-    const [isLoadingTotalCSR, setIsLoadingTotalCSR] = useState<boolean>(false);
+    // State for Total Claimed Self Reward (used for refresh logic only)
+    const [_userTotalCSRAmount, setUserTotalCSRAmount] = useState<string>('0.00');
+    const [_isLoadingTotalCSR, setIsLoadingTotalCSR] = useState<boolean>(false);
 
-    // State for Total Claimed Team Reward
-    const [userTotalCTRAmount, setUserTotalCTRAmount] = useState<string>('0.00');
-    const [isLoadingTotalCTR, setIsLoadingTotalCTR] = useState<boolean>(false);
+    // State for Total Claimed Team Reward (used for refresh logic only)
+    const [_userTotalCTRAmount, setUserTotalCTRAmount] = useState<string>('0.00');
+    const [_isLoadingTotalCTR, setIsLoadingTotalCTR] = useState<boolean>(false);
 
-    // State for Current Self Reward
-    const [currentSelfReward, setCurrentSelfReward] = useState<string>('0.00');
-    const [isLoadingCurrentSelfReward, setIsLoadingCurrentSelfReward] = useState<boolean>(false);
+    // State for Current Self Reward (used for refresh logic only)
+    const [_currentSelfReward, setCurrentSelfReward] = useState<string>('0.00');
+    const [_isLoadingCurrentSelfReward, setIsLoadingCurrentSelfReward] = useState<boolean>(false);
 
-    // State for Current Team Reward
-    const [currentTeamReward, setCurrentTeamReward] = useState<string>('0.00');
-    const [isLoadingCurrentTeamReward, setIsLoadingCurrentTeamReward] = useState<boolean>(false);
+    // State for Current Team Reward (used for refresh logic only)
+    const [_currentTeamReward, setCurrentTeamReward] = useState<string>('0.00');
+    const [_isLoadingCurrentTeamReward, setIsLoadingCurrentTeamReward] = useState<boolean>(false);
 
-    // State for Wasting Reward
-    const [wastingAmount, setWastingAmount] = useState<string>('0.00');
-    const [isLoadingWastingAmount, setIsLoadingWastingAmount] = useState<boolean>(false);
+    // State for Wasting Reward (used for refresh logic only)
+    const [_wastingAmount, setWastingAmount] = useState<string>('0.00');
+    const [_isLoadingWastingAmount, setIsLoadingWastingAmount] = useState<boolean>(false);
 
     // State for selected unit index (0-4)
     const [selectedUnitIndex, setSelectedUnitIndex] = useState<number>(0);

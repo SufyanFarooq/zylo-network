@@ -1,4 +1,4 @@
-import { BrowserProvider, Contract, formatEther } from "ethers";
+import { Contract, formatEther } from "ethers";
 import { ZyloPowerUp_ADDRESS } from "../addresses/addresses.js";
 import ZyloPowerUp_ABI from "../abis/ZyloPowerUp.json";
 

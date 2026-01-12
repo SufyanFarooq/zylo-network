@@ -4,14 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "set NODE_OPTIONS=--no-deprecation && next dev",
-    "build": "set NODE_OPTIONS=--no-deprecation && next build --webpack",
+    "build": "set NODE_OPTIONS=--no-deprecation && next build",
     "start": "set NODE_OPTIONS=--no-deprecation && next start",
     "lint": "next lint",
-    "export": "set NODE_OPTIONS=--no-deprecation && next build --webpack && next export",
-    "build:prod": "set NODE_ENV=production && set NODE_OPTIONS=--no-deprecation --max-old-space-size=8192 && next build --webpack",
-    "build:analyze": "set NODE_OPTIONS=--no-deprecation && next build --webpack && npx @next/bundle-analyzer",
-    "build:safe": "set NODE_OPTIONS=--no-deprecation --max-old-space-size=4096 && set NPM_CONFIG_ENGINE_STRICT=false && next build --webpack",
-    "build:force": "set NODE_OPTIONS=--no-deprecation --max-old-space-size=8192 && set NPM_CONFIG_ENGINE_STRICT=false && set NPM_CONFIG_FUND=false && next build --webpack"
+    "export": "set NODE_OPTIONS=--no-deprecation && next build && next export",
+    "build:prod": "set NODE_ENV=production && set NODE_OPTIONS=--no-deprecation --max-old-space-size=8192 && next build",
+    "build:analyze": "set NODE_OPTIONS=--no-deprecation && next build && npx @next/bundle-analyzer",
+    "build:safe": "set NODE_OPTIONS=--no-deprecation --max-old-space-size=4096 && set NPM_CONFIG_ENGINE_STRICT=false && next build",
+    "build:force": "set NODE_OPTIONS=--no-deprecation --max-old-space-size=8192 && set NPM_CONFIG_ENGINE_STRICT=false && set NPM_CONFIG_FUND=false && next build"
   },
   "dependencies": {
     "@popperjs/core": "^2.11.8",

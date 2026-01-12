@@ -686,6 +686,71 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
     }
   }, [showZoneCards, effectiveSelectedUnit, isConnected, address, walletClient, handleLoadUnitPowerUps]);
 
+  // Load self claim history when unit is selected
+  useEffect(() => {
+    const loadSelfClaimHistory = async () => {
+      if (!isConnected || !address || !walletClient || selectedZoneUnit === null || showZoneCards) {
+        return;
+      }
+
+      setIsLoadingSelfHistory(true);
+      try {
+        const provider = new BrowserProvider(walletClient as never);
+
+        // Get length
+        const lengthResult = await getUserClaimSelfDetailsLength(provider, address, selectedZoneUnit);
+        if (!lengthResult.success || !lengthResult.length) {
+          setSelfClaimHistory([]);
+          setIsLoadingSelfHistory(false);
+          return;
+        }
+
+        const length = lengthResult.length;
+        const records: Array<{ amount: string; timestamp: string; formattedTime: string }> = [];
+
+        // Loop through length
+        for (let i = 0; i < length; i++) {
+          try {
+            const detailsResult = await getUserClaimSelfDetails(provider, address, selectedZoneUnit, i);
+            if (detailsResult.success && detailsResult.amount && detailsResult.timestamp) {
+              const timestamp = parseInt(detailsResult.timestamp);
+              const date = new Date(timestamp * 1000);
+              const formattedTime = date.toLocaleString('en-US', {
+                timeZone: 'UTC',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+              }) + ' UTC';
+
+              records.push({
+                amount: detailsResult.amount,
+                timestamp: detailsResult.timestamp,
+                formattedTime: formattedTime
+              });
+            }
+          } catch (err) {
+            console.error(`Error fetching self claim details at index ${i}:`, err);
+          }
+        }
+
+        // Reverse to show latest first
+        records.reverse();
+        setSelfClaimHistory(records);
+      } catch (err) {
+        console.error('Error loading self claim history:', err);
+        setSelfClaimHistory([]);
+      } finally {
+        setIsLoadingSelfHistory(false);
+      }
+    };
+
+    loadSelfClaimHistory();
+  }, [isConnected, address, walletClient, selectedZoneUnit, showZoneCards]);
+
   const currentUnit = effectiveSelectedUnit !== null ? units.find(u => u.unitIndex === effectiveSelectedUnit) : null;
 
   // Show zone cards view
@@ -1949,75 +2014,6 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
         {/* Self Claim History Table - Show directly when a unit is selected */}
         {!showZoneCards && selectedZoneUnit !== null && (
           <div style={{ marginTop: '3rem' }}>
-            {/* Load self claim history automatically */}
-            {(() => {
-              // Auto-load self claim history when unit is selected
-              React.useEffect(() => {
-                const loadSelfClaimHistory = async () => {
-                  if (!isConnected || !address || !walletClient || selectedZoneUnit === null) {
-                    return;
-                  }
-
-                  setIsLoadingSelfHistory(true);
-                  try {
-                    const provider = new BrowserProvider(walletClient as never);
-
-                    // Get length
-                    const lengthResult = await getUserClaimSelfDetailsLength(provider, address, selectedZoneUnit);
-                    if (!lengthResult.success || !lengthResult.length) {
-                      setSelfClaimHistory([]);
-                      setIsLoadingSelfHistory(false);
-                      return;
-                    }
-
-                    const length = lengthResult.length;
-                    const records: Array<{ amount: string; timestamp: string; formattedTime: string }> = [];
-
-                    // Loop through length
-                    for (let i = 0; i < length; i++) {
-                      try {
-                        const detailsResult = await getUserClaimSelfDetails(provider, address, selectedZoneUnit, i);
-                        if (detailsResult.success && detailsResult.amount && detailsResult.timestamp) {
-                          const timestamp = parseInt(detailsResult.timestamp);
-                          const date = new Date(timestamp * 1000);
-                          const formattedTime = date.toLocaleString('en-US', {
-                            timeZone: 'UTC',
-                            year: 'numeric',
-                            month: '2-digit',
-                            day: '2-digit',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            second: '2-digit',
-                            hour12: false
-                          }) + ' UTC';
-
-                          records.push({
-                            amount: detailsResult.amount,
-                            timestamp: detailsResult.timestamp,
-                            formattedTime: formattedTime
-                          });
-                        }
-                      } catch (err) {
-                        console.error(`Error fetching self claim details at index ${i}:`, err);
-                      }
-                    }
-
-                    // Reverse to show latest first
-                    records.reverse();
-                    setSelfClaimHistory(records);
-                  } catch (error) {
-                    console.error('Error loading self claim history:', error);
-                    setSelfClaimHistory([]);
-                  } finally {
-                    setIsLoadingSelfHistory(false);
-                  }
-                };
-
-                loadSelfClaimHistory();
-              }, [selectedZoneUnit, isConnected, address, walletClient]);
-
-              return null;
-            })()}
 
             {/* Self Claim History Table - Always shown */}
             <div style={{ marginTop: '2rem' }}>
