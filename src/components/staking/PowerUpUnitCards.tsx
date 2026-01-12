@@ -2016,55 +2016,55 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
           <div style={{ marginTop: '3rem' }}>
 
             {/* Self Claim History Table - Always shown */}
-            <div style={{ marginTop: '2rem' }}>
-              <div style={{
-                background: 'linear-gradient(145deg, #0a0a1a 0%, #0f0f23 50%, #1a1a2e 100%)',
-                borderRadius: '20px',
-                padding: '2rem',
-                border: '2px solid rgba(254, 231, 57, 0.3)',
-                boxShadow: '0 8px 32px rgba(254, 231, 57, 0.2)',
-              }}>
-                <h3 style={{ color: '#FEE739', marginBottom: '1.5rem', textAlign: 'center', fontWeight: '700' }}>
+              <div style={{ marginTop: '2rem' }}>
+                <div style={{
+                  background: 'linear-gradient(145deg, #0a0a1a 0%, #0f0f23 50%, #1a1a2e 100%)',
+                  borderRadius: '20px',
+                  padding: '2rem',
+                  border: '2px solid rgba(254, 231, 57, 0.3)',
+                  boxShadow: '0 8px 32px rgba(254, 231, 57, 0.2)',
+                }}>
+                  <h3 style={{ color: '#FEE739', marginBottom: '1.5rem', textAlign: 'center', fontWeight: '700' }}>
                   Claim History
-                </h3>
+                  </h3>
 
-                {isLoadingSelfHistory ? (
-                  <div className="text-center py-4">
-                    <div className="spinner-border text-warning" role="status">
-                      <span className="visually-hidden">Loading...</span>
+                  {isLoadingSelfHistory ? (
+                    <div className="text-center py-4">
+                      <div className="spinner-border text-warning" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                      </div>
+                      <p className="text-white-50 mt-2">Loading history...</p>
                     </div>
-                    <p className="text-white-50 mt-2">Loading history...</p>
-                  </div>
-                ) : selfClaimHistory.length === 0 ? (
-                  <div className="text-center py-4">
+                  ) : selfClaimHistory.length === 0 ? (
+                    <div className="text-center py-4">
                     <p className="text-white-50">No claim history found for this unit.</p>
-                  </div>
-                ) : (
-                  <div className="table-responsive">
+                    </div>
+                  ) : (
+                    <div className="table-responsive">
                     <table className="table table-dark table-striped" style={{ borderRadius: '10px', overflow: 'hidden' }}>
                       <thead style={{ background: 'rgba(254, 231, 57, 0.1)' }}>
-                        <tr>
+                          <tr>
                           <th style={{ color: '#FEE739', border: 'none', padding: '1rem', fontWeight: '600', width: '80px' }}>#</th>
                           <th style={{ color: '#FEE739', border: 'none', padding: '1rem', fontWeight: '600' }}>Amount</th>
                           <th style={{ color: '#FEE739', border: 'none', padding: '1rem', fontWeight: '600' }}>Date & Time (UTC)</th>
-                        </tr>
-                      </thead>
-                      <tbody>
+                          </tr>
+                        </thead>
+                        <tbody>
                         {selfClaimHistory.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((record, index) => (
                           <tr key={index} style={{ borderBottom: '1px solid rgba(254, 231, 57, 0.1)' }}>
                             <td style={{ color: '#FEE739', padding: '1rem', border: 'none', fontWeight: '600' }}>
                               {index + 1}
-                            </td>
+                              </td>
                             <td style={{ color: '#fff', padding: '1rem', border: 'none' }}>
                               {parseFloat(record.amount).toFixed(4)} ZILLOW
                             </td>
                             <td style={{ color: '#fff', padding: '1rem', border: 'none' }}>
-                              {record.formattedTime}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                                {record.formattedTime}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
 
                     {/* Pagination Controls */}
                     {selfClaimHistory.length > itemsPerPage && (
@@ -2140,10 +2140,10 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                         </button>
                       </div>
                     )}
-                  </div>
-                )}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
 
           </div>
         )}

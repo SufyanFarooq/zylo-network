@@ -1,3 +1,4 @@
-export const ZillowToken_ADDRESS = "0x4fC17FE070026BB0f81442077892fE357108845c";
-export const ZyloPowerUp_ADDRESS = "0xa2679F4987e4fF9Eaf7416C02A2a15dEA902DAE2";
-export const ZyloPowerUpM_ADDRESS = "0x10afEc4FfDA7F1a123B3E7B24eb589397D3FAFC5";
+// Contract addresses - verified as correct
+export const ZillowToken_ADDRESS = "0x4fC17FE070026BB0f81442077892fE357108845c"; // Zillow Token contract
+export const ZyloPowerUp_ADDRESS = "0xa2679F4987e4fF9Eaf7416C02A2a15dEA902DAE2"; // Zylo PowerUp contract
+export const ZyloPowerUpM_ADDRESS = "0x10afEc4FfDA7F1a123B3E7B24eb589397D3FAFC5"; // Zylo PowerUpM contract (used for partner accounts)

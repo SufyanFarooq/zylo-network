@@ -164,13 +164,11 @@ export const addPartnerAccount = async (walletClient, userAddress, partnerAddres
         try {
             // Call addPartnerAccount function on the contract
             // Contract requires: address[] _accounts, uint256[] _percentages
-            // Percentages are typically stored in basis points in Solidity contracts
-            // Basis points: 10000 = 100%, 5000 = 50%, 100 = 1%
-            // User inputs 0-100, we convert to basis points by multiplying by 100
+            // Use percentage values directly (10, 20, etc.) without basis point conversion
             const percentagesAsBigInt = validPercentages.map(p => {
-                // Convert percentage (0-100) to basis points (0-10000)
-                // Example: 50% becomes 5000, 1% becomes 100
-                return BigInt(Math.floor(p * 100));
+                // Use percentage values as-is (0-100 range)
+                // Example: 50% stays as 50, 10% stays as 10
+                return BigInt(Math.floor(p));
             });
 
             console.log('Calling addPartnerAccount with:', {
@@ -183,6 +181,7 @@ export const addPartnerAccount = async (walletClient, userAddress, partnerAddres
             let tx;
             try {
                 // Call the function with both addresses and percentages arrays
+                // Let the wallet handle gas estimation automatically
                 tx = await contract.addPartnerAccount(validAddresses, percentagesAsBigInt);
             } catch (callError) {
                 console.error('Contract call error:', callError);
@@ -197,7 +196,7 @@ export const addPartnerAccount = async (walletClient, userAddress, partnerAddres
                     errorCode === 'CALL_EXCEPTION') {
                     return {
                         success: false,
-                        error: 'Transaction failed. Please verify the addresses are valid and you have sufficient balance.'
+                        error: 'Contract execution failed. This may be due to invalid addresses, insufficient permissions, or contract state issues. Please verify all addresses are correct and you have sufficient balance.'
                     };
                 }
 

@@ -810,10 +810,10 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
                                     </div>
                                     <div className="value-label">Total Referral Power Up</div>
                                 </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
                 {/* Claim Section */}
                 <div className="row justify-content-center g-3">
@@ -845,7 +845,7 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
                                         ) : (
                                             `${totalClaimAmount} Token`
                                         )}
-                                    </span>
+                                        </span>
                                 </div>
 
 
