@@ -278,7 +278,7 @@ const RewardSummaryCards: React.FC<RewardSummaryCardsProps> = ({
           // Silently handle user rejection - don't show error message
           setClaimMessage(null);
         } else {
-          setClaimMessage({ type: 'error', text: errorMessage || 'Failed to claim team rewards' });
+          setClaimMessage({ type: 'error', text: errorMessage || 'Failed to claim team Power Up' });
           shouldShowErrorTimeout = true;
         }
       }
@@ -419,7 +419,7 @@ const RewardSummaryCards: React.FC<RewardSummaryCardsProps> = ({
                   <div className="d-flex align-items-center justify-content-between mb-3">
                     <div className="stat-copy" style={{ flex: 1 }}>
                       <div className="stat-value" style={{ fontSize: '1.5rem', fontWeight: '700', color: '#00d6a3', marginBottom: '0.5rem' }}>
-                        {isLoadingRewards ? 'Loading...' : `${parseFloat(currentSelfReward || '0').toFixed(2)}`}
+                        {isLoadingRewards ? 'Loading...' : `${parseFloat(currentSelfReward || '0').toFixed(4)}`}
                         <span style={{ fontSize: '1rem', marginLeft: '0.5rem', color: '#00d6a3', opacity: 0.8 }}>ZYLO</span>
                       </div>
                       <div className="stat-label" style={{ fontSize: '0.85rem', fontWeight: '600', color: 'rgba(255, 255, 255, 0.7)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -490,7 +490,7 @@ const RewardSummaryCards: React.FC<RewardSummaryCardsProps> = ({
                   <div className="d-flex align-items-center justify-content-between mb-3">
                     <div className="stat-copy" style={{ flex: 1 }}>
                       <div className="stat-value" style={{ fontSize: '1.5rem', fontWeight: '700', color: '#FEE739', marginBottom: '0.5rem' }}>
-                        {isLoadingRewards ? 'Loading...' : `${parseFloat(currentSelfReward || '0').toFixed(2)}`}
+                        {isLoadingRewards ? 'Loading...' : `${parseFloat(currentSelfReward || '0').toFixed(4)}`}
                         <span style={{ fontSize: '1rem', marginLeft: '0.5rem', color: '#FEE739', opacity: 0.8 }}>ZYLO</span>
                       </div>
                       <div className="stat-label" style={{ fontSize: '0.85rem', fontWeight: '600', color: 'rgba(255, 255, 255, 0.7)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -549,7 +549,7 @@ const RewardSummaryCards: React.FC<RewardSummaryCardsProps> = ({
       ) : (
         /* Original Aggregate Reward Cards - 2x2 Grid */
         <div className="row g-4">
-          {/* Card 1: Total Self Power Up Reward */}
+          {/* Card 1: Total Self Power Up */}
           <div className="col-lg-6 col-md-6">
             <div style={{
               position: 'relative',
@@ -563,11 +563,11 @@ const RewardSummaryCards: React.FC<RewardSummaryCardsProps> = ({
                 <div className="d-flex align-items-center justify-content-between mb-3">
                   <div className="stat-copy" style={{ flex: 1 }}>
                     <div className="stat-value" style={{ fontSize: '1.75rem', fontWeight: '700', color: '#FEE739', marginBottom: '0.5rem' }}>
-                      {isLoadingTotalSelfClaim ? 'Loading...' : `${parseFloat(totalSelfClaimValue || '0').toFixed(2)}`}
+                      {isLoadingTotalSelfClaim ? 'Loading...' : `${parseFloat(totalSelfClaimValue || '0').toFixed(4)}`}
                       <span style={{ fontSize: '1.2rem', marginLeft: '0.5rem', color: '#FEE739', opacity: 0.8 }}>ZYLO</span>
                     </div>
                     <div className="stat-label" style={{ fontSize: '0.9rem', fontWeight: '600', color: 'rgba(255, 255, 255, 0.7)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      Total Self Power Up Reward
+                      Total Self Power Up
                     </div>
                   </div>
                   <div className="stat-icon" style={{ marginLeft: '1rem' }}>
@@ -602,11 +602,11 @@ const RewardSummaryCards: React.FC<RewardSummaryCardsProps> = ({
                 <div className="d-flex align-items-center justify-content-between mb-3">
                   <div className="stat-copy" style={{ flex: 1 }}>
                     <div className="stat-value" style={{ fontSize: '1.75rem', fontWeight: '700', color: '#FEE739', marginBottom: '0.5rem' }}>
-                      {isLoadingCurrentPowerUpReward ? 'Loading...' : `${parseFloat(currentPowerUpRewardValue || '0').toFixed(2)}`}
+                      {isLoadingCurrentPowerUpReward ? 'Loading...' : `${parseFloat(currentPowerUpRewardValue || '0').toFixed(4)}`}
                       <span style={{ fontSize: '1.2rem', marginLeft: '0.5rem', color: '#FEE739', opacity: 0.8 }}>ZYLO</span>
                     </div>
                     <div className="stat-label" style={{ fontSize: '0.9rem', fontWeight: '600', color: 'rgba(255, 255, 255, 0.7)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      Current Self Power Up Reward
+                      Current Self Power Up
                     </div>
                   </div>
                   <div className="stat-icon" style={{ marginLeft: '1rem' }}>
@@ -627,7 +627,7 @@ const RewardSummaryCards: React.FC<RewardSummaryCardsProps> = ({
             </div>
           </div>
 
-          {/* Card 3: Total Team Power Up Reward */}
+          {/* Card 3: Total Team Power Up */}
           <div className="col-lg-6 col-md-6">
             <div style={{
               position: 'relative',
@@ -641,11 +641,11 @@ const RewardSummaryCards: React.FC<RewardSummaryCardsProps> = ({
                 <div className="d-flex align-items-center justify-content-between mb-3">
                   <div className="stat-copy" style={{ flex: 1 }}>
                     <div className="stat-value" style={{ fontSize: '1.75rem', fontWeight: '700', color: '#00d6a3', marginBottom: '0.5rem' }}>
-                      {isLoadingTotalTeamClaim ? 'Loading...' : `${parseFloat(totalTeamClaimValue || '0').toFixed(2)}`}
+                      {isLoadingTotalTeamClaim ? 'Loading...' : `${parseFloat(totalTeamClaimValue || '0').toFixed(4)}`}
                       <span style={{ fontSize: '1.2rem', marginLeft: '0.5rem', color: '#00d6a3', opacity: 0.8 }}>ZYLO</span>
                     </div>
                     <div className="stat-label" style={{ fontSize: '0.9rem', fontWeight: '600', color: 'rgba(255, 255, 255, 0.7)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      Total Team Power Up Reward
+                      Total Team Power Up
                     </div>
                   </div>
                   <div className="stat-icon" style={{ marginLeft: '1rem' }}>
@@ -666,7 +666,7 @@ const RewardSummaryCards: React.FC<RewardSummaryCardsProps> = ({
             </div>
           </div>
 
-          {/* Card 4: Current Team Power Up Reward */}
+          {/* Card 4: Current Team Power Up */}
           <div className="col-lg-6 col-md-6">
             <div style={{
               position: 'relative',
@@ -680,11 +680,11 @@ const RewardSummaryCards: React.FC<RewardSummaryCardsProps> = ({
                 <div className="d-flex align-items-center justify-content-between mb-3">
                   <div className="stat-copy" style={{ flex: 1 }}>
                     <div className="stat-value" style={{ fontSize: '1.75rem', fontWeight: '700', color: '#00d6a3', marginBottom: '0.5rem' }}>
-                      {isLoadingCurrentReferralPowerUp ? 'Loading...' : `${parseFloat(currentReferralPowerUpValue || '0').toFixed(2)}`}
+                      {isLoadingCurrentReferralPowerUp ? 'Loading...' : `${parseFloat(currentReferralPowerUpValue || '0').toFixed(4)}`}
                       <span style={{ fontSize: '1.2rem', marginLeft: '0.5rem', color: '#00d6a3', opacity: 0.8 }}>ZYLO</span>
                     </div>
                     <div className="stat-label" style={{ fontSize: '0.9rem', fontWeight: '600', color: 'rgba(255, 255, 255, 0.7)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      Current Team Power Up Reward
+                      Current Team Power Up
                     </div>
                   </div>
                   <div className="stat-icon" style={{ marginLeft: '1rem' }}>
@@ -810,7 +810,7 @@ const RewardSummaryCards: React.FC<RewardSummaryCardsProps> = ({
               e.currentTarget.style.boxShadow = '0 8px 32px rgba(254, 231, 57, 0.4)';
             }}
           >
-            {isClaimingTeamReward ? 'Claiming...' : 'Claim Team Rewards'}
+            {isClaimingTeamReward ? 'Claiming...' : 'Claim Team Power Up'}
           </button>
         </div>
       </div>

@@ -5,7 +5,6 @@ import Header from '@/components/common/Header';
 import Footer from '@/components/common/Footer';
 import ClaimHero from '@/components/claim/ClaimHero';
 import ClaimStaticsCards from '@/components/claim/ClaimStaticsCards';
-import ClaimAction from '@/components/claim/ClaimAction';
 import ClaimDetailsTable from '@/components/claim/ClaimDetailsTable';
 import '../home.css';
 
@@ -37,8 +36,6 @@ const ClaimPage: React.FC = () => {
                         <ClaimStaticsCards isLoading={false} />
                     )}
 
-                    {/* Claim Action Section */}
-                    <ClaimAction />
 
                     {/* Claim Details Table Section */}
                     <div className="row mt-5">

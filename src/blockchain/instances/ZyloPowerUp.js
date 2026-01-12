@@ -1722,7 +1722,7 @@ export const getSelfPowerUpReward = async (provider, address, unit, index) => {
         }
 
         const contract = createContractInstance(provider);
-        const reward = await contract.selfPowerUpReward(address, unit, index);
+        const reward = await contract.currentSelfPowerUpbyUnitIndex(address, unit, index);
 
         // Format reward from wei to ether
         let rewardFormatted = '0';
@@ -2636,7 +2636,7 @@ export const getUserClaimSelfDetailsLength = async (provider, address, unit, ind
 
         // Check if function exists in contract
         try {
-            const length = await contract.getUserClaimSelfDetailsLength(address, unit, index);
+            const length = await contract.getUserClaimHistoryLength(address, unit, index);
             console.log('Raw length value:', length, typeof length);
 
             // Convert BigInt to number
@@ -2652,7 +2652,7 @@ export const getUserClaimSelfDetailsLength = async (provider, address, unit, ind
                 console.warn('getUserClaimSelfDetailsLength with 3 params failed, trying alternative approach...');
                 try {
                     // Try calling with just address and unit (2 params) - might work if ABI is incorrect
-                    const length = await contract.getUserClaimSelfDetailsLength(address, unit);
+                    const length = await contract.getUserClaimHistoryLength(address, unit);
                     const lengthNumber = Number(length.toString());
                     return {
                         success: true,
@@ -2717,7 +2717,7 @@ export const getUserClaimSelfDetails = async (provider, address, unit, index) =>
 
         const contract = createContractInstance(provider);
         console.log('Calling userClaimSelfDetails with:', { address, unit, index });
-        const result = await contract.userClaimSelfDetails(address, unit, index);
+        const result = await contract.userClaimHistory(address, unit, index);
         console.log('Raw userClaimSelfDetails result:', result);
 
         // Extract claimedAmount and claimedTimestamp from result
@@ -2940,7 +2940,7 @@ export const getNetworkMonthWeekAndDay = async (provider) => {
 
         const contract = createContractInstance(provider);
         console.log('Calling networkMonthWeekAndDay...');
-        const result = await contract.networkMonthWeekAndDay();
+        const result = await contract.getBlockDetails();
         console.log('Raw networkMonthWeekAndDay result:', result);
 
         // Extract _month, _week, _day from result
@@ -2959,18 +2959,18 @@ export const getNetworkMonthWeekAndDay = async (provider) => {
 
             if (result && result._week !== undefined) {
                 week = Number(result._week.toString());
-            } else if (result && result[1] !== undefined) {
-                week = Number(result[1].toString());
-            } else if (Array.isArray(result) && result.length > 1) {
-                week = Number(result[1].toString());
+            } else if (result && result[3] !== undefined) {
+                week = Number(result[3].toString());
+            } else if (Array.isArray(result) && result.length > 3) {
+                week = Number(result[3].toString());
             }
 
             if (result && result._day !== undefined) {
                 day = Number(result._day.toString());
-            } else if (result && result[2] !== undefined) {
-                day = Number(result[2].toString());
-            } else if (Array.isArray(result) && result.length > 2) {
-                day = Number(result[2].toString());
+            } else if (result && result[4] !== undefined) {
+                day = Number(result[4].toString());
+            } else if (Array.isArray(result) && result.length > 4) {
+                day = Number(result[4].toString());
             }
         } catch (e) {
             console.error('Error extracting networkMonthWeekAndDay values:', e);
@@ -3530,7 +3530,7 @@ export const getCurrentPowerUpReward = async (provider, address, unit) => {
         }
 
         const contract = createContractInstance(provider);
-        const reward = await contract.currentPowerUpReward(address, unit);
+        const reward = await contract.currentSelfPowerUp(address, unit);
 
         // Format reward from wei to ether
         let rewardFormatted = '0';

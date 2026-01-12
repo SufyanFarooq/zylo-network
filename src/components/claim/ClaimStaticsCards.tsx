@@ -4,6 +4,8 @@ import React, { JSX, useState, useEffect } from 'react';
 import { useAccount, useWalletClient } from 'wagmi';
 import { BrowserProvider } from 'ethers';
 import { getTotalSelfClaimInClaimX, getTotalTeamClaimInClaimX, getCurrentSelfClaimInUnit, getCurrentTeamClaimInUnit, getTotalVestingClaimInUnit } from '@/blockchain/instances/ZyloPowerUp';
+import { getCurrentSelfClaimX, getCurrentReferralClaimX, claimXSelfUnitPowerUp as fetchClaimXSelfUnitPowerUp, claimXReferralUnitPowerUp as fetchClaimXReferralUnitPowerUp } from '@/blockchain/instances/ClaimXFunctions';
+import { claimX, getUserClaimXDetailsLength, userClaimXHistory } from '@/blockchain/instances/ZyloPowerUpM';
 import './ClaimStaticsCards.css';
 
 type Card = { title: string; icon: 'stake' | 'level' | 'waste' | 'wallet' | 'coins' | 'bars' | 'wasteMini' | 'trophy' };
@@ -124,6 +126,29 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
     // State for Wasting Reward
     const [wastingAmount, setWastingAmount] = useState<string>('0.00');
     const [isLoadingWastingAmount, setIsLoadingWastingAmount] = useState<boolean>(false);
+
+    // State for selected unit index (0-4)
+    const [selectedUnitIndex, setSelectedUnitIndex] = useState<number>(0);
+
+    // State for individual unit values
+    const [currentSelfClaimXValue, setCurrentSelfClaimXValue] = useState<string>('0.00');
+    const [currentReferralClaimXValue, setCurrentReferralClaimXValue] = useState<string>('0.00');
+    const [claimXSelfUnitPowerUpValue, setClaimXSelfUnitPowerUpValue] = useState<string>('0.00');
+    const [claimXReferralUnitPowerUpValue, setClaimXReferralUnitPowerUpValue] = useState<string>('0.00');
+
+    // State for loading individual values
+    const [isLoadingCurrentSelfClaimX, setIsLoadingCurrentSelfClaimX] = useState<boolean>(true);
+    const [isLoadingCurrentReferralClaimX, setIsLoadingCurrentReferralClaimX] = useState<boolean>(true);
+    const [isLoadingClaimXSelfUnitPowerUp, setIsLoadingClaimXSelfUnitPowerUp] = useState<boolean>(true);
+    const [isLoadingClaimXReferralUnitPowerUp, setIsLoadingClaimXReferralUnitPowerUp] = useState<boolean>(true);
+
+    // State for claim operation
+    const [isClaiming, setIsClaiming] = useState<boolean>(false);
+
+    // State for claim history
+    const [claimXHistory, setClaimXHistory] = useState<Array<{ amount: string; timestamp: string; formattedTime: string }>>([]);
+    const [isLoadingClaimXHistory, setIsLoadingClaimXHistory] = useState(true);
+
 
     // Fetch total self claim in ClaimX (sum of indices 0-4)
     useEffect(() => {
@@ -330,6 +355,218 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
         fetchTotalVestingClaimInUnit();
     }, [isConnected, address, walletClient]);
 
+    // Fetch current self claimX for selected unit
+    useEffect(() => {
+        const fetchCurrentSelfClaimX = async () => {
+            if (!isConnected || !address || !walletClient) {
+                setCurrentSelfClaimXValue('0.00');
+                setIsLoadingCurrentSelfClaimX(false);
+                return;
+            }
+
+            try {
+                setIsLoadingCurrentSelfClaimX(true);
+                const provider = new BrowserProvider(walletClient);
+                const result = await getCurrentSelfClaimX(provider, address, selectedUnitIndex);
+                if (result.success && result.data) {
+                    setCurrentSelfClaimXValue(result.data);
+                } else {
+                    setCurrentSelfClaimXValue('0.00');
+                }
+            } catch (error) {
+                console.error('Error fetching current self claimX:', error);
+                setCurrentSelfClaimXValue('0.00');
+            } finally {
+                setIsLoadingCurrentSelfClaimX(false);
+            }
+        };
+
+        fetchCurrentSelfClaimX();
+    }, [isConnected, address, walletClient, selectedUnitIndex]);
+
+    // Fetch current referral claimX for selected unit
+    useEffect(() => {
+        const fetchCurrentReferralClaimX = async () => {
+            if (!isConnected || !address || !walletClient) {
+                setCurrentReferralClaimXValue('0.00');
+                setIsLoadingCurrentReferralClaimX(false);
+                return;
+            }
+
+            try {
+                setIsLoadingCurrentReferralClaimX(true);
+                const provider = new BrowserProvider(walletClient);
+                const result = await getCurrentReferralClaimX(provider, address, selectedUnitIndex);
+                if (result.success && result.data) {
+                    setCurrentReferralClaimXValue(result.data);
+                } else {
+                    setCurrentReferralClaimXValue('0.00');
+                }
+            } catch (error) {
+                console.error('Error fetching current referral claimX:', error);
+                setCurrentReferralClaimXValue('0.00');
+            } finally {
+                setIsLoadingCurrentReferralClaimX(false);
+            }
+        };
+
+        fetchCurrentReferralClaimX();
+    }, [isConnected, address, walletClient, selectedUnitIndex]);
+
+    // Fetch claimX self unit power up for selected unit
+    useEffect(() => {
+        const loadClaimXSelfUnitPowerUp = async () => {
+            if (!isConnected || !address || !walletClient) {
+                setClaimXSelfUnitPowerUpValue('0.00');
+                setIsLoadingClaimXSelfUnitPowerUp(false);
+                return;
+            }
+
+            try {
+                setIsLoadingClaimXSelfUnitPowerUp(true);
+                const provider = new BrowserProvider(walletClient);
+                const result = await fetchClaimXSelfUnitPowerUp(provider, address, selectedUnitIndex);
+                if (result.success && result.data) {
+                    setClaimXSelfUnitPowerUpValue(result.data);
+                } else {
+                    setClaimXSelfUnitPowerUpValue('0.00');
+                }
+            } catch (error) {
+                console.error('Error fetching claimX self unit power up:', error);
+                setClaimXSelfUnitPowerUpValue('0.00');
+            } finally {
+                setIsLoadingClaimXSelfUnitPowerUp(false);
+            }
+        };
+
+        loadClaimXSelfUnitPowerUp();
+    }, [isConnected, address, walletClient, selectedUnitIndex]);
+
+    // Fetch claimX referral unit power up for selected unit
+    useEffect(() => {
+        const loadClaimXReferralUnitPowerUp = async () => {
+            if (!isConnected || !address || !walletClient) {
+                setClaimXReferralUnitPowerUpValue('0.00');
+                setIsLoadingClaimXReferralUnitPowerUp(false);
+                return;
+            }
+
+            try {
+                setIsLoadingClaimXReferralUnitPowerUp(true);
+                const provider = new BrowserProvider(walletClient);
+                const result = await fetchClaimXReferralUnitPowerUp(provider, address, selectedUnitIndex);
+                if (result.success && result.data) {
+                    setClaimXReferralUnitPowerUpValue(result.data);
+                } else {
+                    setClaimXReferralUnitPowerUpValue('0.00');
+                }
+            } catch (error) {
+                console.error('Error fetching claimX referral unit power up:', error);
+                setClaimXReferralUnitPowerUpValue('0.00');
+            } finally {
+                setIsLoadingClaimXReferralUnitPowerUp(false);
+            }
+        };
+
+        loadClaimXReferralUnitPowerUp();
+    }, [isConnected, address, walletClient, selectedUnitIndex]);
+
+    // Fetch claimX history for selected unit
+    useEffect(() => {
+        const loadClaimXHistory = async () => {
+            if (!isConnected || !address || !walletClient || selectedUnitIndex === null) {
+                return;
+            }
+
+            setIsLoadingClaimXHistory(true);
+            try {
+                const provider = new BrowserProvider(walletClient);
+
+                // Get length
+                const lengthResult = await getUserClaimXDetailsLength(provider, address, selectedUnitIndex);
+                if (!lengthResult.success || !lengthResult.length) {
+                    setClaimXHistory([]);
+                    setIsLoadingClaimXHistory(false);
+                    return;
+                }
+
+                const length = lengthResult.length;
+                const records: Array<{ amount: string; timestamp: string; formattedTime: string }> = [];
+
+                // Loop through length
+                for (let i = 0; i < length; i++) {
+                    try {
+                        const detailsResult = await userClaimXHistory(provider, address, selectedUnitIndex, i);
+                        if (detailsResult.success && detailsResult.amount && detailsResult.timestamp) {
+                            const timestamp = parseInt(detailsResult.timestamp);
+                            const date = new Date(timestamp * 1000);
+                            const formattedTime = date.toLocaleString('en-US', {
+                                timeZone: 'UTC',
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit',
+                                hour12: false
+                            }) + ' UTC';
+
+                            records.push({
+                                amount: detailsResult.amount,
+                                timestamp: detailsResult.timestamp,
+                                formattedTime: formattedTime
+                            });
+                        }
+                    } catch (err) {
+                        console.error(`Error fetching claimX history at index ${i}:`, err);
+                    }
+                }
+
+                // Reverse to show latest first
+                records.reverse();
+                setClaimXHistory(records);
+            } catch (error) {
+                console.error('Error loading claimX history:', error);
+                setClaimXHistory([]);
+            } finally {
+                setIsLoadingClaimXHistory(false);
+            }
+        };
+
+        loadClaimXHistory();
+    }, [selectedUnitIndex, isConnected, address, walletClient]);
+
+    // Calculate total claim amount (self + referral)
+    const totalClaimAmount = (parseFloat(currentSelfClaimXValue || '0') + parseFloat(currentReferralClaimXValue || '0')).toFixed(4);
+
+    // Loading state for total claim amount (shows loading if either individual value is loading)
+    const isLoadingTotalClaimAmount = isLoadingCurrentSelfClaimX || isLoadingCurrentReferralClaimX;
+
+    // Claim function
+    const handleClaimX = async () => {
+        if (!isConnected || !address || !walletClient) {
+            return;
+        }
+
+        setIsClaiming(true);
+        try {
+            const provider = new BrowserProvider(walletClient);
+            const signer = await provider.getSigner();
+            const result = await claimX(signer, address, selectedUnitIndex);
+            if (result.success) {
+                // Refresh all data
+                window.dispatchEvent(new Event('claimCompleted'));
+                console.log('ClaimX successful');
+            } else {
+                console.error('ClaimX failed:', result.error);
+            }
+        } catch (error) {
+            console.error('Error claiming:', error);
+        } finally {
+            setIsClaiming(false);
+        }
+    };
+
     // Listen for claim completed event to refresh all cards
     useEffect(() => {
         const handleClaimCompleted = async () => {
@@ -449,11 +686,50 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
                     </h2>
                 </div>
 
-                {/* 10 Cards - 2 per row */}
-                <div className="row justify-content-center g-4 mb-4">
-                    {/* Total Claimed Self Reward Card */}
-                    <div className="col-12 col-md-6 col-lg-5">
-                        <div className={`z-card z-card--${cardStyle} h-100 yellow-card`}>
+
+                {/* 5 Unit Selection Buttons */}
+                <div className="text-center mb-4">
+                    <h3 className="text-yellow fw-bold mb-3" style={{
+                        textShadow: '2px 2px 4px rgba(254, 230, 0, 0.3)',
+                        letterSpacing: '1px'
+                    }}>
+                        Select Unit
+                    </h3>
+                    <div className="d-flex justify-content-center gap-2 flex-wrap">
+                        {[0, 1, 2, 3, 4].map((index) => (
+                            <button
+                                key={index}
+                                onClick={() => {
+                                    if (selectedUnitIndex !== index) {
+                                        setSelectedUnitIndex(index);
+                                        // Set loading states immediately when unit changes
+                                        setIsLoadingCurrentSelfClaimX(true);
+                                        setIsLoadingCurrentReferralClaimX(true);
+                                        setIsLoadingClaimXSelfUnitPowerUp(true);
+                                        setIsLoadingClaimXReferralUnitPowerUp(true);
+                                        setIsLoadingClaimXHistory(true);
+                                        // Note: isLoadingTotalClaimAmount is computed from the above states
+                                    }
+                                }}
+                                className={`btn ${selectedUnitIndex === index ? 'btn-warning' : 'btn-outline-warning'} px-4 py-2`}
+                                style={{
+                                    minWidth: '60px',
+                                    fontWeight: '600',
+                                    borderRadius: '8px',
+                                    transition: 'all 0.3s ease'
+                                }}
+                            >
+                                Unit {index + 1}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Unit-Specific Information Cards */}
+                <div className="row justify-content-center g-3 mb-4">
+                    {/* Current Self ClaimX */}
+                    <div className="col-12 col-md-6">
+                        <div className="z-card z-card--neon h-100 yellow-card">
                             <div className="z-card-ambient" aria-hidden="true" />
                             <div className="z-card-body d-flex align-items-center">
                                 <div className="icon-container me-3">
@@ -464,18 +740,18 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
                                 <div className="flex-grow-1">
                                     <div className="main-value">
                                         <span className="value-text">
-                                            {isLoadingTotalCSR ? 'Loading...' : `${userTotalCSRAmount} Token`}
+                                            {isLoadingCurrentSelfClaimX ? 'Loading...' : `${currentSelfClaimXValue} Token`}
                                         </span>
                                     </div>
-                                    <div className="value-label">Total ClaimX Self Reward</div>
+                                    <div className="value-label">Current Self ClaimX</div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Total Claimed Team Reward Card */}
-                    <div className="col-12 col-md-6 col-lg-5">
-                        <div className={`z-card z-card--${cardStyle} h-100 yellow-card`}>
+                    {/* Current Referral ClaimX */}
+                    <div className="col-12 col-md-6">
+                        <div className="z-card z-card--neon h-100 yellow-card">
                             <div className="z-card-ambient" aria-hidden="true" />
                             <div className="z-card-body d-flex align-items-center">
                                 <div className="icon-container me-3">
@@ -486,18 +762,18 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
                                 <div className="flex-grow-1">
                                     <div className="main-value">
                                         <span className="value-text">
-                                            {isLoadingTotalCTR ? 'Loading...' : `${userTotalCTRAmount} Token`}
+                                            {isLoadingCurrentReferralClaimX ? 'Loading...' : `${currentReferralClaimXValue} Token`}
                                         </span>
                                     </div>
-                                    <div className="value-label">Total ClaimX Team Reward</div>
+                                    <div className="value-label">Current Referral ClaimX</div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Current Self Reward Card */}
-                    <div className="col-12 col-md-6 col-lg-5">
-                        <div className={`z-card z-card--${cardStyle} h-100 yellow-card`}>
+                    {/* Total ClaimX Self Unit Power Up */}
+                    <div className="col-12 col-md-6">
+                        <div className="z-card z-card--neon h-100 yellow-card">
                             <div className="z-card-ambient" aria-hidden="true" />
                             <div className="z-card-body d-flex align-items-center">
                                 <div className="icon-container me-3">
@@ -508,18 +784,18 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
                                 <div className="flex-grow-1">
                                     <div className="main-value">
                                         <span className="value-text">
-                                            {isLoadingCurrentSelfReward ? 'Loading...' : `${currentSelfReward} Token`}
+                                            {isLoadingClaimXSelfUnitPowerUp ? 'Loading...' : `${claimXSelfUnitPowerUpValue} Token`}
                                         </span>
                                     </div>
-                                    <div className="value-label">Current ClaimX Self Reward</div>
+                                    <div className="value-label">Total Self Power Up</div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Current Self Reward Card */}
-                    <div className="col-12 col-md-6 col-lg-5">
-                        <div className={`z-card z-card--${cardStyle} h-100 yellow-card`}>
+                    {/* Total ClaimX Referral Unit Power Up */}
+                    <div className="col-12 col-md-6">
+                        <div className="z-card z-card--neon h-100 yellow-card">
                             <div className="z-card-ambient" aria-hidden="true" />
                             <div className="z-card-body d-flex align-items-center">
                                 <div className="icon-container me-3">
@@ -530,34 +806,131 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
                                 <div className="flex-grow-1">
                                     <div className="main-value">
                                         <span className="value-text">
-                                            {isLoadingCurrentTeamReward ? 'Loading...' : `${currentTeamReward} Token`}
+                                            {isLoadingClaimXReferralUnitPowerUp ? 'Loading...' : `${claimXReferralUnitPowerUpValue} Token`}
                                         </span>
                                     </div>
-                                    <div className="value-label">Current ClaimX Team Reward</div>
+                                    <div className="value-label">Total Referral Power Up</div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    {/* Current Wasting Card */}
-                    <div className="col-12 col-md-12 col-lg-10">
-                        <div className={`z-card z-card--${cardStyle} h-100 yellow-card`}>
+                {/* Claim Section */}
+                <div className="row justify-content-center g-3">
+                    <div className="col-12 col-md-8 col-lg-6">
+                        <div className="z-card z-card--neon h-100 yellow-card">
                             <div className="z-card-ambient" aria-hidden="true" />
-                            <div className="z-card-body d-flex align-items-center">
-                                <div className="icon-container me-3">
+                            <div className="z-card-body text-center">
+                                <div className="icon-container mb-3">
                                     <div className="z-badge">
-                                        {ICON['wasteMini']}
+                                        {ICON['trophy']}
                                     </div>
                                 </div>
-                                <div className="flex-grow-1">
-                                    <div className="main-value">
-                                        <span className="value-text">
-                                            {isLoadingWastingAmount ? 'Loading...' : `${wastingAmount} Token`}
-                                        </span>
-                                    </div>
-                                    <div className="value-label">Wasting ClaimX Reward</div>
+
+                                {/* Claim description */}
+                                <div className="mb-4">
+                                    <h3 className="text-yellow fw-bold mb-3">ClaimX Your Rewards</h3>
+                                    <p className="text-white-50">
+                                        Your earned rewards from Power Up and Milestone Progress are fully synced and ready for ClaimX.
+                                    </p>
                                 </div>
+                                <div className="value-label mb-4">Total ClaimX Amount</div>
+                                <div className="main-value mb-3">
+                                    <span className="value-text" style={{ fontSize: '2rem' }}>
+                                        {isLoadingTotalClaimAmount ? (
+                                            <div className="d-inline-flex align-items-center">
+                                                <span className="spinner-border spinner-border-sm text-warning me-2" role="status" aria-hidden="true"></span>
+                                                Loading...
+                                            </div>
+                                        ) : (
+                                            `${totalClaimAmount} Token`
+                                        )}
+                                    </span>
+                                </div>
+
+
+                                <button
+                                    onClick={handleClaimX}
+                                    disabled={isClaiming || isLoadingTotalClaimAmount || parseFloat(totalClaimAmount) === 0}
+                                    className="btn btn-warning btn-lg px-5 py-3"
+                                    style={{
+                                        fontWeight: '700',
+                                        borderRadius: '12px',
+                                        transition: 'all 0.3s ease',
+                                        boxShadow: '0 4px 15px rgba(254, 231, 57, 0.3)'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        if (!isClaiming && !isLoadingTotalClaimAmount && parseFloat(totalClaimAmount) > 0) {
+                                            e.currentTarget.style.transform = 'translateY(-2px)';
+                                            e.currentTarget.style.boxShadow = '0 6px 20px rgba(254, 231, 57, 0.5)';
+                                        }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.transform = 'translateY(0)';
+                                        e.currentTarget.style.boxShadow = '0 4px 15px rgba(254, 231, 57, 0.3)';
+                                    }}
+                                >
+                                    {isClaiming ? 'Claiming...' : `Claim Unit ${selectedUnitIndex + 1}`}
+                                </button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* ClaimX History Table */}
+                <div className="row justify-content-center g-3 mt-4">
+                    <div className="col-12 col-lg-10">
+                        <div style={{
+                            background: 'linear-gradient(145deg, #0a0a1a 0%, #0f0f23 50%, #1a1a2e 100%)',
+                            borderRadius: '20px',
+                            padding: '2rem',
+                            border: '2px solid rgba(254, 231, 57, 0.3)',
+                            boxShadow: '0 8px 32px rgba(254, 231, 57, 0.2)',
+                        }}>
+                            <h3 style={{ color: '#FEE739', marginBottom: '1.5rem', textAlign: 'center', fontWeight: '700' }}>
+                                ClaimX History - Unit {selectedUnitIndex + 1}
+                            </h3>
+
+                            {isLoadingClaimXHistory ? (
+                                <div className="text-center py-4">
+                                    <div className="spinner-border text-warning" role="status">
+                                        <span className="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p className="text-white-50 mt-2">Loading claim history...</p>
+                                </div>
+                            ) : claimXHistory.length === 0 ? (
+                                <div className="text-center py-4">
+                                    <p className="text-white-50">No claim history found for this unit.</p>
+                                </div>
+                            ) : (
+                                <div className="table-responsive">
+                                    <table className="table table-dark table-striped" style={{ borderRadius: '10px', overflow: 'hidden' }}>
+                                        <thead style={{ background: 'rgba(254, 231, 57, 0.1)' }}>
+                                            <tr>
+                                                <th style={{ color: '#FEE739', border: 'none', padding: '1rem', fontWeight: '600', width: '80px' }}>#</th>
+                                                <th style={{ color: '#FEE739', border: 'none', padding: '1rem', fontWeight: '600' }}>Amount</th>
+                                                <th style={{ color: '#FEE739', border: 'none', padding: '1rem', fontWeight: '600' }}>Date & Time (UTC)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {claimXHistory.map((record, index) => (
+                                                <tr key={index} style={{ borderBottom: '1px solid rgba(254, 231, 57, 0.1)' }}>
+                                                    <td style={{ color: '#FEE739', padding: '1rem', border: 'none', fontWeight: '600' }}>
+                                                        {index + 1}
+                                                    </td>
+                                                    <td style={{ color: '#fff', padding: '1rem', border: 'none' }}>
+                                                        {parseFloat(record.amount).toFixed(4)} ZILLOW
+                                                    </td>
+                                                    <td style={{ color: '#fff', padding: '1rem', border: 'none' }}>
+                                                        {record.formattedTime}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

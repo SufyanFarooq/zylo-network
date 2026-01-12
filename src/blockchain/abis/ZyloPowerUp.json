@@ -21,7 +21,32 @@
 			{
 				"indexed": true,
 				"internalType": "address",
-				"name": "_Plan",
+				"name": "_user",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "unit",
+				"type": "uint256"
+			}
+		],
+		"name": "ClaimSelfPowerUnit",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "_user",
 				"type": "address"
 			},
 			{
@@ -59,7 +84,7 @@
 			{
 				"indexed": true,
 				"internalType": "address",
-				"name": "_Plan",
+				"name": "_user",
 				"type": "address"
 			},
 			{
@@ -73,33 +98,22 @@
 				"internalType": "uint256",
 				"name": "unit",
 				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "assets",
-				"type": "uint256"
 			}
 		],
 		"name": "PowerUp",
 		"type": "event"
 	},
 	{
-		"inputs": [
+		"inputs": [],
+		"name": "ZyloPowerUpMilestone",
+		"outputs": [
 			{
-				"internalType": "address[]",
-				"name": "_accounts",
-				"type": "address[]"
-			},
-			{
-				"internalType": "uint256[]",
-				"name": "_percentages",
-				"type": "uint256[]"
+				"internalType": "contract IZyloPowerUpMilestone",
+				"name": "",
+				"type": "address"
 			}
 		],
-		"name": "addPartnerAccount",
-		"outputs": [],
-		"stateMutability": "nonpayable",
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
@@ -165,6 +179,30 @@
 	{
 		"inputs": [],
 		"name": "chainLength",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "unit",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_powerUpTime",
+				"type": "uint256"
+			}
+		],
+		"name": "checkAssetX",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -276,49 +314,12 @@
 		"type": "function"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_unit",
-				"type": "uint256"
-			}
-		],
-		"name": "claimTeamPowerUnit",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
 		"inputs": [],
 		"name": "currentMonth",
 		"outputs": [
 			{
 				"internalType": "uint256",
 				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_user",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_unit",
-				"type": "uint256"
-			}
-		],
-		"name": "currentPowerUpReward",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "_reward",
 				"type": "uint256"
 			}
 		],
@@ -353,6 +354,59 @@
 		"inputs": [
 			{
 				"internalType": "address",
+				"name": "_user",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_unit",
+				"type": "uint256"
+			}
+		],
+		"name": "currentSelfPowerUp",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "_reward",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_user",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_unit",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_index",
+				"type": "uint256"
+			}
+		],
+		"name": "currentSelfPowerUpbyUnitIndex",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "_reward",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
 				"name": "",
 				"type": "address"
 			},
@@ -362,7 +416,7 @@
 				"type": "uint256"
 			}
 		],
-		"name": "currentSelfClaimInUnit",
+		"name": "currentUnitCN",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -386,7 +440,7 @@
 				"type": "uint256"
 			}
 		],
-		"name": "currentTeamClaimInUnit",
+		"name": "cuurentActiveIndex",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -466,6 +520,19 @@
 	},
 	{
 		"inputs": [],
+		"name": "dayReqOnStart",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
 		"name": "getBlockDetails",
 		"outputs": [
 			{
@@ -482,24 +549,15 @@
 				"internalType": "uint256",
 				"name": "remainingBlocks",
 				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_user",
-				"type": "address"
-			}
-		],
-		"name": "getClaimXDetailsLength",
-		"outputs": [
+			},
 			{
 				"internalType": "uint256",
-				"name": "_length",
+				"name": "week",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "day",
 				"type": "uint256"
 			}
 		],
@@ -512,9 +570,38 @@
 				"internalType": "address",
 				"name": "_user",
 				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "unit",
+				"type": "uint256"
 			}
 		],
-		"name": "getPartnerCount",
+		"name": "getMilestoneCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_user",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "unit",
+				"type": "uint256"
+			}
+		],
+		"name": "getPowerUpHistoryLength",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -586,18 +673,23 @@
 				"internalType": "address",
 				"name": "_user",
 				"type": "address"
-			}
-		],
-		"name": "getTotalTeamClaimSum",
-		"outputs": [
+			},
 			{
 				"internalType": "uint256",
-				"name": "totalSelf",
+				"name": "unit",
 				"type": "uint256"
 			},
 			{
 				"internalType": "uint256",
-				"name": "totalTeam",
+				"name": "_index",
+				"type": "uint256"
+			}
+		],
+		"name": "getSelfPowerUpbyUnitIndex",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "_reward",
 				"type": "uint256"
 			}
 		],
@@ -610,9 +702,57 @@
 				"internalType": "address",
 				"name": "_user",
 				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_unit",
+				"type": "uint256"
 			}
 		],
-		"name": "getUserAllUnitsLength",
+		"name": "getTotalReferralPowerUp",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "_reward",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_user",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_unit",
+				"type": "uint256"
+			}
+		],
+		"name": "getTotalSelfPowerUp",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "_reward",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "getUnitMax",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -634,42 +774,13 @@
 				"internalType": "uint256",
 				"name": "_unit",
 				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_index",
-				"type": "uint256"
 			}
 		],
-		"name": "getUserClaimSelfDetailsLength",
+		"name": "getUserClaimHistoryLength",
 		"outputs": [
 			{
 				"internalType": "uint256",
-				"name": "_length",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_user",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_unit",
-				"type": "uint256"
-			}
-		],
-		"name": "getUserClaimTeamDetailsLength",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "_length",
+				"name": "",
 				"type": "uint256"
 			}
 		],
@@ -806,6 +917,30 @@
 		"type": "function"
 	},
 	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "lockReferralPowerup",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
 		"inputs": [],
 		"name": "minimumUnitToken",
 		"outputs": [
@@ -868,90 +1003,12 @@
 	},
 	{
 		"inputs": [],
-		"name": "networkMonthWeekAndDay",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "_month",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_week",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_day",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "outGo",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
 		"name": "owner",
 		"outputs": [
 			{
 				"internalType": "address",
 				"name": "",
 				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "partnerAccounts",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "account",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "percentage",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "partnerClaimXPowerUp",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
 			}
 		],
 		"stateMutability": "view",
@@ -1078,6 +1135,11 @@
 	{
 		"inputs": [
 			{
+				"internalType": "address",
+				"name": "_user",
+				"type": "address"
+			},
+			{
 				"internalType": "uint256",
 				"name": "amount",
 				"type": "uint256"
@@ -1094,9 +1156,14 @@
 				"internalType": "uint256",
 				"name": "",
 				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
 			}
 		],
-		"stateMutability": "pure",
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
@@ -1168,29 +1235,13 @@
 		"inputs": [
 			{
 				"internalType": "address",
-				"name": "_user",
+				"name": "_ZyloPowerUpMilestone",
 				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "unit",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_index",
-				"type": "uint256"
 			}
 		],
-		"name": "selfPowerUpReward",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "_reward",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
+		"name": "setMilestone",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -1225,6 +1276,11 @@
 			},
 			{
 				"internalType": "uint256",
+				"name": "Universe",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
 				"name": "totalActiveUnits",
 				"type": "uint256"
 			}
@@ -1248,6 +1304,30 @@
 	{
 		"inputs": [],
 		"name": "totalActivePowerUpToken",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "totalPowerUpSelfUnit",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -1297,54 +1377,6 @@
 				"type": "uint256"
 			}
 		],
-		"name": "totalPowerupSelfUnit",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "totalSelfClaimInClaimX",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
 		"name": "totalSelfClaimInUnit",
 		"outputs": [
 			{
@@ -1369,55 +1401,7 @@
 				"type": "uint256"
 			}
 		],
-		"name": "totalTeamClaimInClaimX",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
 		"name": "totalTeamClaimInUnit",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "totalVestingClaimInUnit",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -1459,79 +1443,16 @@
 				"type": "uint256"
 			}
 		],
-		"name": "userClaimSelfDetails",
+		"name": "userClaimHistory",
 		"outputs": [
 			{
 				"internalType": "uint256",
-				"name": "claimedAmount",
+				"name": "amount",
 				"type": "uint256"
 			},
 			{
 				"internalType": "uint256",
-				"name": "claimedTimestamp",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "userClaimTeamDetails",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "claimedAmount",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "claimedTimestamp",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "userClaimXDetails",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "ClaimXAmount",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "ClaimXTimestamp",
+				"name": "time",
 				"type": "uint256"
 			}
 		],
@@ -1593,6 +1514,30 @@
 				"internalType": "uint256",
 				"name": "",
 				"type": "uint256"
+			}
+		],
+		"name": "userMilestoneCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
 			},
 			{
 				"internalType": "uint256",
@@ -1605,6 +1550,11 @@
 			{
 				"internalType": "uint256",
 				"name": "powerUpToken",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "powerUpActiveToken",
 				"type": "uint256"
 			},
 			{
@@ -1643,9 +1593,48 @@
 				"type": "uint256"
 			},
 			{
+				"internalType": "uint256",
+				"name": "selfClaimed",
+				"type": "uint256"
+			},
+			{
 				"internalType": "bool",
 				"name": "unPowerUp",
 				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "userPowerUpHistory",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "time",
+				"type": "uint256"
 			}
 		],
 		"stateMutability": "view",
@@ -1695,24 +1684,10 @@
 				"internalType": "uint256",
 				"name": "referralPowerUp",
 				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "userTotalClaimX",
-		"outputs": [
+			},
 			{
 				"internalType": "uint256",
-				"name": "",
+				"name": "referralClaimed",
 				"type": "uint256"
 			}
 		],

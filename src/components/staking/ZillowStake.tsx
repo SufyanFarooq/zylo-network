@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAccount, useWalletClient } from 'wagmi';
 import { getTokenBalance, approveTokens, getAllowance, deposit, getUserDetails } from '@/blockchain/instances/ZyloPowerUp';
+import { getUserClaimXDetailsLength, userClaimXHistory } from '@/blockchain/instances/ZyloPowerUpM';
 import { ZyloPowerUp_ADDRESS } from '@/blockchain/addresses/addresses';
 import { BrowserProvider, ethers } from 'ethers';
 import './ZillowStake.css';
@@ -104,6 +105,12 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
   const [currentSelfReward] = useState('0.00');
   const [currentTeamReward] = useState('0.00');
   const [isLoadingRewards] = useState(false);
+
+  // Power Up History states
+  const [powerUpHistory, setPowerUpHistory] = useState<Array<{ amount: string; timestamp: string; formattedTime: string }>>([]);
+  const [isLoadingPowerUpHistory, setIsLoadingPowerUpHistory] = useState(false);
+  const [currentHistoryPage, setCurrentHistoryPage] = useState(1);
+  const historyItemsPerPage = 10;
 
   // Wagmi hooks
   const { address, isConnected } = useAccount();
@@ -873,6 +880,75 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
 
     fetchAllUserData();
   }, [isConnected, address, walletClient]);
+
+  // Fetch Power Up History when selected unit changes
+  useEffect(() => {
+    const fetchPowerUpHistory = async () => {
+      if (!isConnected || !address || !walletClient || selectedZoneUnit === null) {
+        setPowerUpHistory([]);
+        setIsLoadingPowerUpHistory(false);
+        return;
+      }
+
+      setIsLoadingPowerUpHistory(true);
+      try {
+        const provider = new BrowserProvider(walletClient);
+
+        // Get the length of claim history for this unit
+        const lengthResult = await getUserClaimXDetailsLength(provider, address, selectedZoneUnit);
+
+        if (!lengthResult.success || !lengthResult.length) {
+          setPowerUpHistory([]);
+          setIsLoadingPowerUpHistory(false);
+          return;
+        }
+
+        const length = lengthResult.length;
+        const records: Array<{ amount: string; timestamp: string; formattedTime: string }> = [];
+
+        // Loop through the length and get each history record
+        for (let i = 0; i < length; i++) {
+          try {
+            const historyResult = await userClaimXHistory(provider, address, selectedZoneUnit, i);
+            if (historyResult.success && historyResult.amount && historyResult.timestamp) {
+              const timestamp = parseInt(historyResult.timestamp);
+              const date = new Date(timestamp * 1000);
+              const formattedTime = date.toLocaleString('en-US', {
+                timeZone: 'UTC',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+              }) + ' UTC';
+
+              records.push({
+                amount: historyResult.amount,
+                timestamp: historyResult.timestamp,
+                formattedTime: formattedTime
+              });
+            }
+          } catch (err) {
+            console.error(`Error fetching power up history at index ${i}:`, err);
+          }
+        }
+
+        // Reverse to show latest first
+        records.reverse();
+        setPowerUpHistory(records);
+        setCurrentHistoryPage(1); // Reset to first page when data changes
+      } catch (err) {
+        console.error('Error loading power up history:', err);
+        setPowerUpHistory([]);
+      } finally {
+        setIsLoadingPowerUpHistory(false);
+      }
+    };
+
+    fetchPowerUpHistory();
+  }, [isConnected, address, walletClient, selectedZoneUnit]);
 
   // const periods = [
   //   { days: '7', label: '7 DAYS' },
@@ -1690,6 +1766,143 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
           </div>
           {/* /RIGHT */}
         </div>
+
+        {/* Power Up History Table */}
+        {selectedZoneUnit !== null && (
+          <div className="row mt-5">
+            <div className="col-12">
+              <div style={{
+                background: 'linear-gradient(145deg, #0a0a1a 0%, #0f0f23 50%, #1a1a2e 100%)',
+                borderRadius: '20px',
+                padding: '2rem',
+                border: '2px solid rgba(254, 231, 57, 0.3)',
+                boxShadow: '0 8px 32px rgba(254, 231, 57, 0.2)',
+              }}>
+                <h3 style={{ color: '#FEE739', marginBottom: '1.5rem', textAlign: 'center', fontWeight: '700' }}>
+                  Power Up History - {(() => {
+                    const unitNames = ['Spark Up', 'Flicker Roar', 'AI Overrider', 'Zylo Apex'];
+                    return unitNames[selectedZoneUnit] || 'Unknown Unit';
+                  })()}
+                </h3>
+
+                {isLoadingPowerUpHistory ? (
+                  <div className="text-center py-4">
+                    <div className="spinner-border text-warning" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                    <p className="text-white-50 mt-2">Loading power up history...</p>
+                  </div>
+                ) : powerUpHistory.length === 0 ? (
+                  <div className="text-center py-4">
+                    <p className="text-white-50">No power up history found for this unit.</p>
+                  </div>
+                ) : (
+                  <div className="table-responsive">
+                    <table className="table table-dark table-striped" style={{ borderRadius: '10px', overflow: 'hidden' }}>
+                      <thead style={{ background: 'rgba(254, 231, 57, 0.1)' }}>
+                        <tr>
+                          <th style={{ color: '#FEE739', border: 'none', padding: '1rem', fontWeight: '600', width: '80px' }}>#</th>
+                          <th style={{ color: '#FEE739', border: 'none', padding: '1rem', fontWeight: '600' }}>Amount</th>
+                          <th style={{ color: '#FEE739', border: 'none', padding: '1rem', fontWeight: '600' }}>Date & Time (UTC)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {powerUpHistory.slice((currentHistoryPage - 1) * historyItemsPerPage, currentHistoryPage * historyItemsPerPage).map((record, index) => (
+                          <tr key={index} style={{ borderBottom: '1px solid rgba(254, 231, 57, 0.1)' }}>
+                            <td style={{ color: '#FEE739', padding: '1rem', border: 'none', fontWeight: '600' }}>
+                              {index + 1}
+                            </td>
+                            <td style={{ color: '#fff', padding: '1rem', border: 'none' }}>
+                              {parseFloat(record.amount).toFixed(4)} ZILLOW
+                            </td>
+                            <td style={{ color: '#fff', padding: '1rem', border: 'none' }}>
+                              {record.formattedTime}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+
+                    {/* Pagination Controls for Power Up History */}
+                    {powerUpHistory.length > historyItemsPerPage && (
+                      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '2rem' }}>
+                        <button
+                          onClick={() => setCurrentHistoryPage(prev => Math.max(1, prev - 1))}
+                          disabled={currentHistoryPage === 1}
+                          style={{
+                            background: currentHistoryPage === 1 ? 'rgba(254, 231, 57, 0.2)' : 'rgba(254, 231, 57, 0.1)',
+                            border: '2px solid #FEE739',
+                            color: currentHistoryPage === 1 ? 'rgba(254, 231, 57, 0.5)' : '#FEE739',
+                            padding: '0.5rem 1rem',
+                            borderRadius: '8px',
+                            fontWeight: '600',
+                            cursor: currentHistoryPage === 1 ? 'not-allowed' : 'pointer',
+                            transition: 'all 0.3s ease',
+                          }}
+                          onMouseEnter={(e) => {
+                            if (currentHistoryPage !== 1) {
+                              e.currentTarget.style.background = 'rgba(254, 231, 57, 0.2)';
+                              e.currentTarget.style.transform = 'translateY(-2px)';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (currentHistoryPage !== 1) {
+                              e.currentTarget.style.background = 'rgba(254, 231, 57, 0.1)';
+                              e.currentTarget.style.transform = 'translateY(0)';
+                            }
+                          }}
+                        >
+                          Previous
+                        </button>
+
+                        <span style={{
+                          color: '#FEE739',
+                          fontWeight: '600',
+                          fontSize: '1rem',
+                          padding: '0.5rem 1rem',
+                          background: 'rgba(254, 231, 57, 0.1)',
+                          borderRadius: '8px',
+                          border: '2px solid rgba(254, 231, 57, 0.3)',
+                        }}>
+                          Page {currentHistoryPage} of {Math.ceil(powerUpHistory.length / historyItemsPerPage)}
+                        </span>
+
+                        <button
+                          onClick={() => setCurrentHistoryPage(prev => Math.min(Math.ceil(powerUpHistory.length / historyItemsPerPage), prev + 1))}
+                          disabled={currentHistoryPage === Math.ceil(powerUpHistory.length / historyItemsPerPage)}
+                          style={{
+                            background: currentHistoryPage === Math.ceil(powerUpHistory.length / historyItemsPerPage) ? 'rgba(254, 231, 57, 0.2)' : 'rgba(254, 231, 57, 0.1)',
+                            border: '2px solid #FEE739',
+                            color: currentHistoryPage === Math.ceil(powerUpHistory.length / historyItemsPerPage) ? 'rgba(254, 231, 57, 0.5)' : '#FEE739',
+                            padding: '0.5rem 1rem',
+                            borderRadius: '8px',
+                            fontWeight: '600',
+                            cursor: currentHistoryPage === Math.ceil(powerUpHistory.length / historyItemsPerPage) ? 'not-allowed' : 'pointer',
+                            transition: 'all 0.3s ease',
+                          }}
+                          onMouseEnter={(e) => {
+                            if (currentHistoryPage !== Math.ceil(powerUpHistory.length / historyItemsPerPage)) {
+                              e.currentTarget.style.background = 'rgba(254, 231, 57, 0.2)';
+                              e.currentTarget.style.transform = 'translateY(-2px)';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (currentHistoryPage !== Math.ceil(powerUpHistory.length / historyItemsPerPage)) {
+                              e.currentTarget.style.background = 'rgba(254, 231, 57, 0.1)';
+                              e.currentTarget.style.transform = 'translateY(0)';
+                            }
+                          }}
+                        >
+                          Next
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Power Up Unit Cards Section - Show selected unit's power ups */}
         {/* <div className="row mt-5">

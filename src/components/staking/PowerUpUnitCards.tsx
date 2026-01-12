@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAccount, useWalletClient } from 'wagmi';
 import { BrowserProvider, formatEther, Contract } from 'ethers';
 import { useRouter } from 'next/navigation';
-import { getPowerUpLength, userPowerUpDetails, getSelfPowerUpReward, claimSelfPowerUnit, getUserClaimSelfDetailsLength, getUserClaimSelfDetails, getUserClaimTeamDetailsLength, getUserClaimTeamDetails } from '@/blockchain/instances/ZyloPowerUp';
+import { getPowerUpLength, userPowerUpDetails, getSelfPowerUpReward, claimSelfPowerUnit, getUserClaimSelfDetailsLength, getUserClaimSelfDetails } from '@/blockchain/instances/ZyloPowerUp';
 import { ZyloPowerUp_ADDRESS } from '@/blockchain/addresses/addresses.js';
 import ZyloPowerUp_ABI from '@/blockchain/abis/ZyloPowerUp.json';
 import dynamic from 'next/dynamic';
@@ -243,13 +243,19 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
   const [selectedUnit, setSelectedUnit] = useState<number | null>(null); // No unit selected initially
   const [isMounted, setIsMounted] = useState(false);
 
-  // State for claim history tables
-  const [showSelfClaimHistory, setShowSelfClaimHistory] = useState(false);
-  const [showTeamClaimHistory, setShowTeamClaimHistory] = useState(false);
+  // State for claim history table
   const [selfClaimHistory, setSelfClaimHistory] = useState<Array<{ amount: string; timestamp: string; formattedTime: string }>>([]);
-  const [teamClaimHistory, setTeamClaimHistory] = useState<Array<{ amount: string; timestamp: string; formattedTime: string }>>([]);
   const [isLoadingSelfHistory, setIsLoadingSelfHistory] = useState(false);
-  const [isLoadingTeamHistory, setIsLoadingTeamHistory] = useState(false);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(selfClaimHistory.length / itemsPerPage);
+
+  // Reset to page 1 when data changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [selfClaimHistory.length]);
 
   // Use external props if provided, otherwise use internal state
   const showZoneCards = externalShowZoneCards !== undefined ? externalShowZoneCards : internalShowZoneCards;
@@ -1422,7 +1428,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                                 textAlign: 'center',
                                 marginBottom: '8px',
                               }}>
-                                Total Self Power Up Reward
+                                Total Self Power Up
                               </div>
                               <div style={{
                                 fontSize: '20px',
@@ -1451,7 +1457,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                                 textAlign: 'center',
                                 marginBottom: '8px',
                               }}>
-                                Current Self Power Up Reward
+                                Current Self Power Up
                               </div>
                               <div style={{
                                 fontSize: '20px',
@@ -1837,7 +1843,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                               textAlign: 'center',
                               marginBottom: '8px',
                             }}>
-                              Total Self Power Up Reward
+                              Total Self Power Up
                             </div>
                             <div style={{
                               fontSize: '20px',
@@ -1866,7 +1872,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                               textAlign: 'center',
                               marginBottom: '8px',
                             }}>
-                              Current Self Power Up Reward
+                              Current Self Power Up
                             </div>
                             <div style={{
                               fontSize: '20px',
@@ -1921,7 +1927,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                                 e.currentTarget.style.boxShadow = '0 4px 15px rgba(254, 231, 57, 0.3)';
                               }}
                             >
-                              {(claimingPowerUp?.unitIndex === currentUnit.unitIndex && claimingPowerUp?.powerUpIndex === index) ? 'Claiming...' : 'Claim'}
+                              {(claimingPowerUp?.unitIndex === currentUnit.unitIndex && claimingPowerUp?.powerUpIndex === index) ? 'Claiming...' : 'Claim Power Up'}
                             </button>
                           </div>
                         </div>
@@ -1940,310 +1946,209 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
           </div>
         )}
 
-        {/* History Buttons - Show below cards when a unit is selected */}
+        {/* Self Claim History Table - Show directly when a unit is selected */}
         {!showZoneCards && selectedZoneUnit !== null && (
-          <div style={{ marginTop: '3rem', marginBottom: '2rem' }}>
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button
-                onClick={async () => {
+          <div style={{ marginTop: '3rem' }}>
+            {/* Load self claim history automatically */}
+            {(() => {
+              // Auto-load self claim history when unit is selected
+              React.useEffect(() => {
+                const loadSelfClaimHistory = async () => {
                   if (!isConnected || !address || !walletClient || selectedZoneUnit === null) {
                     return;
                   }
 
-                  setShowSelfClaimHistory(!showSelfClaimHistory);
-                  setShowTeamClaimHistory(false);
+                  setIsLoadingSelfHistory(true);
+                  try {
+                    const provider = new BrowserProvider(walletClient as never);
 
-                  if (!showSelfClaimHistory) {
-                    setIsLoadingSelfHistory(true);
-                    try {
-                      const provider = new BrowserProvider(walletClient as never);
-
-                      // Get length
-                      const lengthResult = await getUserClaimSelfDetailsLength(provider, address, selectedZoneUnit);
-                      if (!lengthResult.success || !lengthResult.length) {
-                        setSelfClaimHistory([]);
-                        setIsLoadingSelfHistory(false);
-                        return;
-                      }
-
-                      const length = lengthResult.length;
-                      const records: Array<{ amount: string; timestamp: string; formattedTime: string }> = [];
-
-                      // Loop through length
-                      for (let i = 0; i < length; i++) {
-                        try {
-                          const detailsResult = await getUserClaimSelfDetails(provider, address, selectedZoneUnit, i);
-                          if (detailsResult.success && detailsResult.amount && detailsResult.timestamp) {
-                            const timestamp = parseInt(detailsResult.timestamp);
-                            const date = new Date(timestamp * 1000);
-                            const formattedTime = date.toLocaleString('en-US', {
-                              timeZone: 'UTC',
-                              year: 'numeric',
-                              month: '2-digit',
-                              day: '2-digit',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              second: '2-digit',
-                              hour12: false
-                            }) + ' UTC';
-
-                            records.push({
-                              amount: detailsResult.amount,
-                              timestamp: detailsResult.timestamp,
-                              formattedTime: formattedTime
-                            });
-                          }
-                        } catch (err) {
-                          console.error(`Error fetching self claim details at index ${i}:`, err);
-                        }
-                      }
-
-                      // Reverse to show latest first
-                      records.reverse();
-                      setSelfClaimHistory(records);
-                    } catch (error) {
-                      console.error('Error loading self claim history:', error);
+                    // Get length
+                    const lengthResult = await getUserClaimSelfDetailsLength(provider, address, selectedZoneUnit);
+                    if (!lengthResult.success || !lengthResult.length) {
                       setSelfClaimHistory([]);
-                    } finally {
                       setIsLoadingSelfHistory(false);
+                      return;
                     }
-                  }
-                }}
-                style={{
-                  background: showSelfClaimHistory ? 'linear-gradient(135deg, #FEE739 0%, #FDD835 100%)' : 'rgba(254, 231, 57, 0.1)',
-                  border: '2px solid #FEE739',
-                  color: showSelfClaimHistory ? '#000' : '#FEE739',
-                  padding: '0.75rem 2rem',
-                  borderRadius: '12px',
-                  fontWeight: '700',
-                  fontSize: '1rem',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  boxShadow: showSelfClaimHistory ? '0 4px 15px rgba(254, 231, 57, 0.4)' : '0 2px 8px rgba(254, 231, 57, 0.2)',
-                }}
-                onMouseEnter={(e) => {
-                  if (!showSelfClaimHistory) {
-                    e.currentTarget.style.background = 'rgba(254, 231, 57, 0.2)';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!showSelfClaimHistory) {
-                    e.currentTarget.style.background = 'rgba(254, 231, 57, 0.1)';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }
-                }}
-              >
-                Self Claim History
-              </button>
 
-              <button
-                onClick={async () => {
-                  if (!isConnected || !address || !walletClient || selectedZoneUnit === null) {
-                    return;
-                  }
+                    const length = lengthResult.length;
+                    const records: Array<{ amount: string; timestamp: string; formattedTime: string }> = [];
 
-                  setShowTeamClaimHistory(!showTeamClaimHistory);
-                  setShowSelfClaimHistory(false);
+                    // Loop through length
+                    for (let i = 0; i < length; i++) {
+                      try {
+                        const detailsResult = await getUserClaimSelfDetails(provider, address, selectedZoneUnit, i);
+                        if (detailsResult.success && detailsResult.amount && detailsResult.timestamp) {
+                          const timestamp = parseInt(detailsResult.timestamp);
+                          const date = new Date(timestamp * 1000);
+                          const formattedTime = date.toLocaleString('en-US', {
+                            timeZone: 'UTC',
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit',
+                            hour12: false
+                          }) + ' UTC';
 
-                  if (!showTeamClaimHistory) {
-                    setIsLoadingTeamHistory(true);
-                    try {
-                      const provider = new BrowserProvider(walletClient as never);
-
-                      // Get length
-                      const lengthResult = await getUserClaimTeamDetailsLength(provider, address, selectedZoneUnit);
-                      if (!lengthResult.success || !lengthResult.length) {
-                        setTeamClaimHistory([]);
-                        setIsLoadingTeamHistory(false);
-                        return;
-                      }
-
-                      const length = lengthResult.length;
-                      const records: Array<{ amount: string; timestamp: string; formattedTime: string }> = [];
-
-                      // Loop through length
-                      for (let i = 0; i < length; i++) {
-                        try {
-                          const detailsResult = await getUserClaimTeamDetails(provider, address, selectedZoneUnit, i);
-                          if (detailsResult.success && detailsResult.amount && detailsResult.timestamp) {
-                            const timestamp = parseInt(detailsResult.timestamp);
-                            const date = new Date(timestamp * 1000);
-                            const formattedTime = date.toLocaleString('en-US', {
-                              timeZone: 'UTC',
-                              year: 'numeric',
-                              month: '2-digit',
-                              day: '2-digit',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              second: '2-digit',
-                              hour12: false
-                            }) + ' UTC';
-
-                            records.push({
-                              amount: detailsResult.amount,
-                              timestamp: detailsResult.timestamp,
-                              formattedTime: formattedTime
-                            });
-                          }
-                        } catch (err) {
-                          console.error(`Error fetching team claim details at index ${i}:`, err);
+                          records.push({
+                            amount: detailsResult.amount,
+                            timestamp: detailsResult.timestamp,
+                            formattedTime: formattedTime
+                          });
                         }
+                      } catch (err) {
+                        console.error(`Error fetching self claim details at index ${i}:`, err);
                       }
-
-                      // Reverse to show latest first
-                      records.reverse();
-                      setTeamClaimHistory(records);
-                    } catch (error) {
-                      console.error('Error loading team claim history:', error);
-                      setTeamClaimHistory([]);
-                    } finally {
-                      setIsLoadingTeamHistory(false);
                     }
+
+                    // Reverse to show latest first
+                    records.reverse();
+                    setSelfClaimHistory(records);
+                  } catch (error) {
+                    console.error('Error loading self claim history:', error);
+                    setSelfClaimHistory([]);
+                  } finally {
+                    setIsLoadingSelfHistory(false);
                   }
-                }}
-                style={{
-                  background: showTeamClaimHistory ? 'linear-gradient(135deg, #00d6a3 0%, #00b894 100%)' : 'rgba(0, 214, 163, 0.1)',
-                  border: '2px solid #00d6a3',
-                  color: showTeamClaimHistory ? '#000' : '#00d6a3',
-                  padding: '0.75rem 2rem',
-                  borderRadius: '12px',
-                  fontWeight: '700',
-                  fontSize: '1rem',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  boxShadow: showTeamClaimHistory ? '0 4px 15px rgba(0, 214, 163, 0.4)' : '0 2px 8px rgba(0, 214, 163, 0.2)',
-                }}
-                onMouseEnter={(e) => {
-                  if (!showTeamClaimHistory) {
-                    e.currentTarget.style.background = 'rgba(0, 214, 163, 0.2)';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!showTeamClaimHistory) {
-                    e.currentTarget.style.background = 'rgba(0, 214, 163, 0.1)';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }
-                }}
-              >
-                Team Claim History
-              </button>
+                };
+
+                loadSelfClaimHistory();
+              }, [selectedZoneUnit, isConnected, address, walletClient]);
+
+              return null;
+            })()}
+
+            {/* Self Claim History Table - Always shown */}
+            <div style={{ marginTop: '2rem' }}>
+              <div style={{
+                background: 'linear-gradient(145deg, #0a0a1a 0%, #0f0f23 50%, #1a1a2e 100%)',
+                borderRadius: '20px',
+                padding: '2rem',
+                border: '2px solid rgba(254, 231, 57, 0.3)',
+                boxShadow: '0 8px 32px rgba(254, 231, 57, 0.2)',
+              }}>
+                <h3 style={{ color: '#FEE739', marginBottom: '1.5rem', textAlign: 'center', fontWeight: '700' }}>
+                  Claim History
+                </h3>
+
+                {isLoadingSelfHistory ? (
+                  <div className="text-center py-4">
+                    <div className="spinner-border text-warning" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                    <p className="text-white-50 mt-2">Loading history...</p>
+                  </div>
+                ) : selfClaimHistory.length === 0 ? (
+                  <div className="text-center py-4">
+                    <p className="text-white-50">No claim history found for this unit.</p>
+                  </div>
+                ) : (
+                  <div className="table-responsive">
+                    <table className="table table-dark table-striped" style={{ borderRadius: '10px', overflow: 'hidden' }}>
+                      <thead style={{ background: 'rgba(254, 231, 57, 0.1)' }}>
+                        <tr>
+                          <th style={{ color: '#FEE739', border: 'none', padding: '1rem', fontWeight: '600', width: '80px' }}>#</th>
+                          <th style={{ color: '#FEE739', border: 'none', padding: '1rem', fontWeight: '600' }}>Amount</th>
+                          <th style={{ color: '#FEE739', border: 'none', padding: '1rem', fontWeight: '600' }}>Date & Time (UTC)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selfClaimHistory.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((record, index) => (
+                          <tr key={index} style={{ borderBottom: '1px solid rgba(254, 231, 57, 0.1)' }}>
+                            <td style={{ color: '#FEE739', padding: '1rem', border: 'none', fontWeight: '600' }}>
+                              {index + 1}
+                            </td>
+                            <td style={{ color: '#fff', padding: '1rem', border: 'none' }}>
+                              {parseFloat(record.amount).toFixed(4)} ZILLOW
+                            </td>
+                            <td style={{ color: '#fff', padding: '1rem', border: 'none' }}>
+                              {record.formattedTime}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+
+                    {/* Pagination Controls */}
+                    {selfClaimHistory.length > itemsPerPage && (
+                      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '2rem' }}>
+                        <button
+                          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                          disabled={currentPage === 1}
+                          style={{
+                            background: currentPage === 1 ? 'rgba(254, 231, 57, 0.2)' : 'rgba(254, 231, 57, 0.1)',
+                            border: '2px solid #FEE739',
+                            color: currentPage === 1 ? 'rgba(254, 231, 57, 0.5)' : '#FEE739',
+                            padding: '0.5rem 1rem',
+                            borderRadius: '8px',
+                            fontWeight: '600',
+                            cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                            transition: 'all 0.3s ease',
+                          }}
+                          onMouseEnter={(e) => {
+                            if (currentPage !== 1) {
+                              e.currentTarget.style.background = 'rgba(254, 231, 57, 0.2)';
+                              e.currentTarget.style.transform = 'translateY(-2px)';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (currentPage !== 1) {
+                              e.currentTarget.style.background = 'rgba(254, 231, 57, 0.1)';
+                              e.currentTarget.style.transform = 'translateY(0)';
+                            }
+                          }}
+                        >
+                          Previous
+                        </button>
+
+                        <span style={{
+                          color: '#FEE739',
+                          fontWeight: '600',
+                          fontSize: '1rem',
+                          padding: '0.5rem 1rem',
+                          background: 'rgba(254, 231, 57, 0.1)',
+                          borderRadius: '8px',
+                          border: '2px solid rgba(254, 231, 57, 0.3)',
+                        }}>
+                          Page {currentPage} of {totalPages}
+                        </span>
+
+                        <button
+                          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                          disabled={currentPage === totalPages}
+                          style={{
+                            background: currentPage === totalPages ? 'rgba(254, 231, 57, 0.2)' : 'rgba(254, 231, 57, 0.1)',
+                            border: '2px solid #FEE739',
+                            color: currentPage === totalPages ? 'rgba(254, 231, 57, 0.5)' : '#FEE739',
+                            padding: '0.5rem 1rem',
+                            borderRadius: '8px',
+                            fontWeight: '600',
+                            cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                            transition: 'all 0.3s ease',
+                          }}
+                          onMouseEnter={(e) => {
+                            if (currentPage !== totalPages) {
+                              e.currentTarget.style.background = 'rgba(254, 231, 57, 0.2)';
+                              e.currentTarget.style.transform = 'translateY(-2px)';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (currentPage !== totalPages) {
+                              e.currentTarget.style.background = 'rgba(254, 231, 57, 0.1)';
+                              e.currentTarget.style.transform = 'translateY(0)';
+                            }
+                          }}
+                        >
+                          Next
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Self Claim History Table */}
-            {showSelfClaimHistory && (
-              <div style={{ marginTop: '2rem' }}>
-                <div style={{
-                  background: 'linear-gradient(145deg, #0a0a1a 0%, #0f0f23 50%, #1a1a2e 100%)',
-                  borderRadius: '20px',
-                  padding: '2rem',
-                  border: '2px solid rgba(254, 231, 57, 0.3)',
-                  boxShadow: '0 8px 32px rgba(254, 231, 57, 0.2)',
-                }}>
-                  <h3 style={{ color: '#FEE739', marginBottom: '1.5rem', textAlign: 'center', fontWeight: '700' }}>
-                    Self Claim History
-                  </h3>
-
-                  {isLoadingSelfHistory ? (
-                    <div className="text-center py-4">
-                      <div className="spinner-border text-warning" role="status">
-                        <span className="visually-hidden">Loading...</span>
-                      </div>
-                      <p className="text-white-50 mt-2">Loading history...</p>
-                    </div>
-                  ) : selfClaimHistory.length === 0 ? (
-                    <div className="text-center py-4">
-                      <p className="text-white-50">No self claim history found</p>
-                    </div>
-                  ) : (
-                    <div className="table-responsive">
-                      <table className="table table-dark" style={{ marginBottom: 0 }}>
-                        <thead>
-                          <tr>
-                            <th style={{ color: '#FEE739', borderColor: 'rgba(254, 231, 57, 0.3)' }}>#</th>
-                            <th style={{ color: '#FEE739', borderColor: 'rgba(254, 231, 57, 0.3)' }}>Amount</th>
-                            <th style={{ color: '#FEE739', borderColor: 'rgba(254, 231, 57, 0.3)' }}>Time</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {selfClaimHistory.map((record, index) => (
-                            <tr key={index}>
-                              <td style={{ color: '#fff', borderColor: 'rgba(254, 231, 57, 0.2)' }}>{index + 1}</td>
-                              <td style={{ color: '#fff', borderColor: 'rgba(254, 231, 57, 0.2)' }}>
-                                <span style={{ color: '#FEE739', fontWeight: '600' }}>
-                                  {parseFloat(record.amount).toFixed(4)} ZYLO
-                                </span>
-                              </td>
-                              <td style={{ color: '#fff', borderColor: 'rgba(254, 231, 57, 0.2)' }}>
-                                {record.formattedTime}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Team Claim History Table */}
-            {showTeamClaimHistory && (
-              <div style={{ marginTop: '2rem' }}>
-                <div style={{
-                  background: 'linear-gradient(145deg, #0a0a1a 0%, #0f0f23 50%, #1a1a2e 100%)',
-                  borderRadius: '20px',
-                  padding: '2rem',
-                  border: '2px solid rgba(0, 214, 163, 0.3)',
-                  boxShadow: '0 8px 32px rgba(0, 214, 163, 0.2)',
-                }}>
-                  <h3 style={{ color: '#00d6a3', marginBottom: '1.5rem', textAlign: 'center', fontWeight: '700' }}>
-                    Team Claim History
-                  </h3>
-
-                  {isLoadingTeamHistory ? (
-                    <div className="text-center py-4">
-                      <div className="spinner-border text-success" role="status">
-                        <span className="visually-hidden">Loading...</span>
-                      </div>
-                      <p className="text-white-50 mt-2">Loading history...</p>
-                    </div>
-                  ) : teamClaimHistory.length === 0 ? (
-                    <div className="text-center py-4">
-                      <p className="text-white-50">No team claim history found</p>
-                    </div>
-                  ) : (
-                    <div className="table-responsive">
-                      <table className="table table-dark" style={{ marginBottom: 0 }}>
-                        <thead>
-                          <tr>
-                            <th style={{ color: '#00d6a3', borderColor: 'rgba(0, 214, 163, 0.3)' }}>#</th>
-                            <th style={{ color: '#00d6a3', borderColor: 'rgba(0, 214, 163, 0.3)' }}>Amount</th>
-                            <th style={{ color: '#00d6a3', borderColor: 'rgba(0, 214, 163, 0.3)' }}>Time</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {teamClaimHistory.map((record, index) => (
-                            <tr key={index}>
-                              <td style={{ color: '#fff', borderColor: 'rgba(0, 214, 163, 0.2)' }}>{index + 1}</td>
-                              <td style={{ color: '#fff', borderColor: 'rgba(0, 214, 163, 0.2)' }}>
-                                <span style={{ color: '#00d6a3', fontWeight: '600' }}>
-                                  {parseFloat(record.amount).toFixed(4)} ZYLO
-                                </span>
-                              </td>
-                              <td style={{ color: '#fff', borderColor: 'rgba(0, 214, 163, 0.2)' }}>
-                                {record.formattedTime}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
         )}
       </div>
