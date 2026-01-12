@@ -1,6 +1,6 @@
 import { Contract, formatEther } from "ethers";
-import { ZyloPowerUp_ADDRESS } from "../addresses/addresses.js";
-import ZyloPowerUp_ABI from "../abis/ZyloPowerUp.json";
+import { ZyloPowerUpM_ADDRESS } from "../addresses/addresses.js";
+import ZyloPowerUpM_ABI from "../abis/ZyloPowerUpM.json";
 
 /**
  * Create contract instance with provider (for read operations)
@@ -13,8 +13,8 @@ const createContractInstance = (provider) => {
     }
 
     return new Contract(
-        ZyloPowerUp_ADDRESS,
-        ZyloPowerUp_ABI,
+        ZyloPowerUpM_ADDRESS,
+        ZyloPowerUpM_ABI,
         provider
     );
 };

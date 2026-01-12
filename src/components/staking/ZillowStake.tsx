@@ -4,8 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { useAccount, useWalletClient } from 'wagmi';
 import { getTokenBalance, approveTokens, getAllowance, deposit, getUserDetails } from '@/blockchain/instances/ZyloPowerUp';
 import { getUserClaimXDetailsLength, userClaimXHistory } from '@/blockchain/instances/ZyloPowerUpM';
-import { ZyloPowerUp_ADDRESS } from '@/blockchain/addresses/addresses';
-import { BrowserProvider, ethers } from 'ethers';
+import { ZyloPowerUp_ADDRESS, ZyloPowerUpM_ADDRESS } from '@/blockchain/addresses/addresses';
+import ZyloPowerUpM_ABI from '@/blockchain/abis/ZyloPowerUpM.json';
+import { BrowserProvider, Contract, ethers } from 'ethers';
 import './ZillowStake.css';
 import ZillowStakingCards from './ZillowStakingCards';
 import AnimatedCharacters from './AnimatedCharacters';
@@ -884,26 +885,61 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
   // Fetch Power Up History when selected unit changes
   useEffect(() => {
     const fetchPowerUpHistory = async () => {
+      console.log('🔍 fetchPowerUpHistory called:', {
+        isConnected,
+        address,
+        walletClient: !!walletClient,
+        selectedZoneUnit
+      });
+
       if (!isConnected || !address || !walletClient || selectedZoneUnit === null) {
+        console.log('❌ Conditions not met for fetching power up history');
         setPowerUpHistory([]);
         setIsLoadingPowerUpHistory(false);
         return;
       }
 
+      console.log('✅ Starting to fetch power up history for unit:', selectedZoneUnit);
       setIsLoadingPowerUpHistory(true);
       try {
         const provider = new BrowserProvider(walletClient);
 
         // Get the length of claim history for this unit
-        const lengthResult = await getUserClaimXDetailsLength(provider, address, selectedZoneUnit);
+        console.log('📡 Calling getUserClaimXDetailsLength with:', { address, selectedZoneUnit });
+        console.log('📡 Provider connected:', provider ? 'yes' : 'no');
+
+        // Test if contract is accessible
+        try {
+          const testContract = new Contract(
+            ZyloPowerUpM_ADDRESS,
+            ZyloPowerUpM_ABI,
+            provider
+          );
+          console.log('📡 Contract instance created successfully');
+        } catch (contractInitError) {
+          console.error('📡 Failed to create contract instance:', contractInitError);
+        }
+
+        let lengthResult;
+        try {
+          lengthResult = await getUserClaimXDetailsLength(provider, address, selectedZoneUnit);
+          console.log('📡 getUserClaimXDetailsLength result:', lengthResult);
+        } catch (contractError) {
+          console.error('📡 Contract call failed:', contractError);
+          setPowerUpHistory([]);
+          setIsLoadingPowerUpHistory(false);
+          return;
+        }
 
         if (!lengthResult.success || !lengthResult.length) {
+          console.log('❌ No history length found or error:', lengthResult);
           setPowerUpHistory([]);
           setIsLoadingPowerUpHistory(false);
           return;
         }
 
         const length = lengthResult.length;
+        console.log('✅ History length:', length);
         const records: Array<{ amount: string; timestamp: string; formattedTime: string }> = [];
 
         // Loop through the length and get each history record
@@ -937,12 +973,14 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
 
         // Reverse to show latest first
         records.reverse();
+        console.log('✅ Final records to set:', records);
         setPowerUpHistory(records);
         setCurrentHistoryPage(1); // Reset to first page when data changes
       } catch (err) {
-        console.error('Error loading power up history:', err);
+        console.error('❌ Error loading power up history:', err);
         setPowerUpHistory([]);
       } finally {
+        console.log('🏁 Finished fetching power up history');
         setIsLoadingPowerUpHistory(false);
       }
     };
@@ -1778,6 +1816,25 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
                 border: '2px solid rgba(254, 231, 57, 0.3)',
                 boxShadow: '0 8px 32px rgba(254, 231, 57, 0.2)',
               }}>
+                {/* Debug Info */}
+                <div style={{
+                  background: 'rgba(255, 0, 0, 0.1)',
+                  border: '1px solid rgba(255, 0, 0, 0.3)',
+                  borderRadius: '8px',
+                  padding: '1rem',
+                  marginBottom: '1rem',
+                  fontSize: '0.9rem',
+                  color: '#ffcccc'
+                }}>
+                  <strong>Debug Info:</strong><br />
+                  selectedZoneUnit: {selectedZoneUnit}<br />
+                  isConnected: {isConnected ? 'true' : 'false'}<br />
+                  address: {address || 'null'}<br />
+                  walletClient: {walletClient ? 'connected' : 'null'}<br />
+                  isLoadingPowerUpHistory: {isLoadingPowerUpHistory ? 'true' : 'false'}<br />
+                  powerUpHistory.length: {powerUpHistory.length}
+                </div>
+
                 <h3 style={{ color: '#FEE739', marginBottom: '1.5rem', textAlign: 'center', fontWeight: '700' }}>
                   Power Up History - {(() => {
                     const unitNames = ['Spark Up', 'Flicker Roar', 'AI Overrider', 'Zylo Apex'];

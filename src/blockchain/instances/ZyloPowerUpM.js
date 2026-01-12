@@ -438,8 +438,17 @@ export const getUserClaimXDetailsLength = async (provider, userAddress, unitInde
 
         const contract = createContractInstance(provider);
 
+        console.log('🔍 Contract address:', ZyloPowerUpM_ADDRESS);
+        console.log('🔍 Contract instance created:', !!contract);
+        console.log('🔍 Calling getUserClaimXDetailsLength with:', { userAddress, unitIndex });
+
         // Call getUserClaimXDetailsLength function
+        console.log('🔍 About to call contract.getUserClaimXDetailsLength...');
         const length = await contract.getUserClaimXDetailsLength(userAddress, unitIndex);
+        console.log('🔍 Contract call successful');
+
+        console.log('🔍 Raw length result:', length);
+        console.log('🔍 Parsed length:', Number(length));
 
         return {
             success: true,
