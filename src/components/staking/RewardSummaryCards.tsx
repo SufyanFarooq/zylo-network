@@ -76,6 +76,12 @@ const RewardSummaryCards: React.FC<RewardSummaryCardsProps> = ({
 }) => {
   const { address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
+
+  // Helper function to get unit name by index
+  const getUnitName = (unitIndex: number): string => {
+    const unitNames = ['SPARK UP', 'FLICKER ROAR', 'AI OVERRIDER', 'ZYLO APEX', 'ZYLO UNIVERSE'];
+    return unitNames[unitIndex] || 'UNKNOWN UNIT';
+  };
   const [claimingIndex, setClaimingIndex] = useState<number | null>(null);
   const [claimMessage, setClaimMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [isClaimingTeamReward, setIsClaimingTeamReward] = useState<boolean>(false);
@@ -565,7 +571,7 @@ const RewardSummaryCards: React.FC<RewardSummaryCardsProps> = ({
                   <div className="stat-copy" style={{ flex: 1 }}>
                     <div className="stat-value" style={{ fontSize: '1.75rem', fontWeight: '700', color: '#FEE739', marginBottom: '0.5rem' }}>
                       {isLoadingTotalSelfClaim ? 'Loading...' : `${parseFloat(totalSelfClaimValue || '0').toFixed(4)}`}
-                      <span style={{ fontSize: '1.2rem', marginLeft: '0.5rem', color: '#FEE739', opacity: 0.8 }}>ZYLO</span>
+                      <span style={{ fontSize: '1.2rem', marginLeft: '0.5rem', color: '#FEE739', opacity: 0.8 }}>{selectedUnit !== null ? getUnitName(selectedUnit) : 'ZYLO'}</span>
                     </div>
                     <div className="stat-label" style={{ fontSize: '0.9rem', fontWeight: '600', color: 'rgba(255, 255, 255, 0.7)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                       Total Self Power Up
@@ -604,7 +610,7 @@ const RewardSummaryCards: React.FC<RewardSummaryCardsProps> = ({
                   <div className="stat-copy" style={{ flex: 1 }}>
                     <div className="stat-value" style={{ fontSize: '1.75rem', fontWeight: '700', color: '#FEE739', marginBottom: '0.5rem' }}>
                       {isLoadingCurrentPowerUpReward ? 'Loading...' : `${parseFloat(currentPowerUpRewardValue || '0').toFixed(4)}`}
-                      <span style={{ fontSize: '1.2rem', marginLeft: '0.5rem', color: '#FEE739', opacity: 0.8 }}>ZYLO</span>
+                      <span style={{ fontSize: '1.2rem', marginLeft: '0.5rem', color: '#FEE739', opacity: 0.8 }}>{selectedUnit !== null ? getUnitName(selectedUnit) : 'ZYLO'}</span>
                     </div>
                     <div className="stat-label" style={{ fontSize: '0.9rem', fontWeight: '600', color: 'rgba(255, 255, 255, 0.7)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                       Current Self Power Up
@@ -643,7 +649,7 @@ const RewardSummaryCards: React.FC<RewardSummaryCardsProps> = ({
                   <div className="stat-copy" style={{ flex: 1 }}>
                     <div className="stat-value" style={{ fontSize: '1.75rem', fontWeight: '700', color: '#00d6a3', marginBottom: '0.5rem' }}>
                       {isLoadingTotalTeamClaim ? 'Loading...' : `${parseFloat(totalTeamClaimValue || '0').toFixed(4)}`}
-                      <span style={{ fontSize: '1.2rem', marginLeft: '0.5rem', color: '#00d6a3', opacity: 0.8 }}>ZYLO</span>
+                      <span style={{ fontSize: '1.2rem', marginLeft: '0.5rem', color: '#00d6a3', opacity: 0.8 }}>{selectedUnit !== null ? getUnitName(selectedUnit) : 'ZYLO'}</span>
                     </div>
                     <div className="stat-label" style={{ fontSize: '0.9rem', fontWeight: '600', color: 'rgba(255, 255, 255, 0.7)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                       Total Team Power Up
@@ -682,7 +688,7 @@ const RewardSummaryCards: React.FC<RewardSummaryCardsProps> = ({
                   <div className="stat-copy" style={{ flex: 1 }}>
                     <div className="stat-value" style={{ fontSize: '1.75rem', fontWeight: '700', color: '#00d6a3', marginBottom: '0.5rem' }}>
                       {isLoadingCurrentReferralPowerUp ? 'Loading...' : `${parseFloat(currentReferralPowerUpValue || '0').toFixed(4)}`}
-                      <span style={{ fontSize: '1.2rem', marginLeft: '0.5rem', color: '#00d6a3', opacity: 0.8 }}>ZYLO</span>
+                      <span style={{ fontSize: '1.2rem', marginLeft: '0.5rem', color: '#00d6a3', opacity: 0.8 }}>{selectedUnit !== null ? getUnitName(selectedUnit) : 'ZYLO'}</span>
                     </div>
                     <div className="stat-label" style={{ fontSize: '0.9rem', fontWeight: '600', color: 'rgba(255, 255, 255, 0.7)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                       Current Team Power Up
@@ -722,7 +728,7 @@ const RewardSummaryCards: React.FC<RewardSummaryCardsProps> = ({
                     <div className="stat-copy" style={{ flex: 1 }}>
                       <div className="stat-value" style={{ fontSize: '1.75rem', fontWeight: '700', color: '#FEE739', marginBottom: '0.5rem' }}>
                         {isLoadingRewards ? 'Loading...' : `${parseFloat(currentSelfReward || '0').toFixed(2)}`}
-                        <span style={{ fontSize: '1.2rem', marginLeft: '0.5rem', color: '#FEE739', opacity: 0.8 }}>ZYLO</span>
+                        <span style={{ fontSize: '1.2rem', marginLeft: '0.5rem', color: '#FEE739', opacity: 0.8 }}>{selectedUnit !== null ? getUnitName(selectedUnit) : 'ZYLO'}</span>
                       </div>
                       <div className="stat-label" style={{ fontSize: '0.9rem', fontWeight: '600', color: 'rgba(255, 255, 255, 0.7)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                         Zylo Universe

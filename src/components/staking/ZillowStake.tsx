@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAccount, useWalletClient } from 'wagmi';
-import { getTokenBalance, approveTokens, getAllowance, deposit, getUserDetails } from '@/blockchain/instances/ZyloPowerUp';
-import { getUserClaimXDetailsLength, userClaimXHistory } from '@/blockchain/instances/ZyloPowerUpM';
+import { getTokenBalance, approveTokens, getAllowance, deposit, getUserDetails, getPowerUpHistoryLength, userPowerUpHistory } from '@/blockchain/instances/ZyloPowerUp';
 import { ZyloPowerUp_ADDRESS, ZyloPowerUpM_ADDRESS } from '@/blockchain/addresses/addresses';
 import ZyloPowerUpM_ABI from '@/blockchain/abis/ZyloPowerUpM.json';
 import { BrowserProvider, Contract, ethers } from 'ethers';
@@ -96,6 +95,44 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
   const [index2Value, setIndex2Value] = useState('0.00');
   const [index3Value, setIndex3Value] = useState('0.00');
   const { showToast } = useToast();
+
+  // Get unit range text for display
+  const getUnitRangeText = () => {
+    if (selectedZoneUnit === null) return 'Select a unit first';
+
+    let unitName = '';
+    let minAmount = 0;
+    let maxAmount: number | string = 0;
+
+    if (selectedZoneUnit === 0) {
+      unitName = 'Spark Up';
+      minAmount = 1;
+      maxAmount = 10000;
+    } else if (selectedZoneUnit === 1) {
+      unitName = 'Flicker Roar';
+      minAmount = 10001;
+      maxAmount = 50000;
+    } else if (selectedZoneUnit === 2) {
+      unitName = 'AI Overrider';
+      minAmount = 50001;
+      maxAmount = 100000;
+    } else if (selectedZoneUnit === 3) {
+      unitName = 'Zylo Apex';
+      minAmount = 100001;
+      maxAmount = 250000;
+    } else if (selectedZoneUnit === 4) {
+      unitName = 'Zylo Universe';
+      minAmount = 250001;
+      maxAmount = 500000;
+    } else if (selectedZoneUnit === 5) {
+      unitName = 'Zylo Infinity';
+      minAmount = 500001;
+      maxAmount = '∞';
+    }
+
+    const rangeText = maxAmount === '∞' ? `${minAmount}+` : `${minAmount}-${maxAmount.toLocaleString()}`;
+    return `${unitName} ${rangeText}`;
+  };
   const [index4Value, setIndex4Value] = useState('0.00');
   const [index6Value, setIndex6Value] = useState('0.00');
   const [index7Value, setIndex7Value] = useState('0.00');
@@ -912,8 +949,8 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
 
         let lengthResult;
         try {
-          lengthResult = await getUserClaimXDetailsLength(provider, address, selectedZoneUnit);
-          console.log('📡 getUserClaimXDetailsLength result:', lengthResult);
+          lengthResult = await getPowerUpHistoryLength(provider, address, selectedZoneUnit);
+          console.log('📡 getPowerUpHistoryLength result:', lengthResult);
         } catch (contractError) {
           console.error('📡 Contract call failed:', contractError);
           setPowerUpHistory([]);
@@ -935,7 +972,7 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
         // Loop through the length and get each history record
         for (let i = 0; i < length; i++) {
           try {
-            const historyResult = await userClaimXHistory(provider, address, selectedZoneUnit, i);
+            const historyResult = await userPowerUpHistory(provider, address, selectedZoneUnit, i);
             if (historyResult.success && historyResult.amount && historyResult.timestamp) {
               const timestamp = parseInt(historyResult.timestamp);
               const date = new Date(timestamp * 1000);
@@ -1083,6 +1120,37 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
       if (requiredAmount > currentTokenBalance) {
         showToast(`Insufficient ZYLO token balance. You have ${currentTokenBalance.toFixed(2)} ZYLO, trying to stake ${requiredAmount} ZYLO`, 'error');
         return;
+      }
+
+      // Special check for Zylo Infinity (unit 5) - must have all previous units purchased
+      if (selectedZoneUnit === 5) {
+        console.log('🔍 Checking Zylo Infinity requirements - must have all previous units purchased');
+
+        // Check if user has purchased all previous units (0, 1, 2, 3, 4)
+        const requiredUnits = [0, 1, 2, 3, 4];
+        const missingUnits = [];
+
+        for (const unit of requiredUnits) {
+          try {
+            const lengthResult = await getPowerUpHistoryLength(provider, address!, unit);
+            if (!lengthResult.success || lengthResult.length === 0) {
+              const unitNames = ['Spark Up', 'Flicker Roar', 'AI Overrider', 'Zylo Apex', 'Zylo Universe'];
+              missingUnits.push(unitNames[unit]);
+            }
+          } catch (error) {
+            console.error(`Error checking unit ${unit}:`, error);
+            const unitNames = ['Spark Up', 'Flicker Roar', 'AI Overrider', 'Zylo Apex', 'Zylo Universe'];
+            missingUnits.push(unitNames[unit]);
+          }
+        }
+
+        if (missingUnits.length > 0) {
+          const missingUnitsText = missingUnits.join(', ');
+          showToast(`To unlock Zylo Infinity, you must first purchase all previous units`, 'warning');
+          return;
+        }
+
+        console.log('✅ All previous units purchased - Zylo Infinity can be unlocked!');
       }
 
       // Unit-wise validation based on selected zone unit OR current total staked amount
@@ -1288,7 +1356,6 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
           return;
         }
 
-        setShowSuccessNotification(true);
       }
 
       // Wait a moment for approval to be processed
@@ -1749,13 +1816,67 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
                         </div>
                       </div>
                     </div>
+                    {/* Unit Range Indicator */}
+                    <div className="mb-2">
+                      <div className="unit-range-indicator" style={{
+                        background: 'linear-gradient(135deg, rgba(254, 231, 57, 0.1) 0%, rgba(254, 231, 57, 0.05) 100%)',
+                        border: '1px solid rgba(254, 231, 57, 0.3)',
+                        borderRadius: '8px',
+                        padding: '8px 12px',
+                        textAlign: 'center',
+                        fontSize: '0.9rem',
+                        fontWeight: '600',
+                        color: '#FEE739'
+                      }}>
+                        {getUnitRangeText()} ZYLO
+                      </div>
+                    </div>
+
                     <div className="mb-3 position-relative">
                       <input
                         className="z-input w-100"
                         type="text"
                         inputMode="decimal"
                         value={amountTop}
-                        onChange={(e) => setAmountTop(e.target.value)}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setAmountTop(value);
+
+                          // Real-time validation for unit range
+                          if (selectedZoneUnit !== null && value) {
+                            const numValue = parseFloat(value);
+                            if (!isNaN(numValue)) {
+                              let minAmount = 0;
+                              let maxAmount: number | typeof Infinity = 0;
+
+                              if (selectedZoneUnit === 0) {
+                                minAmount = 1;
+                                maxAmount = 10000;
+                              } else if (selectedZoneUnit === 1) {
+                                minAmount = 10001;
+                                maxAmount = 50000;
+                              } else if (selectedZoneUnit === 2) {
+                                minAmount = 50001;
+                                maxAmount = 100000;
+                              } else if (selectedZoneUnit === 3) {
+                                minAmount = 100001;
+                                maxAmount = 250000;
+                              } else if (selectedZoneUnit === 4) {
+                                minAmount = 250001;
+                                maxAmount = 500000;
+                              } else if (selectedZoneUnit === 5) {
+                                minAmount = 500001;
+                                maxAmount = Infinity;
+                              }
+
+                              if (numValue < minAmount) {
+                                showToast(`Minimum amount for this unit is ${minAmount.toLocaleString()} ZYLO`, 'warning');
+                              } else if (maxAmount !== Infinity && numValue > maxAmount) {
+                                showToast(`Maximum amount for this unit is ${maxAmount.toLocaleString()} ZYLO`, 'warning');
+                              }
+                            }
+                          }
+                        }}
                         placeholder="0.00"
                       />
                       <button
@@ -1809,7 +1930,7 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
                 boxShadow: '0 8px 32px rgba(254, 231, 57, 0.2)',
               }}>
                 {/* Debug Info */}
-                <div style={{
+                {/* <div style={{
                   background: 'rgba(255, 0, 0, 0.1)',
                   border: '1px solid rgba(255, 0, 0, 0.3)',
                   borderRadius: '8px',
@@ -1825,7 +1946,7 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
                   walletClient: {walletClient ? 'connected' : 'null'}<br />
                   isLoadingPowerUpHistory: {isLoadingPowerUpHistory ? 'true' : 'false'}<br />
                   powerUpHistory.length: {powerUpHistory.length}
-                </div>
+                </div> */}
 
                 <h3 style={{ color: '#FEE739', marginBottom: '1.5rem', textAlign: 'center', fontWeight: '700' }}>
                   Power Up History - {(() => {
@@ -1862,10 +1983,10 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
                               {index + 1}
                             </td>
                             <td style={{ color: '#fff', padding: '1rem', border: 'none' }}>
-                              {parseFloat(record.amount).toFixed(4)} ZILLOW
+                              {record.amount ? parseFloat(record.amount).toFixed(2) : '0.0000'} ZYLO
                             </td>
                             <td style={{ color: '#fff', padding: '1rem', border: 'none' }}>
-                              {record.formattedTime}
+                              {record.formattedTime || 'N/A'}
                             </td>
                           </tr>
                         ))}
@@ -1967,26 +2088,7 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
         </div> */}
       </div>
 
-      {/* Success Notification */}
-      {
-        showSuccessNotification && (
-          <div className="success-notification">
-            <div className="success-notification-content">
-              <div className="success-icon">✅</div>
-              <div className="success-text">{successMessage}</div>
-              <button
-                className="success-close-btn"
-                onClick={() => {
-                  setShowSuccessNotification(false);
-                  setSuccessMessage('');
-                }}
-              >
-                ×
-              </button>
-            </div>
-          </div>
-        )
-      }
+      {/* Toast notifications are now used instead of inline success notifications */}
     </section>
   );
 };

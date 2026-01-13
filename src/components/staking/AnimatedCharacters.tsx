@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { useAccount } from 'wagmi';
+import { useAccount, useWalletClient } from 'wagmi';
 import { BrowserProvider, formatUnits } from 'ethers';
 import { getUserDetails } from '@/blockchain/instances/ZyloPowerUp';
 
@@ -15,6 +15,7 @@ interface AnimatedCharactersProps {
 const AnimatedCharacters: React.FC<AnimatedCharactersProps> = ({ compactMode = false }) => {
   // Blockchain integration
   const { address, isConnected } = useAccount();
+  const { data: walletClient } = useWalletClient();
   const [blockchainCategory, setBlockchainCategory] = useState<number>(0);
   const [blockchainPercentage, setBlockchainPercentage] = useState<number>(0);
   const [_blockchainCharacterNo, setBlockchainCharacterNo] = useState<number>(0);
@@ -263,8 +264,8 @@ const AnimatedCharacters: React.FC<AnimatedCharactersProps> = ({ compactMode = f
       try {
         setLoading(true);
 
-        if (typeof window !== 'undefined' && window.ethereum) {
-          const provider = new BrowserProvider(window.ethereum as any);
+        if (walletClient) {
+          const provider = new BrowserProvider(walletClient as any);
           const result = await getUserDetails(provider, address);
           
           if (result.success && result.data) {

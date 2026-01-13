@@ -14,6 +14,12 @@ import AssetRenderer, { getAssetName } from '@/components/AssetRenderer';
 import { getUnitCategory } from './utils/unitCategoryMapping';
 import './ZillowStake.css';
 
+// Helper function to get unit name by index
+const getUnitName = (unitIndex: number): string => {
+  const unitNames = ['SPARK UP', 'FLICKER ROAR', 'AI OVERRIDER', 'ZYLO APEX', 'ZYLO UNIVERSE'];
+  return unitNames[unitIndex] || 'UNKNOWN UNIT';
+};
+
 // Import CSS files for slick carousel
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
@@ -100,7 +106,7 @@ const SelfPowerUpRewardDisplay: React.FC<SelfPowerUpRewardDisplayProps> = ({ add
       {isLoading ? (
         <span style={{ fontSize: '12px', opacity: 0.7 }}>Loading...</span>
       ) : (
-        `${parseFloat(reward || '0').toFixed(4)} ZYLO`
+        `${parseFloat(reward || '0').toFixed(4)} ${getUnitName(unitIndex)}`
       )}
     </>
   );
@@ -191,7 +197,7 @@ const CurrentSelfPowerUpRewardDisplay: React.FC<CurrentSelfPowerUpRewardDisplayP
       {isLoading ? (
         <span style={{ fontSize: '12px', opacity: 0.7 }}>Loading...</span>
       ) : (
-        `${parseFloat(calculatedValue || '0').toFixed(4)} ZYLO`
+        `${parseFloat(calculatedValue || '0').toFixed(4)} ${getUnitName(unitIndex)}`
       )}
     </>
   );
@@ -283,6 +289,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
       requirement: '1 active unit',
       tokenRange: '1 → 10,000',
       energyPercentage: 100, // This will be dynamic based on actual data
+      isComingSoon: false,
     },
     {
       unitIndex: 1,
@@ -296,6 +303,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
       requirement: '2 units (1 Spark + 1 Flicker)',
       tokenRange: '10,001 → 50,000',
       energyPercentage: 100,
+      isComingSoon: false,
     },
     {
       unitIndex: 2,
@@ -309,6 +317,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
       requirement: '3 units',
       tokenRange: '50,001 → 100,000',
       energyPercentage: 100,
+      isComingSoon: false,
     },
     {
       unitIndex: 3,
@@ -322,6 +331,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
       requirement: '4 units',
       tokenRange: '100,001+',
       energyPercentage: 100,
+      isComingSoon: false,
     },
     {
       unitIndex: 4,
@@ -335,11 +345,12 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
       requirement: '5 units',
       tokenRange: '250,000+',
       energyPercentage: 100,
+      isComingSoon: false,
     },
     {
       unitIndex: 5,
       name: 'Zylo Infinity',
-      image: '/Unit/zylo-infinity.png',
+      image: '/Unit/power-up.png',
       reward: '4X',
       rewardColor: '#9333ea',
       borderColor: '#9333ea',
@@ -348,6 +359,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
       requirement: '6 units',
       tokenRange: '500,000+',
       energyPercentage: 100,
+      isComingSoon: false,
     },
   ];
 
@@ -559,7 +571,9 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
   // Handle zone card click
   const handleZoneCardClick = (unitIndex: number) => {
     // All units are now available for selection
-    onZoneCardClick(unitIndex);
+    if (onZoneCardClick) {
+      onZoneCardClick(unitIndex);
+    }
 
     // Navigate to powerup section with unit index
     router.push(`/staking?section=powerup&unit=${unitIndex}`);
@@ -1435,7 +1449,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                                   textShadow: '0 1px 3px rgba(0, 0, 0, 0.6)',
                                   textAlign: 'center',
                                 }}>
-                                  <span style={{ fontWeight: '700' }}>{parseFloat(powerUp.powerUpToken || '0').toFixed(2)}</span> <span style={{ fontSize: '13px', fontWeight: '400' }}>ZYLO</span>
+                                  <span style={{ fontWeight: '700' }}>{parseFloat(powerUp.powerUpToken || '0').toFixed(2)}</span> <span style={{ fontSize: '13px', fontWeight: '400' }}>{getUnitName(unit.unitIndex)}</span>
                                 </div>
                               </div>
 
@@ -1852,7 +1866,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                                 textShadow: '0 1px 3px rgba(0, 0, 0, 0.6)',
                                 textAlign: 'center',
                               }}>
-                                <span style={{ fontWeight: '700' }}>{parseFloat(powerUp.powerUpToken || '0').toFixed(2)}</span> <span style={{ fontSize: '13px', fontWeight: '400' }}>ZYLO</span>
+                                <span style={{ fontWeight: '700' }}>{parseFloat(powerUp.powerUpToken || '0').toFixed(2)}</span> <span style={{ fontSize: '13px', fontWeight: '400' }}>{getUnitName(currentUnit.unitIndex)}</span>
                               </div>
                             </div>
 
@@ -1910,35 +1924,6 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                             marginTop: '12px',
                             overflow: 'hidden',
                           }}>
-                            <div style={{
-                              fontSize: '12px',
-                              color: 'rgba(254, 231, 57, 0.9)',
-                              fontWeight: '600',
-                              letterSpacing: '0.5px',
-                              textAlign: 'center',
-                              marginBottom: '8px',
-                            }}>
-                              Total Self Power Up
-                            </div>
-                            <div style={{
-                              fontSize: '20px',
-                              fontWeight: '700',
-                              color: '#FEE739',
-                              textAlign: 'center',
-                              textShadow: '0 1px 3px rgba(0, 0, 0, 0.6)',
-                              marginBottom: '10px',
-                            }}>
-                              {address && walletClient ? (
-                                <SelfPowerUpRewardDisplay
-                                  address={address}
-                                  unitIndex={currentUnit.unitIndex}
-                                  cardIndex={index}
-                                  walletClient={walletClient}
-                                />
-                              ) : (
-                                <span style={{ fontSize: '12px', opacity: 0.7 }}>Connect Wallet</span>
-                              )}
-                            </div>
                             <div style={{
                               fontSize: '12px',
                               color: 'rgba(254, 231, 57, 0.9)',
@@ -2026,59 +2011,64 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
           <div style={{ marginTop: '3rem' }}>
 
             {/* Self Claim History Table - Always shown */}
-              <div style={{ marginTop: '2rem' }}>
-                <div style={{
-                  background: 'linear-gradient(145deg, #0a0a1a 0%, #0f0f23 50%, #1a1a2e 100%)',
-                  borderRadius: '20px',
-                  padding: '2rem',
-                  border: '2px solid rgba(254, 231, 57, 0.3)',
-                  boxShadow: '0 8px 32px rgba(254, 231, 57, 0.2)',
-                }}>
-                  <h3 style={{ color: '#FEE739', marginBottom: '1.5rem', textAlign: 'center', fontWeight: '700' }}>
+            <div style={{ marginTop: '2rem' }}>
+              <div style={{
+                background: 'linear-gradient(145deg, #0a0a1a 0%, #0f0f23 50%, #1a1a2e 100%)',
+                borderRadius: '20px',
+                padding: '2rem',
+                border: '2px solid rgba(254, 231, 57, 0.3)',
+                boxShadow: '0 8px 32px rgba(254, 231, 57, 0.2)',
+              }}>
+                <h3 style={{ color: '#FEE739', marginBottom: '1.5rem', textAlign: 'center', fontWeight: '700' }}>
                   Claim History
-                  </h3>
+                </h3>
 
-                  {isLoadingSelfHistory ? (
-                    <div className="text-center py-4">
-                      <div className="spinner-border text-warning" role="status">
-                        <span className="visually-hidden">Loading...</span>
-                      </div>
-                      <p className="text-white-50 mt-2">Loading history...</p>
+                {isLoadingSelfHistory ? (
+                  <div className="text-center py-4">
+                    <div className="spinner-border text-warning" role="status">
+                      <span className="visually-hidden">Loading...</span>
                     </div>
-                  ) : selfClaimHistory.length === 0 ? (
-                    <div className="text-center py-4">
+                    <p className="text-white-50 mt-2">Loading history...</p>
+                  </div>
+                ) : selfClaimHistory.length === 0 ? (
+                  <div className="text-center py-4">
                     <p className="text-white-50">No claim history found for this unit.</p>
-                    </div>
-                  ) : (
-                    <div className="table-responsive">
+                  </div>
+                ) : (
+                  <div className="table-responsive">
                     <table className="table table-dark table-striped" style={{ borderRadius: '10px', overflow: 'hidden' }}>
                       <thead style={{ background: 'rgba(254, 231, 57, 0.1)' }}>
-                          <tr>
+                        <tr>
                           <th style={{ color: '#FEE739', border: 'none', padding: '1rem', fontWeight: '600', width: '80px' }}>#</th>
                           <th style={{ color: '#FEE739', border: 'none', padding: '1rem', fontWeight: '600' }}>Amount</th>
                           <th style={{ color: '#FEE739', border: 'none', padding: '1rem', fontWeight: '600' }}>Date & Time (UTC)</th>
-                          </tr>
-                        </thead>
-                        <tbody>
+                        </tr>
+                      </thead>
+                      <tbody>
                         {selfClaimHistory.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((record, index) => (
                           <tr key={index} style={{ borderBottom: '1px solid rgba(254, 231, 57, 0.1)' }}>
                             <td style={{ color: '#FEE739', padding: '1rem', border: 'none', fontWeight: '600' }}>
-                              {index + 1}
-                              </td>
-                            <td style={{ color: '#fff', padding: '1rem', border: 'none' }}>
-                              {parseFloat(record.amount).toFixed(4)} ZILLOW
+                              {(currentPage - 1) * itemsPerPage + index + 1}
                             </td>
                             <td style={{ color: '#fff', padding: '1rem', border: 'none' }}>
-                                {record.formattedTime}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                              {parseFloat(record.amount || '0').toFixed(4)} {(() => {
+                                const unitNames = ['Spark Up', 'Flicker Roar', 'AI Overrider', 'Zylo Apex', 'Zylo Universe', 'Zylo Infinity'];
+                                return selectedZoneUnit !== null && selectedZoneUnit >= 0 && selectedZoneUnit < unitNames.length
+                                  ? unitNames[selectedZoneUnit]
+                                  : 'Unknown Unit';
+                              })()}
+                            </td>
+                            <td style={{ color: '#fff', padding: '1rem', border: 'none' }}>
+                              {record.formattedTime}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
 
-                    {/* Pagination Controls */}
-                    {selfClaimHistory.length > itemsPerPage && (
-                      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '2rem' }}>
+                    {/* Pagination Controls for Claim History */}
+                    {selfClaimHistory.length > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginTop: '2rem', flexWrap: 'wrap' }}>
                         <button
                           onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                           disabled={currentPage === 1}
@@ -2091,6 +2081,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                             fontWeight: '600',
                             cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
                             transition: 'all 0.3s ease',
+                            fontSize: '0.9rem',
                           }}
                           onMouseEnter={(e) => {
                             if (currentPage !== 1) {
@@ -2105,20 +2096,67 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                             }
                           }}
                         >
-                          Previous
+                          ‹ Prev
                         </button>
 
-                        <span style={{
-                          color: '#FEE739',
-                          fontWeight: '600',
-                          fontSize: '1rem',
-                          padding: '0.5rem 1rem',
-                          background: 'rgba(254, 231, 57, 0.1)',
-                          borderRadius: '8px',
-                          border: '2px solid rgba(254, 231, 57, 0.3)',
-                        }}>
-                          Page {currentPage} of {totalPages}
-                        </span>
+                        {/* Page Number Buttons */}
+                        {Array.from({ length: totalPages }, (_, i) => i + 1)
+                          .filter(page => {
+                            // Show first page, last page, current page, and pages around current
+                            return page === 1 ||
+                              page === totalPages ||
+                              (page >= currentPage - 1 && page <= currentPage + 1);
+                          })
+                          .map((page, index, filteredPages) => {
+                            // Add ellipsis if there are gaps
+                            const prevPage = filteredPages[index - 1];
+                            const showEllipsis = index > 0 && page - prevPage > 1;
+
+                            return (
+                              <React.Fragment key={page}>
+                                {showEllipsis && (
+                                  <span style={{
+                                    color: '#FEE739',
+                                    padding: '0.5rem',
+                                    fontSize: '1.2rem',
+                                    fontWeight: 'bold'
+                                  }}>
+                                    ...
+                                  </span>
+                                )}
+                                <button
+                                  onClick={() => setCurrentPage(page)}
+                                  disabled={currentPage === page}
+                                  style={{
+                                    background: currentPage === page ? 'rgba(254, 231, 57, 0.3)' : 'rgba(254, 231, 57, 0.1)',
+                                    border: '2px solid #FEE739',
+                                    color: '#FEE739',
+                                    padding: '0.5rem 0.8rem',
+                                    borderRadius: '8px',
+                                    fontWeight: '600',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s ease',
+                                    fontSize: '0.9rem',
+                                    minWidth: '40px',
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    if (currentPage !== page) {
+                                      e.currentTarget.style.background = 'rgba(254, 231, 57, 0.2)';
+                                      e.currentTarget.style.transform = 'translateY(-2px)';
+                                    }
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    if (currentPage !== page) {
+                                      e.currentTarget.style.background = currentPage === page ? 'rgba(254, 231, 57, 0.3)' : 'rgba(254, 231, 57, 0.1)';
+                                      e.currentTarget.style.transform = 'translateY(0)';
+                                    }
+                                  }}
+                                >
+                                  {page}
+                                </button>
+                              </React.Fragment>
+                            );
+                          })}
 
                         <button
                           onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
@@ -2132,6 +2170,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                             fontWeight: '600',
                             cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
                             transition: 'all 0.3s ease',
+                            fontSize: '0.9rem',
                           }}
                           onMouseEnter={(e) => {
                             if (currentPage !== totalPages) {
@@ -2146,14 +2185,14 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                             }
                           }}
                         >
-                          Next
+                          Next ›
                         </button>
                       </div>
                     )}
-                    </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
+            </div>
 
           </div>
         )}

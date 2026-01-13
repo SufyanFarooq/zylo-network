@@ -1,4 +1,80 @@
 /* LeaderBoard Table Styles */
+
+/* Time Period Cards */
+.time-period-selector {
+    padding: 1rem 2rem;
+}
+
+.period-card {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid rgba(254, 231, 57, 0.3);
+    transition: all 0.3s ease;
+    background: rgba(3, 53, 61, 0.3);
+    height: 120px;
+}
+
+.period-card:hover {
+    border-color: rgba(254, 231, 57, 0.6);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(254, 231, 57, 0.3);
+}
+
+.period-card.active {
+    border-color: #FEE739;
+    box-shadow: 0 0 20px rgba(254, 231, 57, 0.4);
+}
+
+.period-card-image {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.period-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.4);
+    transition: background 0.3s ease;
+}
+
+.period-card:hover .period-overlay {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.period-card.active .period-overlay {
+    background: rgba(254, 231, 57, 0.2);
+}
+
+.period-label {
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    margin: 0;
+    text-align: center;
+}
+
+/* Period value styling for month/week/day columns */
+.period-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #FEE739;
+    background: rgba(254, 231, 57, 0.1);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: 1px solid rgba(254, 231, 57, 0.3);
+    display: inline-block;
+    text-align: center;
+    min-width: 60px;
+}
 .leaderboard-table-section {
     padding: 2rem 0 4rem;
     background: #032233;

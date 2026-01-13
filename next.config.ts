@@ -27,13 +27,13 @@ const nextConfig: NextConfig = {
       { source: '/ping-us', destination: '/contact' },
     ];
   },
-  
+
   // Reduce automatic preloads that cause warnings
   // Next.js will be more conservative about preloading resources
   experimental: {
     optimizePackageImports: ['@reown/appkit', 'react-icons'],
   },
-  
+
   // Image optimization
   images: {
     formats: ['image/avif', 'image/webp'],
@@ -73,7 +73,7 @@ const nextConfig: NextConfig = {
     // Fix for porto module resolution issue in @reown/appkit-adapter-wagmi
     // porto is an optional connector, so we ignore it if not found
     const webpack = require('webpack');
-    
+
     // Use IgnorePlugin to ignore porto module completely
     config.plugins.push(
       new webpack.IgnorePlugin({

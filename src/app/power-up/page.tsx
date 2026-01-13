@@ -32,24 +32,15 @@ interface BlockchainStake {
 
 const PowerUpPage: React.FC = () => {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [, setUserStakes] = useState<StakeRecord[]>([]);
   const [, setIsLoadingStakes] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
-  // Get section and unit from URL params
-  const urlSection = searchParams.get('section') as 'zones' | 'powerup' | 'units' | null;
-  const urlUnit = searchParams.get('unit');
-
-  const [selectedUnit, setSelectedUnit] = useState<number | null>(
-    urlUnit ? parseInt(urlUnit, 10) : null
-  );
-  const [currentSection, setCurrentSection] = useState<'zones' | 'powerup' | 'units' | 'staking'>(
-    urlSection || 'powerup'
-  );
+  const [selectedUnit, setSelectedUnit] = useState<number | null>(null);
+  const [currentSection, setCurrentSection] = useState<'zones' | 'powerup' | 'units' | 'staking'>('powerup');
 
   // Update URL when section or unit changes
-  const updateURL = (section: 'zones' | 'powerup' | 'units', unit: number | null) => {
+  const updateURL = (section: 'zones' | 'powerup' | 'units' | 'staking', unit: number | null) => {
     const params = new URLSearchParams();
     if (section !== 'zones') {
       params.set('section', section);
@@ -62,15 +53,19 @@ const PowerUpPage: React.FC = () => {
     router.push(newUrl, { scroll: false });
   };
 
-  // Sync state with URL on mount
+  // Sync state with URL on mount and when URL changes
   useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlSection = urlParams.get('section') as 'zones' | 'powerup' | 'units' | 'staking' | null;
+    const urlUnit = urlParams.get('unit');
+
     if (urlSection) {
       setCurrentSection(urlSection);
     }
     if (urlUnit) {
       setSelectedUnit(parseInt(urlUnit, 10));
     }
-  }, [urlSection, urlUnit]);
+  }, []); // Only run on mount
 
   // Reward states (for UnitsRewardsSection)
   const [claimedSelfReward] = useState('0.00');
@@ -267,4 +262,4 @@ const PowerUpPage: React.FC = () => {
   );
 };
 
-export default Po
+export default PowerUpPage;

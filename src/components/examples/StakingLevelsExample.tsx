@@ -1,78 +1,79 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import StakingLevelsTable from '../common/StakingLevelsTable';
-import { useStakingLevels } from '../../hooks/useStakingLevels';
 
 const StakingLevelsExample: React.FC = () => {
-    const {
-        levels,
-        isLoading: _isLoading,
-        selectedLevel,
-        selectLevel,
-        updateLevelStatus
-    } = useStakingLevels();
+    // Allow selecting which unit to display
+    const [selectedUnitIndex, setSelectedUnitIndex] = useState(0);
 
-    // Transform levels to match StakingLevelsTable interface
-    const transformedLevels = levels.map(level => ({
-        id: level.id,
-        level: level.level,
-        requiredStake: level.selfHoldRequirement,
-        reward: '0.0000', // Default value since this is not available in the hook
-        stakeTime: undefined,
-        status: level.status
-    }));
-
-    const handleLevelSelect = (level: { id: number; level: string; requiredStake: string; reward: string; stakeTime?: string; status: 'active' | 'inactive' | 'locked' }) => {
-        console.log('Selected level:', level);
-        // Find the original level and select it
-        const originalLevel = levels.find(l => l.id === level.id);
-        if (originalLevel) {
-            selectLevel(originalLevel);
-        }
-    };
-
-    const handleUnlockLevel = (levelId: number) => {
-        updateLevelStatus(levelId, 'active');
-    };
+    const unitOptions = [
+        { value: 0, label: 'Spark Up' },
+        { value: 1, label: 'Flicker Roar' },
+        { value: 2, label: 'AI Overrider' },
+        { value: 3, label: 'Zylo Apex' },
+        { value: 4, label: 'Zylo Universe' },
+        { value: 5, label: 'Zylo Infinity' }
+    ];
 
     return (
         <div className="staking-levels-example">
             <div className="container-fluid">
-                <div className="row">
+                <div className="row mb-4">
                     <div className="col-12">
-                        <StakingLevelsTable
-                            levels={transformedLevels}
-                            onLevelSelect={handleLevelSelect}
-                            selectedLevel={selectedLevel || undefined}
-                            showActions={true}
-                            className="mb-4"
-                        />
+                        <div className="unit-selector" style={{
+                            background: 'linear-gradient(145deg, #0a0a1a 0%, #0f0f23 50%, #1a1a2e 100%)',
+                            borderRadius: '15px',
+                            padding: '2rem',
+                            border: '2px solid rgba(254, 231, 57, 0.3)',
+                            boxShadow: '0 8px 32px rgba(254, 231, 57, 0.2)',
+                        }}>
+                            <h4 style={{ color: '#FEE739', marginBottom: '1.5rem', textAlign: 'center' }}>
+                                Select Unit to View Power Up History
+                            </h4>
+                            <div className="d-flex justify-content-center gap-2 flex-wrap">
+                                {unitOptions.map((unit) => (
+                                    <button
+                                        key={unit.value}
+                                        onClick={() => setSelectedUnitIndex(unit.value)}
+                                        style={{
+                                            background: selectedUnitIndex === unit.value
+                                                ? 'rgba(254, 231, 57, 0.2)'
+                                                : 'rgba(254, 231, 57, 0.1)',
+                                            border: '2px solid #FEE739',
+                                            color: '#FEE739',
+                                            padding: '0.5rem 1rem',
+                                            borderRadius: '8px',
+                                            fontWeight: '600',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.3s ease',
+                                            fontSize: '0.9rem',
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.background = 'rgba(254, 231, 57, 0.2)';
+                                            e.currentTarget.style.transform = 'translateY(-2px)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.background = selectedUnitIndex === unit.value
+                                                ? 'rgba(254, 231, 57, 0.2)'
+                                                : 'rgba(254, 231, 57, 0.1)';
+                                            e.currentTarget.style.transform = 'translateY(0)';
+                                        }}
+                                    >
+                                        {unit.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                {/* Additional controls for demonstration */}
-                <div className="row mt-4">
+                <div className="row">
                     <div className="col-12">
-                        <div className="controls-panel">
-                            <h4>Vortex Zone Controls</h4>
-                            <div className="button-group">
-                                <button
-                                    className="btn btn-primary"
-                                    onClick={() => handleUnlockLevel(5)}
-                                    disabled={levels.find(l => l.id === 5)?.status === 'active'}
-                                >
-                                    Unlock Diamond Vortex Zone
-                                </button>
-                                <button
-                                    className="btn btn-primary"
-                                    onClick={() => handleUnlockLevel(6)}
-                                    disabled={levels.find(l => l.id === 6)?.status === 'active'}
-                                >
-                                    Unlock Master Level
-                                </button>
-                            </div>
-                        </div>
+                        <StakingLevelsTable
+                            selectedUnit={selectedUnitIndex}
+                            className="mb-4"
+                        />
                     </div>
                 </div>
             </div>

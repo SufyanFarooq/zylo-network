@@ -34,7 +34,8 @@ const LeaderBoardTable: React.FC = () => {
     const [leaderboardData, setLeaderboardData] = useState<LeaderBoardEntry[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage] = useState(10);
+    const [itemsPerPage] = useState(50); // Show all records on one page
+
 
     const { isConnected } = useAccount();
     const { data: walletClient } = useWalletClient();
@@ -78,47 +79,74 @@ const LeaderBoardTable: React.FC = () => {
             const { month, week, day } = timeResult;
             console.log("Network time values:", { month, week, day });
 
-            let result;
+            const leaderboardEntries: LeaderBoardEntry[] = [];
 
-            // Step 2: Call appropriate function based on tab and period
-            if (activeTab === 'staking') {
-                // Top Power Ups
-                if (activePeriod === 'today') {
-                    console.log("Fetching dailyPowerUpUser with day:", day);
-                    result = await getDailyPowerUpUser(provider, day);
+            // Step 2: Loop through 10 time periods backwards based on activePeriod
+            for (let i = 0; i < 10; i++) {
+                let periodValue;
+                let result;
+
+                if (activePeriod === 'month') {
+                    periodValue = month - i;
+                    if (periodValue <= 0) break; // Don't go below 1
+
+                    console.log(`Fetching monthly data for month:`, periodValue);
+                    if (activeTab === 'staking') {
+                        result = await getMonthlyPowerUpUser(provider, periodValue);
+                    } else {
+                        result = await getMonthlyPowerUpIncept(provider, periodValue);
+                    }
                 } else if (activePeriod === 'week') {
-                    console.log("Fetching weeklyPowerUpUser with week:", week);
-                    result = await getWeeklyPowerUpUser(provider, week);
-                } else if (activePeriod === 'month') {
-                    console.log("Fetching monthlyPowerUpUser with month:", month);
-                    result = await getMonthlyPowerUpUser(provider, month);
+                    periodValue = week - i;
+                    if (periodValue <= 0) break; // Don't go below 1
+
+                    console.log(`Fetching weekly data for week:`, periodValue);
+                    if (activeTab === 'staking') {
+                        result = await getWeeklyPowerUpUser(provider, periodValue);
+                    } else {
+                        result = await getWeeklyPowerUpIncept(provider, periodValue);
+                    }
+                } else { // today
+                    periodValue = day - i;
+                    if (periodValue <= 0) break; // Don't go below 1
+
+                    console.log(`Fetching daily data for day:`, periodValue);
+                    if (activeTab === 'staking') {
+                        result = await getDailyPowerUpUser(provider, periodValue);
+                    } else {
+                        result = await getDailyPowerUpIncept(provider, periodValue);
+                    }
                 }
-            } else if (activeTab === 'team') {
-                // Top Team Builders
-                if (activePeriod === 'today') {
-                    console.log("Fetching dailyPowerUpIncept with day:", day);
-                    result = await getDailyPowerUpIncept(provider, day);
-                } else if (activePeriod === 'week') {
-                    console.log("Fetching weeklyPowerUpIncept with week:", week);
-                    result = await getWeeklyPowerUpIncept(provider, week);
-                } else if (activePeriod === 'month') {
-                    console.log("Fetching monthlyPowerUpIncept with month:", month);
-                    result = await getMonthlyPowerUpIncept(provider, month);
+
+                if (result && result.success && result.address && result.amount) {
+                    const amount = parseFloat(result.amount) || 0.00; // Default to small amount if parsing fails
+
+                    leaderboardEntries.push({
+                        rank: periodValue, // Use the period value as rank/identifier
+                        address: result.address,
+                        totalStaked: amount.toFixed(4)
+                    });
+
+                    console.log(`Added entry for ${activePeriod} ${periodValue}:`, {
+                        address: result.address,
+                        amount: amount.toFixed(4)
+                    });
+                } else {
+                    // Add empty entry if no data available for this period
+                    leaderboardEntries.push({
+                        rank: periodValue,
+                        address: `No data available`,
+                        totalStaked: '0.0000'
+                    });
+                    console.log(`No data available for ${activePeriod} ${periodValue}`);
                 }
             }
 
-            if (result && result.success && result.address && result.amount) {
-                const leaderboardEntry = {
-                    rank: 1,
-                    address: result.address,
-                    totalStaked: parseFloat(result.amount).toFixed(4)
-                };
-                setLeaderboardData([leaderboardEntry]);
-                console.log("Leaderboard data updated:", leaderboardEntry);
-            } else {
-                console.log("No leaderboard data available or invalid result:", result);
-                setLeaderboardData([]);
-            }
+            // Sort by rank (period value) to show in chronological order (newest first)
+            leaderboardEntries.sort((a, b) => b.rank - a.rank);
+
+            setLeaderboardData(leaderboardEntries);
+            console.log("Leaderboard data updated with period entries:", leaderboardEntries);
         } catch (error) {
             console.error("Error fetching leaderboard data:", error);
             setLeaderboardData([]);
@@ -138,19 +166,6 @@ const LeaderBoardTable: React.FC = () => {
     const endIndex = startIndex + itemsPerPage;
     const currentRecords = leaderboardData.slice(startIndex, endIndex);
 
-    const getRankIcon = (rank: number) => {
-        if (rank === 1) return '🥇';
-        if (rank === 2) return '🥈';
-        if (rank === 3) return '🥉';
-        return `#${rank}`;
-    };
-
-    const getRankClass = (rank: number) => {
-        if (rank === 1) return 'rank-gold';
-        if (rank === 2) return 'rank-silver';
-        if (rank === 3) return 'rank-bronze';
-        return 'rank-normal';
-    };
 
     return (
         <section className="leaderboard-table-section py-5">
@@ -199,7 +214,6 @@ const LeaderBoardTable: React.FC = () => {
                                             >
                                                 <div className="period-card-image">
                                                     <Image
-
                                                         src={period.image}
                                                         alt={period.label}
                                                         width={300}
@@ -223,7 +237,7 @@ const LeaderBoardTable: React.FC = () => {
                             <div className="card-header">
                                 <div className="d-flex justify-content-between align-items-center">
                                     <h3 className="card-title mb-0">
-                                        {activePeriod.toUpperCase()}&apsos;s - {activeTab === 'staking' ? 'Top Performers' : 'Top Team Builders'}
+                                        {activePeriod.toUpperCase()}&apos;s - {activeTab === 'staking' ? 'Top Performers' : 'Top Team Builders'}
                                     </h3>
                                     {isConnected && (
                                         <button
@@ -274,7 +288,7 @@ const LeaderBoardTable: React.FC = () => {
                                             <table className="table leaderboard-table">
                                                 <thead>
                                                     <tr>
-                                                        <th>RANK</th>
+                                                        <th>{activePeriod === 'month' ? 'MONTH' : activePeriod === 'week' ? 'WEEK' : 'DAY'}</th>
                                                         <th>ADDRESS</th>
                                                         <th>TOTAL Power Up</th>
                                                     </tr>
@@ -283,8 +297,8 @@ const LeaderBoardTable: React.FC = () => {
                                                     {currentRecords.map((entry) => (
                                                         <tr key={entry.rank} className="leaderboard-row">
                                                             <td>
-                                                                <span className={`rank-badge ${getRankClass(entry.rank)}`}>
-                                                                    {getRankIcon(entry.rank)}
+                                                                <span className="period-value">
+                                                                    {entry.rank}
                                                                 </span>
                                                             </td>
                                                             <td>
@@ -338,13 +352,13 @@ const LeaderBoardTable: React.FC = () => {
 
                                         {/* Records info */}
                                         <div className="d-flex justify-content-between align-items-center mt-3">
-                                            <small className="text-muted">
+                                            {/* <small className="text-muted">
                                                 Showing {startIndex + 1}-{Math.min(endIndex, leaderboardData.length)} of {leaderboardData.length} entries
                                             </small>
                                             <small className="text-info">
                                                 <i className="fas fa-info-circle me-1"></i>
-                                                {activePeriod === 'today' ? 'Daily' : activePeriod === 'week' ? 'Weekly' : 'Monthly'} Leaderboard
-                                            </small>
+                                                Historical {activePeriod === 'today' ? 'Daily' : activePeriod === 'week' ? 'Weekly' : 'Monthly'} Data
+                                            </small> */}
                                         </div>
                                     </>
                                 )}

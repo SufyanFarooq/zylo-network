@@ -1,6 +1,10 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useAccount, useWalletClient } from 'wagmi';
+import { BrowserProvider, Contract, ethers } from 'ethers';
+import { ZyloPowerUp_ADDRESS } from '@/blockchain/addresses/addresses';
+import ZyloPowerUp_ABI from '@/blockchain/abis/ZyloPowerUp.json';
 import './StakingLevelsTable.css';
 
 interface StakingLevel {
@@ -13,25 +17,99 @@ interface StakingLevel {
 }
 
 interface StakingLevelsTableProps {
-    levels: StakingLevel[];
+    selectedUnit?: number; // The unit to show power up history for
     onLevelSelect?: (_level: StakingLevel) => void;
     selectedLevel?: number;
     showActions?: boolean;
     className?: string;
     itemsPerPage?: number;
-    isLoading?: boolean;
 }
 
 const StakingLevelsTable: React.FC<StakingLevelsTableProps> = ({
-    levels,
+    selectedUnit = 0, // Default to unit 0 if not specified
     onLevelSelect,
     selectedLevel,
     showActions: _showActions = true,
     className = '',
-    itemsPerPage = 5,
-    isLoading = false
+    itemsPerPage = 5
 }) => {
     const [currentPage, setCurrentPage] = useState(1);
+    const [levels, setLevels] = useState<StakingLevel[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    // Wagmi hooks
+    const { address, isConnected } = useAccount();
+    const { data: walletClient } = useWalletClient();
+
+    // Fetch power up history from blockchain
+    const fetchPowerUpHistory = async () => {
+        if (!isConnected || !address || !walletClient) {
+            console.log('Wallet not connected');
+            setLevels([]);
+            return;
+        }
+
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            const provider = new BrowserProvider(walletClient);
+            const contract = new Contract(ZyloPowerUp_ADDRESS, ZyloPowerUp_ABI, provider);
+
+            // Get the length of power up history for this unit
+            const length = await contract.getPowerUpHistoryLength(address, selectedUnit);
+            const powerUpLength = Number(length);
+
+            console.log(`Found ${powerUpLength} power ups for unit ${selectedUnit}`);
+
+            const powerUpData: StakingLevel[] = [];
+
+            // Loop through each power up and get details
+            for (let i = 0; i < powerUpLength; i++) {
+                try {
+                    const details = await contract.userPowerUpHistory(address, selectedUnit, i);
+
+                    // userPowerUpHistory returns a tuple/array: [amount, time]
+                    const [amount, time] = details;
+
+                    // Convert blockchain data to our format
+                    const level: StakingLevel = {
+                        id: i,
+                        level: (i + 1).toString(),
+                        requiredStake: amount.toString(), // Amount is already converted from wei in userPowerUpHistory
+                        reward: '0', // Power up history shows transaction amounts
+                        stakeTime: time.toString(),
+                        status: 'active' // Power up history shows completed transactions
+                    };
+
+                    powerUpData.push(level);
+                } catch (detailError) {
+                    console.error(`Error fetching power up history for index ${i}:`, detailError);
+                }
+            }
+
+            setLevels(powerUpData);
+            console.log('Fetched power up data:', powerUpData);
+
+        } catch (error) {
+            console.error('Error fetching power up history:', error);
+            setError('Failed to load power up history');
+            setLevels([]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Fetch data when component mounts or dependencies change
+    useEffect(() => {
+        fetchPowerUpHistory();
+    }, [isConnected, address, walletClient, selectedUnit]);
+
+    // Reset to first page when levels change
+    React.useEffect(() => {
+        setCurrentPage(1);
+    }, [levels]);
 
     // Reverse the levels array to show latest first
     const reversedLevels = useMemo(() => {
@@ -55,11 +133,6 @@ const StakingLevelsTable: React.FC<StakingLevelsTableProps> = ({
         endIndex,
         currentLevels: currentLevels.length
     });
-
-    // Reset to first page when levels change
-    React.useEffect(() => {
-        setCurrentPage(1);
-    }, [levels]);
 
     const goToPage = (page: number) => {
         setCurrentPage(page);
@@ -183,114 +256,7 @@ const StakingLevelsTable: React.FC<StakingLevelsTableProps> = ({
         }
     };
 
-    return (
-        <div className={`staking-levels-table ${className}`}>
-            <div className="table-container">
-                <div className="table-header">
-                    <h3 className="table-title">Power Up DETAILS</h3>
-                </div>
-
-                <div className="table-wrapper">
-                    <table className="levels-table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Power Up Amount</th>
-                                <th>Power Up Time</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {isLoading ? (
-                                <tr>
-                                    <td colSpan={6} className="loading-cell">
-                                        <div className="loading-spinner">
-                                            <div className="spinner"></div>
-                                            <span>Loading Power Up...</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ) : currentLevels.length === 0 ? (
-                                <tr>
-                                    <td colSpan={6} className="empty-cell">
-                                        <div className="empty-state">
-                                            <span>No Power Up found. Connect your wallet to view your Power Up history.</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ) : (
-                                currentLevels.map((level) => (
-                                    <tr
-                                        key={level.id}
-                                        className={`table-row ${selectedLevel === level.id ? 'selected' : ''} ${level.status === 'active' ? 'clickable' : 'disabled'}`}
-                                        onClick={() => handleLevelClick(level)}
-                                    >
-                                        <td className="level-cell">
-                                            <div className="level-info">
-                                                <span className="level-number">{level.level}</span>
-                                            </div>
-                                        </td>
-                                        <td className="stake-cell">
-                                            <span className="stake-amount">{level.requiredStake} <span style={{ color: '#FEE739' }}>ZYLO</span></span>
-                                        </td>
-                                        {/* <td className="reward-cell">
-                                            <span className="reward-amount">{level.reward} <span style={{ color: '#FEE739' }}>ZYLO</span></span>
-                                        </td> */}
-                                        <td className="stake-time-cell">
-                                            <span className="stake-time-text">
-                                                {level.stakeTime ? formatTimestamp(level.stakeTime) : 'N/A'}
-                                            </span>
-                                        </td>
-                                        <td className="status-cell">
-                                            {getStatusBadge(level.status)}
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* Pagination Controls */}
-                {reversedLevels.length > 0 && (
-                    <div className="pagination-container">
-                        <div className="pagination-info">
-                            Showing {startIndex + 1}-{Math.min(endIndex, reversedLevels.length)} of {reversedLevels.length} Power Up
-                        </div>
-                        <div className="pagination-controls">
-                            <button
-                                className="pagination-btn"
-                                onClick={goToPreviousPage}
-                                disabled={currentPage === 1}
-                            >
-                                Previous
-                            </button>
-
-                            <div className="pagination-numbers">
-                                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                                    <button
-                                        key={page}
-                                        className={`pagination-number ${currentPage === page ? 'active' : ''}`}
-                                        onClick={() => goToPage(page)}
-                                    >
-                                        {page}
-                                    </button>
-                                ))}
-                            </div>
-
-                            <button
-                                className="pagination-btn"
-                                onClick={goToNextPage}
-                                disabled={currentPage === totalPages}
-                            >
-                                Next
-                            </button>
-                        </div>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
+    return null; // Table display removed as requested
 };
 
 export default StakingLevelsTable;

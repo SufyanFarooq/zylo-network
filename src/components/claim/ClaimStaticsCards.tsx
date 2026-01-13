@@ -2,8 +2,9 @@
 
 import React, { JSX, useState, useEffect } from 'react';
 import { useAccount, useWalletClient } from 'wagmi';
-import { BrowserProvider } from 'ethers';
-import { getTotalSelfClaimInClaimX, getTotalTeamClaimInClaimX, getCurrentSelfClaimInUnit, getCurrentTeamClaimInUnit, getTotalVestingClaimInUnit } from '@/blockchain/instances/ZyloPowerUp';
+import { BrowserProvider, formatEther } from 'ethers';
+import { getTotalTeamClaimInClaimX, getCurrentSelfClaimInUnit, getCurrentTeamClaimInUnit, getTotalVestingClaimInUnit } from '@/blockchain/instances/ZyloPowerUp';
+import { getUnitName } from '../staking/utils/unitCategoryMapping';
 import { getCurrentSelfClaimX, getCurrentReferralClaimX, claimXSelfUnitPowerUp as fetchClaimXSelfUnitPowerUp, claimXReferralUnitPowerUp as fetchClaimXReferralUnitPowerUp } from '@/blockchain/instances/ClaimXFunctions';
 import { claimX, getUserClaimXDetailsLength, userClaimXHistory } from '@/blockchain/instances/ZyloPowerUpM';
 import './ClaimStaticsCards.css';
@@ -148,47 +149,11 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
     const [claimXHistory, setClaimXHistory] = useState<Array<{ amount: string; timestamp: string; formattedTime: string }>>([]);
     const [isLoadingClaimXHistory, setIsLoadingClaimXHistory] = useState(true);
 
+    // Pagination states for claim history
+    const [currentClaimHistoryPage, setCurrentClaimHistoryPage] = useState(1);
+    const claimHistoryItemsPerPage = 10;
 
-    // Fetch total self claim in ClaimX (sum of indices 0-4)
-    useEffect(() => {
-        const fetchTotalSelfClaimInClaimX = async () => {
-            if (!isConnected || !address || !walletClient) {
-                setUserTotalCSRAmount('0.00');
-                setIsLoadingTotalCSR(false);
-                return;
-            }
 
-            try {
-                setIsLoadingTotalCSR(true);
-                const provider = new BrowserProvider(walletClient);
-
-                let totalSum = 0;
-
-                // Loop through indices 0-4
-                for (let index = 0; index <= 4; index++) {
-                    try {
-                        const result = await getTotalSelfClaimInClaimX(provider, address, index);
-                        if (result.success && result.data) {
-                            const value = parseFloat(result.data || '0');
-                            totalSum += value;
-                            console.log(`Total Self Claim in ClaimX index ${index}:`, result.data);
-                        }
-                    } catch (err) {
-                        console.error(`Error fetching totalSelfClaimInClaimX for index ${index}:`, err);
-                    }
-                }
-
-                setUserTotalCSRAmount(totalSum.toFixed(2));
-            } catch (error) {
-                console.error('Error fetching total self claim in ClaimX:', error);
-                setUserTotalCSRAmount('0.00');
-            } finally {
-                setIsLoadingTotalCSR(false);
-            }
-        };
-
-        fetchTotalSelfClaimInClaimX();
-    }, [isConnected, address, walletClient]);
 
     // Fetch total team claim in ClaimX (sum of indices 0-4)
     useEffect(() => {
@@ -548,6 +513,7 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
         }
 
         setIsClaiming(true);
+        console.log('Claiming started, button should show "Claiming..."');
         try {
             const provider = new BrowserProvider(walletClient);
             const signer = await provider.getSigner();
@@ -563,6 +529,7 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
             console.error('Error claiming:', error);
         } finally {
             setIsClaiming(false);
+            console.log('Claiming finished, button should show normal text');
         }
     };
 
@@ -578,21 +545,6 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
             try {
                 const provider = new BrowserProvider(walletClient);
 
-                // Refresh Total Claimed Self Reward
-                setIsLoadingTotalCSR(true);
-                let totalSelfSum = 0;
-                for (let index = 0; index <= 4; index++) {
-                    try {
-                        const result = await getTotalSelfClaimInClaimX(provider, address, index);
-                        if (result.success && result.data) {
-                            totalSelfSum += parseFloat(result.data || '0');
-                        }
-                    } catch (err) {
-                        console.error(`Error refreshing totalSelfClaimInClaimX for index ${index}:`, err);
-                    }
-                }
-                setUserTotalCSRAmount(totalSelfSum.toFixed(2));
-                setIsLoadingTotalCSR(false);
 
                 // Refresh Total Claimed Team Reward
                 setIsLoadingTotalCTR(true);
@@ -695,7 +647,7 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
                         Select Unit
                     </h3>
                     <div className="d-flex justify-content-center gap-2 flex-wrap">
-                        {[0, 1, 2, 3, 4].map((index) => (
+                        {[0, 1, 2, 3, 4, 5].map((index) => (
                             <button
                                 key={index}
                                 onClick={() => {
@@ -718,7 +670,7 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
                                     transition: 'all 0.3s ease'
                                 }}
                             >
-                                Unit {index + 1}
+                                {getUnitName(index)}
                             </button>
                         ))}
                     </div>
@@ -739,7 +691,7 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
                                 <div className="flex-grow-1">
                                     <div className="main-value">
                                         <span className="value-text">
-                                            {isLoadingCurrentSelfClaimX ? 'Loading...' : `${currentSelfClaimXValue} Token`}
+                                            {isLoadingCurrentSelfClaimX ? 'Loading...' : `${parseFloat(currentSelfClaimXValue || '0').toFixed(4)} Zylo`}
                                         </span>
                                     </div>
                                     <div className="value-label">Current Self ClaimX</div>
@@ -761,7 +713,7 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
                                 <div className="flex-grow-1">
                                     <div className="main-value">
                                         <span className="value-text">
-                                            {isLoadingCurrentReferralClaimX ? 'Loading...' : `${currentReferralClaimXValue} Token`}
+                                            {isLoadingCurrentReferralClaimX ? 'Loading...' : `${parseFloat(currentReferralClaimXValue || '0').toFixed(4)} Zylo`}
                                         </span>
                                     </div>
                                     <div className="value-label">Current Referral ClaimX</div>
@@ -783,7 +735,7 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
                                 <div className="flex-grow-1">
                                     <div className="main-value">
                                         <span className="value-text">
-                                            {isLoadingClaimXSelfUnitPowerUp ? 'Loading...' : `${claimXSelfUnitPowerUpValue} Token`}
+                                            {isLoadingClaimXSelfUnitPowerUp ? 'Loading...' : `${parseFloat(claimXSelfUnitPowerUpValue || '0').toFixed(4)} Zylo`}
                                         </span>
                                     </div>
                                     <div className="value-label">Total Self Power Up</div>
@@ -805,15 +757,15 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
                                 <div className="flex-grow-1">
                                     <div className="main-value">
                                         <span className="value-text">
-                                            {isLoadingClaimXReferralUnitPowerUp ? 'Loading...' : `${claimXReferralUnitPowerUpValue} Token`}
+                                            {isLoadingClaimXReferralUnitPowerUp ? 'Loading...' : `${parseFloat(claimXReferralUnitPowerUpValue || '0').toFixed(4)} Zylo`}
                                         </span>
                                     </div>
                                     <div className="value-label">Total Referral Power Up</div>
                                 </div>
-                                </div>
                             </div>
                         </div>
                     </div>
+                </div>
 
                 {/* Claim Section */}
                 <div className="row justify-content-center g-3">
@@ -843,9 +795,9 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
                                                 Loading...
                                             </div>
                                         ) : (
-                                            `${totalClaimAmount} Token`
+                                            `${totalClaimAmount} Zylo`
                                         )}
-                                        </span>
+                                    </span>
                                 </div>
 
 
@@ -857,7 +809,8 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
                                         fontWeight: '700',
                                         borderRadius: '12px',
                                         transition: 'all 0.3s ease',
-                                        boxShadow: '0 4px 15px rgba(254, 231, 57, 0.3)'
+                                        boxShadow: isClaiming ? '0 0 20px rgba(254, 231, 57, 0.8)' : '0 4px 15px rgba(254, 231, 57, 0.3)',
+                                        opacity: isClaiming ? '0.9' : '1'
                                     }}
                                     onMouseEnter={(e) => {
                                         if (!isClaiming && !isLoadingTotalClaimAmount && parseFloat(totalClaimAmount) > 0) {
@@ -867,10 +820,17 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
                                     }}
                                     onMouseLeave={(e) => {
                                         e.currentTarget.style.transform = 'translateY(0)';
-                                        e.currentTarget.style.boxShadow = '0 4px 15px rgba(254, 231, 57, 0.3)';
+                                        e.currentTarget.style.boxShadow = isClaiming ? '0 0 20px rgba(254, 231, 57, 0.8)' : '0 4px 15px rgba(254, 231, 57, 0.3)';
                                     }}
                                 >
-                                    {isClaiming ? 'Claiming...' : `Claim Unit ${selectedUnitIndex + 1}`}
+                                    {isClaiming ? (
+                                        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                            <i className="fas fa-spinner fa-spin" style={{ fontSize: '1rem' }}></i>
+                                            Claiming...
+                                        </span>
+                                    ) : (
+                                        `Claim ${getUnitName(selectedUnitIndex)}`
+                                    )}
                                 </button>
                             </div>
                         </div>
@@ -888,7 +848,7 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
                             boxShadow: '0 8px 32px rgba(254, 231, 57, 0.2)',
                         }}>
                             <h3 style={{ color: '#FEE739', marginBottom: '1.5rem', textAlign: 'center', fontWeight: '700' }}>
-                                ClaimX History - Unit {selectedUnitIndex + 1}
+                                ClaimX History - {getUnitName(selectedUnitIndex)}
                             </h3>
 
                             {isLoadingClaimXHistory ? (
@@ -913,13 +873,13 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {claimXHistory.map((record, index) => (
+                                            {claimXHistory.slice((currentClaimHistoryPage - 1) * claimHistoryItemsPerPage, currentClaimHistoryPage * claimHistoryItemsPerPage).map((record, index) => (
                                                 <tr key={index} style={{ borderBottom: '1px solid rgba(254, 231, 57, 0.1)' }}>
                                                     <td style={{ color: '#FEE739', padding: '1rem', border: 'none', fontWeight: '600' }}>
-                                                        {index + 1}
+                                                        {(currentClaimHistoryPage - 1) * claimHistoryItemsPerPage + index + 1}
                                                     </td>
                                                     <td style={{ color: '#fff', padding: '1rem', border: 'none' }}>
-                                                        {parseFloat(record.amount).toFixed(4)} ZILLOW
+                                                        {parseFloat(formatEther(record.amount)).toFixed(4)} ZYLO
                                                     </td>
                                                     <td style={{ color: '#fff', padding: '1rem', border: 'none' }}>
                                                         {record.formattedTime}
@@ -928,6 +888,152 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
                                             ))}
                                         </tbody>
                                     </table>
+
+                                    {/* Pagination Controls for ClaimX History */}
+                                    {Math.ceil(claimXHistory.length / claimHistoryItemsPerPage) > 1 && (
+                                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginTop: '2rem', flexWrap: 'wrap' }}>
+                                            <button
+                                                onClick={() => setCurrentClaimHistoryPage(prev => Math.max(1, prev - 1))}
+                                                disabled={currentClaimHistoryPage === 1}
+                                                style={{
+                                                    background: currentClaimHistoryPage === 1 ? 'rgba(254, 231, 57, 0.2)' : 'rgba(254, 231, 57, 0.1)',
+                                                    border: '2px solid #FEE739',
+                                                    color: currentClaimHistoryPage === 1 ? 'rgba(254, 231, 57, 0.5)' : '#FEE739',
+                                                    padding: '0.5rem 1rem',
+                                                    borderRadius: '8px',
+                                                    fontWeight: '600',
+                                                    cursor: currentClaimHistoryPage === 1 ? 'not-allowed' : 'pointer',
+                                                    transition: 'all 0.3s ease',
+                                                    fontSize: '0.9rem',
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    if (currentClaimHistoryPage !== 1) {
+                                                        e.currentTarget.style.background = 'rgba(254, 231, 57, 0.2)';
+                                                        e.currentTarget.style.transform = 'translateY(-2px)';
+                                                    }
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    if (currentClaimHistoryPage !== 1) {
+                                                        e.currentTarget.style.background = 'rgba(254, 231, 57, 0.1)';
+                                                        e.currentTarget.style.transform = 'translateY(0)';
+                                                    }
+                                                }}
+                                            >
+                                                ‹ Prev
+                                            </button>
+
+                                            {/* Page Number Buttons */}
+                                            {Array.from({ length: Math.ceil(claimXHistory.length / claimHistoryItemsPerPage) }, (_, i) => i + 1)
+                                                .filter(page => {
+                                                    const totalPages = Math.ceil(claimXHistory.length / claimHistoryItemsPerPage);
+                                                    // Show first page, last page, current page, and pages around current
+                                                    return page === 1 ||
+                                                        page === totalPages ||
+                                                        (page >= currentClaimHistoryPage - 1 && page <= currentClaimHistoryPage + 1);
+                                                })
+                                                .map((page, index, filteredPages) => {
+                                                    // Add ellipsis if there are gaps
+                                                    const prevPage = filteredPages[index - 1];
+                                                    const showEllipsis = index > 0 && page - prevPage > 1;
+
+                                                    return (
+                                                        <React.Fragment key={page}>
+                                                            {showEllipsis && (
+                                                                <span style={{
+                                                                    color: '#FEE739',
+                                                                    padding: '0.5rem',
+                                                                    fontSize: '1.2rem',
+                                                                    fontWeight: 'bold'
+                                                                }}>
+                                                                    ...
+                                                                </span>
+                                                            )}
+                                                            <button
+                                                                onClick={() => setCurrentClaimHistoryPage(page)}
+                                                                disabled={currentClaimHistoryPage === page}
+                                                                style={{
+                                                                    background: currentClaimHistoryPage === page ? 'rgba(254, 231, 57, 0.3)' : 'rgba(254, 231, 57, 0.1)',
+                                                                    border: '2px solid #FEE739',
+                                                                    color: '#FEE739',
+                                                                    padding: '0.5rem 0.8rem',
+                                                                    borderRadius: '8px',
+                                                                    fontWeight: '600',
+                                                                    cursor: 'pointer',
+                                                                    transition: 'all 0.3s ease',
+                                                                    fontSize: '0.9rem',
+                                                                    minWidth: '40px',
+                                                                }}
+                                                                onMouseEnter={(e) => {
+                                                                    if (currentClaimHistoryPage !== page) {
+                                                                        e.currentTarget.style.background = 'rgba(254, 231, 57, 0.2)';
+                                                                        e.currentTarget.style.transform = 'translateY(-2px)';
+                                                                    }
+                                                                }}
+                                                                onMouseLeave={(e) => {
+                                                                    if (currentClaimHistoryPage !== page) {
+                                                                        e.currentTarget.style.background = currentClaimHistoryPage === page ? 'rgba(254, 231, 57, 0.3)' : 'rgba(254, 231, 57, 0.1)';
+                                                                        e.currentTarget.style.transform = 'translateY(0)';
+                                                                    }
+                                                                }}
+                                                            >
+                                                                {page}
+                                                            </button>
+                                                        </React.Fragment>
+                                                    );
+                                                })}
+
+                                            <button
+                                                onClick={() => setCurrentClaimHistoryPage(prev => Math.min(Math.ceil(claimXHistory.length / claimHistoryItemsPerPage), prev + 1))}
+                                                disabled={currentClaimHistoryPage === Math.ceil(claimXHistory.length / claimHistoryItemsPerPage)}
+                                                style={{
+                                                    background: currentClaimHistoryPage === Math.ceil(claimXHistory.length / claimHistoryItemsPerPage) ? 'rgba(254, 231, 57, 0.2)' : 'rgba(254, 231, 57, 0.1)',
+                                                    border: '2px solid #FEE739',
+                                                    color: currentClaimHistoryPage === Math.ceil(claimXHistory.length / claimHistoryItemsPerPage) ? 'rgba(254, 231, 57, 0.5)' : '#FEE739',
+                                                    padding: '0.5rem 1rem',
+                                                    borderRadius: '8px',
+                                                    fontWeight: '600',
+                                                    cursor: currentClaimHistoryPage === Math.ceil(claimXHistory.length / claimHistoryItemsPerPage) ? 'not-allowed' : 'pointer',
+                                                    transition: 'all 0.3s ease',
+                                                    fontSize: '0.9rem',
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    if (currentClaimHistoryPage !== Math.ceil(claimXHistory.length / claimHistoryItemsPerPage)) {
+                                                        e.currentTarget.style.background = 'rgba(254, 231, 57, 0.2)';
+                                                        e.currentTarget.style.transform = 'translateY(-2px)';
+                                                    }
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    if (currentClaimHistoryPage !== Math.ceil(claimXHistory.length / claimHistoryItemsPerPage)) {
+                                                        e.currentTarget.style.background = 'rgba(254, 231, 57, 0.1)';
+                                                        e.currentTarget.style.transform = 'translateY(0)';
+                                                    }
+                                                }}
+                                            >
+                                                Next ›
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {/* Records info */}
+                                    <div className="d-flex justify-content-between align-items-center mt-4 px-3 py-2 rounded"
+                                         style={{
+                                             background: 'rgba(3, 53, 61, 0.4)',
+                                             border: '1px solid rgba(254, 231, 57, 0.2)',
+                                             backdropFilter: 'blur(5px)'
+                                         }}>
+                                        <div className="d-flex align-items-center">
+                                            <i className="fas fa-list-ol me-2" style={{ color: '#FEE739', fontSize: '0.9rem' }}></i>
+                                            <span style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.85rem', fontWeight: '500' }}>
+                                                Showing {(currentClaimHistoryPage - 1) * claimHistoryItemsPerPage + 1}-{Math.min(currentClaimHistoryPage * claimHistoryItemsPerPage, claimXHistory.length)} of {claimXHistory.length} entries
+                                            </span>
+                                        </div>
+                                        <div className="d-flex align-items-center">
+                                            <i className="fas fa-info-circle me-2" style={{ color: '#00d6a3', fontSize: '0.9rem' }}></i>
+                                            <span style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '0.85rem', fontWeight: '600' }}>
+                                                ClaimX History - {getUnitName(selectedUnitIndex)}
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
                             )}
                         </div>

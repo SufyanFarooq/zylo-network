@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Contract, BrowserProvider, ethers } from 'ethers';
+import { useWalletClient } from 'wagmi';
 import { FaSearch, FaTimes, FaCheck, FaSpinner } from 'react-icons/fa';
 import swapContractAbi from './swapContractAbi.json';
 import './TokenSelectionModal.css';
@@ -63,6 +64,7 @@ const TokenSelectionModal: React.FC<TokenSelectionModalProps> = ({
   currentToken: _currentToken,
   title
 }) => {
+  const { data: walletClient } = useWalletClient();
   const [tokens, setTokens] = useState<Token[]>([]);
   const [filteredTokens, setFilteredTokens] = useState<Token[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -73,14 +75,14 @@ const TokenSelectionModal: React.FC<TokenSelectionModalProps> = ({
 
   // Switch to BSC Testnet
   const switchToBSCNetwork = async () => {
-    if (!window.ethereum) {
-      console.error('No ethereum provider found');
+    if (!walletClient) {
+      console.error('No wallet client available');
       return;
     }
 
     // Try BSC Mainnet first (Chain ID: 56)
     try {
-      await (window.ethereum as unknown as { request: (_args: { method: string; params?: unknown[] }) => Promise<unknown> }).request({
+      await (walletClient as any).request({
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: '0x38' }], // BSC Mainnet chainId in hex
       });
@@ -88,7 +90,7 @@ const TokenSelectionModal: React.FC<TokenSelectionModalProps> = ({
       // If mainnet doesn't exist, try testnet
       if ((switchError as { code?: number }).code === 4902) {
         try {
-          await (window.ethereum as unknown as { request: (_args: { method: string; params?: unknown[] }) => Promise<unknown> }).request({
+          await (walletClient as any).request({
             method: 'wallet_switchEthereumChain',
             params: [{ chainId: '0x61' }], // BSC Testnet chainId in hex
           });
@@ -96,7 +98,7 @@ const TokenSelectionModal: React.FC<TokenSelectionModalProps> = ({
           // If testnet doesn't exist, add BSC Mainnet
           if ((testnetError as { code?: number }).code === 4902) {
             try {
-              await (window.ethereum as unknown as { request: (_args: { method: string; params?: unknown[] }) => Promise<unknown> }).request({
+              await (walletClient as any).request({
                 method: 'wallet_addEthereumChain',
                 params: [{
                   chainId: '0x38',
@@ -362,7 +364,11 @@ const TokenSelectionModal: React.FC<TokenSelectionModalProps> = ({
   // Check if token pair exists
   const _checkPairExists = async (tokenA: string, tokenB: string): Promise<boolean> => {
     try {
-      const provider = new BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
+      if (!walletClient) {
+        console.error('No wallet client available');
+        return false;
+      }
+      const provider = new BrowserProvider(walletClient as any);
       const swapContract = new Contract(SWAP_CONTRACT_ADDRESS, swapContractAbi, provider);
 
       console.log('Checking pair existence:', { tokenA, tokenB });

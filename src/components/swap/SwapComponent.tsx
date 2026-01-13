@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { FaChevronDown } from "react-icons/fa";
-import { useAccount } from "wagmi";
+import { useAccount, useWalletClient } from "wagmi";
 import { Contract, ethers, formatEther, parseEther } from "ethers";
 import swapContractAbi from "./swapContractAbi.json";
 import TokenSelectionModal from "./TokenSelectionModal";
@@ -75,6 +75,7 @@ interface Token {
 
 const SwapComponent: React.FC = () => {
     const { address, isConnected } = useAccount();
+    const { data: walletClient } = useWalletClient();
     const [tokenA, setTokenA] = useState<Token | null>(null);
     const [tokenB, setTokenB] = useState<Token | null>(null);
     const [amountA, setAmountA] = useState<string>("");
@@ -230,7 +231,11 @@ const SwapComponent: React.FC = () => {
 
     const checkPairExists = async (tokenA: string, tokenB: string): Promise<boolean> => {
         try {
-            const provider = new ethers.BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
+            if (!walletClient) {
+                console.error('No wallet client available');
+                return false;
+            }
+            const provider = new ethers.BrowserProvider(walletClient as any);
             const swapContract = new Contract(SWAP_CONTRACT_ADDRESS, swapContractAbi, provider);
             const ratesResult = await swapContract.rates(tokenA, tokenB);
             const [_numerator, _denominator, active] = ratesResult;
@@ -250,12 +255,16 @@ const SwapComponent: React.FC = () => {
         }
 
         try {
+            if (!walletClient) {
+                console.error('No wallet client available');
+                return null;
+            }
             if (setLoadingState) {
                 setLoadingState(true);
             } else {
                 setIsCalculatingQuote(true);
             }
-            const provider = new ethers.BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
+            const provider = new ethers.BrowserProvider(walletClient as any);
             const swapContract = new Contract(SWAP_CONTRACT_ADDRESS, swapContractAbi, provider);
             const amountInWei = parseEther(inputAmount);
             let amountOut;
@@ -304,7 +313,11 @@ const SwapComponent: React.FC = () => {
 
     const fetchTokenBalance = async (tokenAddress: string, userAddress: string) => {
         try {
-            const provider = new ethers.BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
+            if (!walletClient) {
+                console.error('No wallet client available');
+                return '0';
+            }
+            const provider = new ethers.BrowserProvider(walletClient as any);
             const erc20Abi = [
                 {
                     "inputs": [{ "internalType": "address", "name": "account", "type": "address" }],
@@ -330,7 +343,11 @@ const SwapComponent: React.FC = () => {
 
     const _fetchTokenInfo = async (tokenAddress: string) => {
         try {
-            const provider = new ethers.BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
+            if (!walletClient) {
+                console.error('No wallet client available');
+                return null;
+            }
+            const provider = new ethers.BrowserProvider(walletClient as any);
             const erc20Abi = [
                 { "inputs": [], "name": "name", "outputs": [{ "internalType": "string", "name": "", "type": "string" }], "stateMutability": "view", "type": "function" },
                 { "inputs": [], "name": "symbol", "outputs": [{ "internalType": "string", "name": "", "type": "string" }], "stateMutability": "view", "type": "function" },
@@ -361,7 +378,12 @@ const SwapComponent: React.FC = () => {
         }
 
         try {
-            const provider = new ethers.BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
+            if (!walletClient) {
+                console.error('No wallet client available');
+                setUserBalances({ zylo: "0.0000", usdt: "0.0000" });
+                return;
+            }
+            const provider = new ethers.BrowserProvider(walletClient as any);
             const ZYLO_TOKEN_ADDRESS = TOKEN_B_ADDRESS;
             const USDT_TOKEN_ADDRESS = TOKEN_A_ADDRESS;
             const erc20Abi = [
@@ -518,7 +540,12 @@ const SwapComponent: React.FC = () => {
 
         setIsLoading(true);
         try {
-            const provider = new ethers.BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
+            if (!walletClient) {
+                alert("Wallet not connected properly");
+                setIsLoading(false);
+                return;
+            }
+            const provider = new ethers.BrowserProvider(walletClient as any);
             const signer = await provider.getSigner();
             const swapContract = new Contract(SWAP_CONTRACT_ADDRESS, swapContractAbi, signer);
             const amountInWei = parseEther(amountA);

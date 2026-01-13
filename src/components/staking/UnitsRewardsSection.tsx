@@ -72,12 +72,13 @@ const UnitsRewardsSection: React.FC<UnitsRewardsSectionProps> = ({
         <div className="row mt-5">
           <div className="col-12">
             <PowerUpUnitCards
-              onZoneCardClick={() => {}} // No action needed in Units section
+              onZoneCardClick={() => { }} // No action needed in Units section
               showZoneCards={false}
               selectedZoneUnit={selectedUnit} // Only show selected unit's cards
             />
           </div>
         </div>
+
       </div>
     </section>
   );

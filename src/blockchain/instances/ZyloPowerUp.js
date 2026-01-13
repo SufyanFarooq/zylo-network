@@ -1,4 +1,4 @@
-import { BrowserProvider, Contract } from "ethers";
+import { BrowserProvider, Contract, formatEther } from "ethers";
 import { ZyloPowerUp_ADDRESS, ZillowToken_ADDRESS } from "../addresses/addresses.js";
 import ZyloPowerUp_ABI from "../abis/ZyloPowerUp.json";
 import ZillowToken_ABI from "../abis/ZillowToken_ABI.json";
@@ -1684,6 +1684,133 @@ export const userPowerUpDetails = async (provider, address, unit, index) => {
 };
 
 /**
+ * Get power up history length for a specific unit
+ * @param {Object} provider - Ethers provider
+ * @param {string} address - User wallet address
+ * @param {number} unit - Unit index (0-5)
+ * @returns {Promise<{success: boolean, length?: number, error?: string}>}
+ */
+export const getPowerUpHistoryLength = async (provider, address, unit) => {
+    try {
+        if (!provider) {
+            return {
+                success: false,
+                error: 'Provider is required'
+            };
+        }
+
+        if (!address) {
+            return {
+                success: false,
+                error: 'Address is required'
+            };
+        }
+
+        if (unit === undefined || unit === null || unit < 0) {
+            return {
+                success: false,
+                error: 'Valid unit index is required'
+            };
+        }
+
+        const contract = createContractInstance(provider);
+
+        try {
+            const length = await contract.getPowerUpHistoryLength(address, unit);
+            console.log('getPowerUpHistoryLength result:', length);
+
+            // Convert BigInt to number if necessary
+            const lengthNumber = typeof length === 'bigint' ? Number(length) : Number(length);
+
+            return {
+                success: true,
+                length: lengthNumber
+            };
+        } catch (contractError) {
+            console.error('Contract call failed for getPowerUpHistoryLength:', contractError);
+            return {
+                success: false,
+                error: contractError.message || 'Failed to get power up history length'
+            };
+        }
+    } catch (error) {
+        console.error('Error in getPowerUpHistoryLength:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to get power up history length'
+        };
+    }
+};
+
+/**
+ * Get user power up history details
+ * @param {Object} provider - Ethers provider
+ * @param {string} address - User wallet address
+ * @param {number} unit - Unit index (0-5)
+ * @param {number} index - History entry index
+ * @returns {Promise<{success: boolean, amount?: string, timestamp?: string, error?: string}>}
+ */
+export const userPowerUpHistory = async (provider, address, unit, index) => {
+    try {
+        if (!provider) {
+            return {
+                success: false,
+                error: 'Provider is required'
+            };
+        }
+
+        if (!address) {
+            return {
+                success: false,
+                error: 'Address is required'
+            };
+        }
+
+        if (unit === undefined || unit === null || unit < 0) {
+            return {
+                success: false,
+                error: 'Valid unit index is required'
+            };
+        }
+
+        if (index === undefined || index === null || index < 0) {
+            return {
+                success: false,
+                error: 'Valid index is required'
+            };
+        }
+
+        const contract = createContractInstance(provider);
+
+        try {
+            const result = await contract.userPowerUpHistory(address, unit, index);
+            console.log('userPowerUpHistory result:', result);
+
+            // userPowerUpHistory returns [amount, time]
+            const [amount, time] = result;
+
+            return {
+                success: true,
+                amount: formatEther(amount), // Convert from wei to token amount
+                timestamp: time.toString()
+            };
+        } catch (contractError) {
+            console.error('Contract call failed for userPowerUpHistory:', contractError);
+            return {
+                success: false,
+                error: contractError.message || 'Failed to get user power up history'
+            };
+        }
+    } catch (error) {
+        console.error('Error in userPowerUpHistory:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to get user power up history'
+        };
+    }
+};
+
+/**
  * Get self power up reward
  * @param {Object} provider - Ethers provider
  * @param {string} address - User wallet address
@@ -1870,67 +1997,6 @@ export const getTotalTeamClaimInUnit = async (provider, address, unit) => {
     }
 };
 
-/**
- * Get total self claim in ClaimX
- * @param {Object} provider - Ethers provider
- * @param {string} address - User wallet address
- * @param {number} index - ClaimX index (0-4)
- * @returns {Promise<{success: boolean, data?: string, error?: string}>}
- */
-export const getTotalSelfClaimInClaimX = async (provider, address, index) => {
-    try {
-        if (!provider) {
-            return {
-                success: false,
-                error: 'Provider is required'
-            };
-        }
-
-        if (!address) {
-            return {
-                success: false,
-                error: 'Wallet address is required'
-            };
-        }
-
-        if (index === undefined || index === null || index < 0 || index > 4) {
-            return {
-                success: false,
-                error: 'Index must be between 0 and 4'
-            };
-        }
-
-        const contract = createContractInstance(provider);
-        console.log('Calling totalSelfClaimInClaimX with:', { address, index });
-        const totalClaim = await contract.totalSelfClaimInClaimX(address, index);
-        console.log('Raw totalClaim value:', totalClaim, typeof totalClaim);
-
-        // Format from wei to ether
-        let totalClaimFormatted = '0';
-        try {
-            const { formatEther } = await import('ethers');
-            // Handle BigInt if needed
-            const claimValue = typeof totalClaim === 'bigint' ? totalClaim : BigInt(totalClaim.toString());
-            totalClaimFormatted = formatEther(claimValue);
-            console.log('Formatted totalClaim:', totalClaimFormatted);
-        } catch (formatError) {
-            console.error('Error formatting totalClaim:', formatError);
-            totalClaimFormatted = totalClaim.toString();
-        }
-
-        console.log('Returning totalSelfClaimInClaimX result:', { success: true, data: totalClaimFormatted });
-        return {
-            success: true,
-            data: totalClaimFormatted
-        };
-    } catch (error) {
-        console.error('Error in getTotalSelfClaimInClaimX:', error);
-        return {
-            success: false,
-            error: error.message || 'Failed to get total self claim in ClaimX'
-        };
-    }
-};
 
 /**
  * Get total team claim in ClaimX
