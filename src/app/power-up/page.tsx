@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useAccount, useWalletClient } from 'wagmi';
 import { BrowserProvider } from 'ethers';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Header from '@/components/common/Header';
 import Footer from '@/components/common/Footer';
 import ZillowStake from '@/components/staking/ZillowStake';

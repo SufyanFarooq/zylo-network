@@ -229,13 +229,13 @@ const SwapComponent: React.FC = () => {
         setTimeout(() => setNotification(null), 3000);
     };
 
-    const checkPairExists = async (tokenA: string, tokenB: string): Promise<boolean> => {
+    const checkPairExists = useCallback(async (tokenA: string, tokenB: string): Promise<boolean> => {
         try {
             if (!walletClient) {
                 console.error('No wallet client available');
                 return false;
             }
-            const provider = new ethers.BrowserProvider(walletClient as any);
+            const provider = new ethers.BrowserProvider(walletClient);
             const swapContract = new Contract(SWAP_CONTRACT_ADDRESS, swapContractAbi, provider);
             const ratesResult = await swapContract.rates(tokenA, tokenB);
             const [_numerator, _denominator, active] = ratesResult;
@@ -247,7 +247,7 @@ const SwapComponent: React.FC = () => {
             }
             return false;
         }
-    };
+    }, [walletClient]);
 
     const calculateQuote = async (inputAmount: string, fromToken: string, toToken: string, direction: 'AtoB' | 'BtoA', setLoadingState?: (_loading: boolean) => void) => {
         if (!inputAmount || !isConnected || isNaN(Number(inputAmount)) || Number(inputAmount) <= 0) {
@@ -264,7 +264,7 @@ const SwapComponent: React.FC = () => {
             } else {
                 setIsCalculatingQuote(true);
             }
-            const provider = new ethers.BrowserProvider(walletClient as any);
+            const provider = new ethers.BrowserProvider(walletClient);
             const swapContract = new Contract(SWAP_CONTRACT_ADDRESS, swapContractAbi, provider);
             const amountInWei = parseEther(inputAmount);
             let amountOut;
@@ -317,7 +317,7 @@ const SwapComponent: React.FC = () => {
                 console.error('No wallet client available');
                 return '0';
             }
-            const provider = new ethers.BrowserProvider(walletClient as any);
+            const provider = new ethers.BrowserProvider(walletClient);
             const erc20Abi = [
                 {
                     "inputs": [{ "internalType": "address", "name": "account", "type": "address" }],
@@ -347,7 +347,7 @@ const SwapComponent: React.FC = () => {
                 console.error('No wallet client available');
                 return null;
             }
-            const provider = new ethers.BrowserProvider(walletClient as any);
+            const provider = new ethers.BrowserProvider(walletClient);
             const erc20Abi = [
                 { "inputs": [], "name": "name", "outputs": [{ "internalType": "string", "name": "", "type": "string" }], "stateMutability": "view", "type": "function" },
                 { "inputs": [], "name": "symbol", "outputs": [{ "internalType": "string", "name": "", "type": "string" }], "stateMutability": "view", "type": "function" },
@@ -383,7 +383,7 @@ const SwapComponent: React.FC = () => {
                 setUserBalances({ zylo: "0.0000", usdt: "0.0000" });
                 return;
             }
-            const provider = new ethers.BrowserProvider(walletClient as any);
+            const provider = new ethers.BrowserProvider(walletClient);
             const ZYLO_TOKEN_ADDRESS = TOKEN_B_ADDRESS;
             const USDT_TOKEN_ADDRESS = TOKEN_A_ADDRESS;
             const erc20Abi = [
@@ -414,7 +414,7 @@ const SwapComponent: React.FC = () => {
             console.error('Error fetching user balances:', error);
             setUserBalances({ zylo: "0.0000", usdt: "0.0000" });
         }
-    }, [isConnected, address]);
+    }, [isConnected, address, walletClient]);
 
     const handleAmountAChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -545,7 +545,7 @@ const SwapComponent: React.FC = () => {
                 setIsLoading(false);
                 return;
             }
-            const provider = new ethers.BrowserProvider(walletClient as any);
+            const provider = new ethers.BrowserProvider(walletClient);
             const signer = await provider.getSigner();
             const swapContract = new Contract(SWAP_CONTRACT_ADDRESS, swapContractAbi, signer);
             const amountInWei = parseEther(amountA);
@@ -643,7 +643,7 @@ const SwapComponent: React.FC = () => {
         } else {
             setPairExists(null);
         }
-    }, [tokenA, tokenB, customTokenA, customTokenB]);
+    }, [tokenA, tokenB, customTokenA, customTokenB, checkPairExists]);
 
     const currentPair = tokenA && tokenB ? `${tokenInfo.tokenA?.symbol || 'USDT'} / ${tokenInfo.tokenB?.symbol || 'ZYLO'}` : "USDT / ZYLO";
 

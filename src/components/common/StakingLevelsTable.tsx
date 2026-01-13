@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useAccount, useWalletClient } from 'wagmi';
-import { BrowserProvider, Contract, ethers } from 'ethers';
+import { BrowserProvider, Contract } from 'ethers';
 import { ZyloPowerUp_ADDRESS } from '@/blockchain/addresses/addresses';
 import ZyloPowerUp_ABI from '@/blockchain/abis/ZyloPowerUp.json';
 import './StakingLevelsTable.css';
@@ -28,22 +28,22 @@ interface StakingLevelsTableProps {
 const StakingLevelsTable: React.FC<StakingLevelsTableProps> = ({
     selectedUnit = 0, // Default to unit 0 if not specified
     onLevelSelect,
-    selectedLevel,
+    selectedLevel: _selectedLevel,
     showActions: _showActions = true,
-    className = '',
+    className: _className = '',
     itemsPerPage = 5
 }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [levels, setLevels] = useState<StakingLevel[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [_isLoading, setIsLoading] = useState(false);
+    const [_error, setError] = useState<string | null>(null);
 
     // Wagmi hooks
     const { address, isConnected } = useAccount();
     const { data: walletClient } = useWalletClient();
 
     // Fetch power up history from blockchain
-    const fetchPowerUpHistory = async () => {
+    const fetchPowerUpHistory = useCallback(async () => {
         if (!isConnected || !address || !walletClient) {
             console.log('Wallet not connected');
             setLevels([]);
@@ -99,12 +99,12 @@ const StakingLevelsTable: React.FC<StakingLevelsTableProps> = ({
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [isConnected, address, walletClient, selectedUnit]);
 
     // Fetch data when component mounts or dependencies change
     useEffect(() => {
         fetchPowerUpHistory();
-    }, [isConnected, address, walletClient, selectedUnit]);
+    }, [isConnected, address, walletClient, selectedUnit, fetchPowerUpHistory]);
 
     // Reset to first page when levels change
     React.useEffect(() => {
@@ -134,19 +134,19 @@ const StakingLevelsTable: React.FC<StakingLevelsTableProps> = ({
         currentLevels: currentLevels.length
     });
 
-    const goToPage = (page: number) => {
+    const _goToPage = (page: number) => {
         setCurrentPage(page);
     };
 
-    const goToPreviousPage = () => {
+    const _goToPreviousPage = () => {
         setCurrentPage(prev => Math.max(prev - 1, 1));
     };
 
-    const goToNextPage = () => {
+    const _goToNextPage = () => {
         setCurrentPage(prev => Math.min(prev + 1, totalPages));
     };
 
-    const getStatusBadge = (status: string) => {
+    const _getStatusBadge = (status: string) => {
         switch (status) {
             case 'active':
                 return <span className="status-badge status-active">Active</span>;
@@ -159,14 +159,14 @@ const StakingLevelsTable: React.FC<StakingLevelsTableProps> = ({
         }
     };
 
-    const handleLevelClick = (level: StakingLevel) => {
+    const _handleLevelClick = (level: StakingLevel) => {
         if (onLevelSelect && level.status === 'active') {
             onLevelSelect(level);
         }
     };
 
     // Format timestamp to readable UTC date
-    const formatTimestamp = (timestamp: string) => {
+    const _formatTimestamp = (timestamp: string) => {
         try {
             console.log(`=== TIMESTAMP DEBUG ===`);
             console.log(`Raw timestamp from blockchain: "${timestamp}"`);

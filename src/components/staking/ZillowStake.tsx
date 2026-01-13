@@ -937,7 +937,7 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
 
         // Test if contract is accessible
         try {
-          const testContract = new Contract(
+          const _testContract = new Contract(
             ZyloPowerUpM_ADDRESS,
             ZyloPowerUpM_ABI,
             provider
@@ -1145,7 +1145,7 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
         }
 
         if (missingUnits.length > 0) {
-          const missingUnitsText = missingUnits.join(', ');
+          const _missingUnitsText = missingUnits.join(', ');
           showToast(`To unlock Zylo Infinity, you must first purchase all previous units`, 'warning');
           return;
         }

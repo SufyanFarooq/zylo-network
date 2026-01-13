@@ -1,5 +1,6 @@
 'use client';
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState } from 'react';
 import { FaCheckCircle, FaExclamationTriangle, FaInfoCircle, FaTimes } from 'react-icons/fa';
 
@@ -11,17 +12,17 @@ interface ToastProps {
     onClose: (id: string) => void;
 }
 
-const Toast: React.FC<ToastProps> = ({ id, message, type, duration = 5000, onClose }) => {
+const Toast: React.FC<ToastProps> = ({ id: _id, message, type, duration = 5000, onClose }) => {
     const [isVisible, setIsVisible] = useState(true);
 
     useEffect(() => {
         const timer = setTimeout(() => {
             setIsVisible(false);
-            setTimeout(() => onClose(id), 300); // Wait for fade out animation
+            setTimeout(() => onClose(_id), 300); // Wait for fade out animation
         }, duration);
 
         return () => clearTimeout(timer);
-    }, [id, duration, onClose]);
+    }, [duration, onClose, _id]);
 
     const getIcon = () => {
         switch (type) {
@@ -92,7 +93,7 @@ const Toast: React.FC<ToastProps> = ({ id, message, type, duration = 5000, onClo
             <button
                 onClick={() => {
                     setIsVisible(false);
-                    setTimeout(() => onClose(id), 300);
+                    setTimeout(() => onClose(_id), 300);
                 }}
                 style={{
                     background: 'none',

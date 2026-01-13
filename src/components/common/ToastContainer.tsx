@@ -1,5 +1,6 @@
 'use client';
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useCallback } from 'react';
 import Toast from './Toast';
 
@@ -10,18 +11,31 @@ interface ToastItem {
   duration?: number;
 }
 
-interface ToastContextType {
-  showToast: (message: string, type: 'success' | 'error' | 'warning' | 'info', duration?: number) => void;
+interface ToastContainerProps {
+  children: React.ReactNode;
 }
+
+type ToastContextType = {
+  showToast: (message: string, type: 'success' | 'error' | 'warning' | 'info', duration?: number) => void;
+};
 
 export const ToastContext = React.createContext<ToastContextType | undefined>(undefined);
 
-const ToastContainer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const ToastContainer: React.FC<ToastContainerProps> = ({ children }) => {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+
+  const removeToast = useCallback((id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  }, []);
 
   const showToast = useCallback((message: string, type: 'success' | 'error' | 'warning' | 'info', duration = 5000) => {
     const id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
-    const newToast: ToastItem = { id, message, type, duration };
+    const newToast: ToastItem = {
+      id,
+      message,
+      type,
+      duration
+    };
 
     setToasts(prev => [...prev, newToast]);
 
@@ -29,11 +43,7 @@ const ToastContainer: React.FC<{ children: React.ReactNode }> = ({ children }) =
     setTimeout(() => {
       removeToast(id);
     }, duration + 300);
-  }, []);
-
-  const removeToast = useCallback((id: string) => {
-    setToasts(prev => prev.filter(toast => toast.id !== id));
-  }, []);
+  }, [removeToast]);
 
   return (
     <ToastContext.Provider value={{ showToast }}>

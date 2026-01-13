@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Header from '@/components/common/Header';
 import Footer from '@/components/common/Footer';
-import ToastContainer, { useToast } from '@/components/common/ToastContainer';
+import { useToast } from '@/components/common/ToastContainer';
 import { FaCircle } from 'react-icons/fa';
 import Image from 'next/image';
 import { connectWallet, registerUser, checkUserRegistration, refreshUserRegistrationStatus } from '@/blockchain/instances/ZyloPowerUp';
@@ -221,7 +221,7 @@ const RegisterPage: React.FC = () => {
         };
 
         checkUserRegistrationStatus();
-    }, [isConnected, address, walletClient]);
+    }, [isConnected, address, walletClient, showWalletMessage, showToast]);
 
     // Auto-hide wallet required message after 10 seconds
     useEffect(() => {

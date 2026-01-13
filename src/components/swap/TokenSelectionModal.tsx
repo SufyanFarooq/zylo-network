@@ -82,7 +82,7 @@ const TokenSelectionModal: React.FC<TokenSelectionModalProps> = ({
 
     // Try BSC Mainnet first (Chain ID: 56)
     try {
-      await (walletClient as any).request({
+      await (walletClient).request({
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: '0x38' }], // BSC Mainnet chainId in hex
       });
@@ -90,7 +90,7 @@ const TokenSelectionModal: React.FC<TokenSelectionModalProps> = ({
       // If mainnet doesn't exist, try testnet
       if ((switchError as { code?: number }).code === 4902) {
         try {
-          await (walletClient as any).request({
+          await (walletClient).request({
             method: 'wallet_switchEthereumChain',
             params: [{ chainId: '0x61' }], // BSC Testnet chainId in hex
           });
@@ -98,7 +98,7 @@ const TokenSelectionModal: React.FC<TokenSelectionModalProps> = ({
           // If testnet doesn't exist, add BSC Mainnet
           if ((testnetError as { code?: number }).code === 4902) {
             try {
-              await (walletClient as any).request({
+              await (walletClient).request({
                 method: 'wallet_addEthereumChain',
                 params: [{
                   chainId: '0x38',
@@ -368,7 +368,7 @@ const TokenSelectionModal: React.FC<TokenSelectionModalProps> = ({
         console.error('No wallet client available');
         return false;
       }
-      const provider = new BrowserProvider(walletClient as any);
+      const provider = new BrowserProvider(walletClient);
       const swapContract = new Contract(SWAP_CONTRACT_ADDRESS, swapContractAbi, provider);
 
       console.log('Checking pair existence:', { tokenA, tokenB });

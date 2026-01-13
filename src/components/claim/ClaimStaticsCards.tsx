@@ -108,8 +108,8 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
     const { data: walletClient } = useWalletClient();
 
     // State for Total Claimed Self Reward (used for refresh logic only)
-    const [_userTotalCSRAmount, setUserTotalCSRAmount] = useState<string>('0.00');
-    const [_isLoadingTotalCSR, setIsLoadingTotalCSR] = useState<boolean>(false);
+    const [__userTotalCSRAmount, _setUserTotalCSRAmount] = useState<string>('0.00');
+    const [__isLoadingTotalCSR, _setIsLoadingTotalCSR] = useState<boolean>(false);
 
 
     // State for Current Self Reward (used for refresh logic only)
