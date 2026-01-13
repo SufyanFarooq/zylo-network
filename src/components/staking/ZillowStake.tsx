@@ -13,6 +13,7 @@ import AnimatedCharacters from './AnimatedCharacters';
 import PowerUpUnitCards from './PowerUpUnitCards';
 import RewardSummaryCards from './RewardSummaryCards';
 import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import { useToast } from '@/components/common/ToastContainer';
 // import { log } from 'console';
 
 /* Coin icon */
@@ -90,12 +91,11 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
   const [tokenBalance, setTokenBalance] = useState('0.00');
   const [isLoadingBalance, setIsLoadingBalance] = useState(false);
   const [isStaking, setIsStaking] = useState(false);
-  const [showSuccessNotification, setShowSuccessNotification] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
   const [selectedPercentage, setSelectedPercentage] = useState(1);
   const [isLoadingStakedAmount, setIsLoadingStakedAmount] = useState(false);
   const [index2Value, setIndex2Value] = useState('0.00');
   const [index3Value, setIndex3Value] = useState('0.00');
+  const { showToast } = useToast();
   const [index4Value, setIndex4Value] = useState('0.00');
   const [index6Value, setIndex6Value] = useState('0.00');
   const [index7Value, setIndex7Value] = useState('0.00');
@@ -147,16 +147,6 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
     }
   }, [internalShowZoneCards, onShowZoneCardsChange, externalShowZoneCards]);
 
-  // Auto-close success notification after 5 seconds
-  useEffect(() => {
-    if (showSuccessNotification) {
-      const timer = setTimeout(() => {
-        setShowSuccessNotification(false);
-        setSuccessMessage('');
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [showSuccessNotification]);
 
   // Handle circle click to set percentage
   const handleCircleClick = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -998,14 +988,12 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
   // Handle stake function
   const handleStake = async () => {
     if (!isConnected || !walletClient) {
-      setSuccessMessage('Please connect your wallet first');
-      setShowSuccessNotification(true);
+      showToast('Please connect your wallet first', 'error');
       return;
     }
 
     if (!amountTop || parseFloat(amountTop) <= 0) {
-      setSuccessMessage('Please enter a valid amount to stake');
-      setShowSuccessNotification(true);
+      showToast('Please enter a valid amount to stake', 'error');
       return;
     }
 
@@ -1019,8 +1007,7 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
 
         // Check if user is NOT registered (inviter is zero address)
         if (!inviterAddress || inviterAddress === '0x0000000000000000000000000000000000000000') {
-          setSuccessMessage('⚠️ You must register first! Go to the Register page to join the community before Power Up.');
-          setShowSuccessNotification(true);
+          showToast('⚠️ You must register first! Go to the Register page to join the community before Power Up.', 'warning');
 
           // Show a link to register page
           setTimeout(() => {
@@ -1032,8 +1019,7 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
         }
       } else {
         // If getUserDetails fails, user is likely not registered
-        setSuccessMessage('⚠️ You must register first! Go to the Register page to join the community before Power Up.');
-        setShowSuccessNotification(true);
+        showToast('⚠️ You must register first! Go to the Register page to join the community before Power Up.', 'warning');
 
         setTimeout(() => {
           if (confirm('You need to Quick Incept Now first. Would you like to go to the registration page now?')) {
@@ -1045,8 +1031,7 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
     } catch (regCheckError) {
       console.log('Registration check:', regCheckError);
       // If check fails, user is likely not registered
-      setSuccessMessage('⚠️ Unable to verify registration. Please Quick Incept Now first on the Quick Incept Now page.');
-      setShowSuccessNotification(true);
+      showToast('⚠️ Unable to verify registration. Please Quick Incept Now first on the Quick Incept Now page.', 'warning');
       return;
     }
 
@@ -1079,8 +1064,7 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
         }
 
         // Show warning but allow user to continue
-        setSuccessMessage(`Warning: ${errorMessage}. Proceeding with staking attempt...`);
-        setShowSuccessNotification(true);
+        showToast(`Warning: ${errorMessage}. Proceeding with staking attempt...`, 'warning');
 
         // Set a default balance for continuation
         console.warn('Balance check failed, proceeding with assumed balance of 0');
@@ -1092,14 +1076,12 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
       const requiredAmount = parseFloat(amountTop);
 
       if (currentTokenBalance <= 0) {
-        setSuccessMessage('You have no ZYLO tokens to Power Up. Please acquire some ZYLO tokens first.');
-        setShowSuccessNotification(true);
+        showToast('You have no ZYLO tokens to Power Up. Please acquire some ZYLO tokens first.', 'error');
         return;
       }
 
       if (requiredAmount > currentTokenBalance) {
-        setSuccessMessage(`Insufficient ZYLO token balance. You have ${currentTokenBalance.toFixed(2)} ZYLO, trying to stake ${requiredAmount} ZYLO`);
-        setShowSuccessNotification(true);
+        showToast(`Insufficient ZYLO token balance. You have ${currentTokenBalance.toFixed(2)} ZYLO, trying to stake ${requiredAmount} ZYLO`, 'error');
         return;
       }
 
@@ -1139,9 +1121,19 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
           minStakeAmount = 50001;
           maxStakeAmount = 100000;
         } else if (selectedZoneUnit === 3) {
-          // Zylo Apex - can stake 100,001+ ZYLO per stake (no max)
+          // Zylo Apex - can stake 100,001 to 250,000 ZYLO per stake
           unitName = 'Zylo Apex';
           minStakeAmount = 100001;
+          maxStakeAmount = 250000;
+        } else if (selectedZoneUnit === 4) {
+          // Zylo Universe - can stake 250,000 to 500,000 ZYLO per stake
+          unitName = 'Zylo Universe';
+          minStakeAmount = 250000;
+          maxStakeAmount = 500000;
+        } else if (selectedZoneUnit === 5) {
+          // Zylo Infinity - can stake 500,000+ ZYLO per stake (no max)
+          unitName = 'Zylo Infinity';
+          minStakeAmount = 500000;
           maxStakeAmount = Infinity;
         }
       } else {
@@ -1161,10 +1153,20 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
           unitName = 'AI Overrider';
           minStakeAmount = 50001;
           maxStakeAmount = 100000;
-        } else if (totalStakedInWei >= ethers.parseEther('100001')) {
-          // Unit 3: Zylo Apex - can stake 100,001+ ZYLO per stake (infinite times, no max)
+        } else if (totalStakedInWei >= ethers.parseEther('100001') && totalStakedInWei <= ethers.parseEther('250000')) {
+          // Unit 3: Zylo Apex - can stake 100,001 to 250,000 ZYLO per stake
           unitName = 'Zylo Apex';
           minStakeAmount = 100001;
+          maxStakeAmount = 250000;
+        } else if (totalStakedInWei >= ethers.parseEther('250001') && totalStakedInWei <= ethers.parseEther('500000')) {
+          // Unit 4: Zylo Universe - can stake 250,000 to 500,000 ZYLO per stake
+          unitName = 'Zylo Universe';
+          minStakeAmount = 250000;
+          maxStakeAmount = 500000;
+        } else if (totalStakedInWei >= ethers.parseEther('500001')) {
+          // Unit 5: Zylo Infinity - can stake 500,000+ ZYLO per stake (no max)
+          unitName = 'Zylo Infinity';
+          minStakeAmount = 500001;
           maxStakeAmount = Infinity;
         } else {
           // Default: If total is 0 or invalid, use Spark Up limits
@@ -1189,8 +1191,7 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
 
       // Validate the stake
       if (!isValidStake) {
-        setSuccessMessage(errorMessage);
-        setShowSuccessNotification(true);
+        showToast(errorMessage, 'error');
         return;
       }
 
@@ -1200,8 +1201,7 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
 
       // Additional validation: Check if stake amount is positive
       if (stakeAmount <= 0) {
-        setSuccessMessage('Please enter a valid amount to stake');
-        setShowSuccessNotification(true);
+        showToast('Please enter a valid amount to stake', 'error');
         return;
       }
 
@@ -1237,22 +1237,19 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
       // Step 1: Check if tokens are already approved
       // Validate addresses before checking allowance
       if (!address) {
-        setSuccessMessage('Wallet address is required');
-        setShowSuccessNotification(true);
+        showToast('Wallet address is required', 'error');
         return;
       }
 
       if (!ZyloPowerUp_ADDRESS) {
-        setSuccessMessage('Contract address is not configured');
-        setShowSuccessNotification(true);
+        showToast('Contract address is not configured', 'error');
         return;
       }
 
       const allowanceResult = await getAllowance(provider, address, ZyloPowerUp_ADDRESS);
 
       if (!allowanceResult.success) {
-        setSuccessMessage(`Failed to check allowance: ${allowanceResult.error}`);
-        setShowSuccessNotification(true);
+        showToast(`Failed to check allowance: ${allowanceResult.error}`, 'error');
         return;
       }
 
@@ -1266,12 +1263,10 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
 
       if (currentAllowance >= requiredAmount) {
         // Tokens already approved, skip approval step
-        setSuccessMessage('Tokens already approved! Proceeding to Power Up...');
-        setShowSuccessNotification(true);
+        showToast('Tokens already approved! Proceeding to Power Up...', 'success');
       } else {
         // Need to approve tokens
-        setSuccessMessage('Please approve the token transaction in your wallet...');
-        setShowSuccessNotification(true);
+        showToast('Please approve the token transaction in your wallet...', 'info');
 
         console.log('Approving tokens:', {
           amount: amountTop,
@@ -1313,8 +1308,7 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
 
       if (depositResult.success) {
         // Show success notification
-        setSuccessMessage(`Successfully Power Up ${amountTop} ZYLO! You are now part of the network.`);
-        setShowSuccessNotification(true);
+        showToast(`Successfully Power Up ${amountTop} ZYLO! You are now part of the network.`, 'success');
 
         // Clear amount
         setAmountTop('0.00');
@@ -1351,15 +1345,13 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
         } else {
           // Only show error if it's not a user rejection
           if (depositResult.error) {
-            setSuccessMessage(`Staking failed: ${depositResult.error}`);
-            setShowSuccessNotification(true);
+            showToast(`Staking failed: ${depositResult.error}`, 'error');
           }
         }
       }
     } catch (error) {
       console.error('Error staking:', error);
-      setSuccessMessage(`Staking failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      setShowSuccessNotification(true);
+      showToast(`Staking failed: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
     } finally {
       setIsStaking(false);
     }
@@ -1531,8 +1523,8 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
               }}
             >
               {(() => {
-                const unitNames = ['Spark Up', 'Flicker Roar', 'AI Overrider', 'Zylo Apex'];
-                const unitColors = ['#FEE739', '#00d6a3', '#FEE739', '#00d6a3'];
+                const unitNames = ['Spark Up', 'Flicker Roar', 'AI Overrider', 'Zylo Apex', 'Zylo Universe', 'Zylo Infinity'];
+                const unitColors = ['#FEE739', '#00d6a3', '#FEE739', '#00d6a3', '#FEE739', '#9333ea'];
                 const unitName = unitNames[selectedZoneUnit] || 'Unknown Unit';
                 const unitColor = unitColors[selectedZoneUnit] || '#FEE739';
 
@@ -1837,7 +1829,7 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
 
                 <h3 style={{ color: '#FEE739', marginBottom: '1.5rem', textAlign: 'center', fontWeight: '700' }}>
                   Power Up History - {(() => {
-                    const unitNames = ['Spark Up', 'Flicker Roar', 'AI Overrider', 'Zylo Apex'];
+                    const unitNames = ['Spark Up', 'Flicker Roar', 'AI Overrider', 'Zylo Apex', 'Zylo Universe', 'Zylo Infinity'];
                     return unitNames[selectedZoneUnit] || 'Unknown Unit';
                   })()}
                 </h3>

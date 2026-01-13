@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Header from '@/components/common/Header';
 import Footer from '@/components/common/Footer';
+import ToastContainer, { useToast } from '@/components/common/ToastContainer';
 import { FaCircle } from 'react-icons/fa';
 import Image from 'next/image';
 import { connectWallet, registerUser, checkUserRegistration, refreshUserRegistrationStatus } from '@/blockchain/instances/ZyloPowerUp';
@@ -15,27 +16,32 @@ import '../home.css';
 import './register.css';
 
 const RegisterPage: React.FC = () => {
+    const { showToast } = useToast();
     const [referralAddress, setReferralAddress] = useState('');
     const [userName, setUserName] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [message, setMessage] = useState('');
-    const [messageType, setMessageType] = useState(''); // 'success', 'error', 'warning'
     const [referralLink, setReferralLink] = useState('');
     const [userContractAddress] = useState('');
     const [isAlreadyRegistered, setIsAlreadyRegistered] = useState(false);
     const [copySuccess, setCopySuccess] = useState(false);
-    const [messageFadeOut, setMessageFadeOut] = useState(false);
     const [showWalletMessage, setShowWalletMessage] = useState(true);
-    const [walletMessageFadeOut, setWalletMessageFadeOut] = useState(false);
     const [isReferralFromURL, setIsReferralFromURL] = useState(false);
     const [isCheckingReferral, setIsCheckingReferral] = useState(true);
     const [showAddPartnerSection, setShowAddPartnerSection] = useState(false);
     const [partnerAddresses, setPartnerAddresses] = useState<string[]>(['']);
-    const [partnerPercentages, setPartnerPercentages] = useState<string[]>(['0']);
+    const [partnerPercentages, setPartnerPercentages] = useState<string[]>(['']);
     const [isAddingPartners, setIsAddingPartners] = useState(false);
     const [showPartnerAccountsModal, setShowPartnerAccountsModal] = useState(false);
     const [partnerAccountsList, setPartnerAccountsList] = useState<Array<{ address: string, percentage: number }>>([]);
     const [isLoadingPartners, setIsLoadingPartners] = useState(false);
+
+    // Calculate total percentage for validation
+    const getTotalPercentage = () => {
+        return partnerPercentages.reduce((sum, pct) => {
+            const num = parseFloat(pct) || 0;
+            return sum + num;
+        }, 0);
+    };
 
     // Wagmi hooks
     const { address, isConnected } = useAccount();
@@ -148,20 +154,16 @@ const RegisterPage: React.FC = () => {
         if (!isConnected) {
             console.log('Wallet disconnected - resetting UI');
             // Reset all states when wallet disconnects
-            setMessage('');
-            setMessageType('');
             setReferralLink('');
             setIsAlreadyRegistered(false);
-            setMessageFadeOut(false);
             setShowWalletMessage(true);
-            setWalletMessageFadeOut(false);
             setCopySuccess(false);
             setReferralAddress(''); // Clear the referral address input
             setIsReferralFromURL(false);
             setIsCheckingReferral(false);
             setShowAddPartnerSection(false);
             setPartnerAddresses(['']);
-            setPartnerPercentages(['0']);
+            setPartnerPercentages(['']);
         }
     }, [isConnected]);
 
@@ -170,18 +172,14 @@ const RegisterPage: React.FC = () => {
         if (isConnected && address) {
             console.log('Address changed to:', address, '- resetting UI');
             // Reset all states when address changes
-            setMessage('');
-            setMessageType('');
             setReferralLink('');
             setIsAlreadyRegistered(false);
-            setMessageFadeOut(false);
-            setWalletMessageFadeOut(false);
             setCopySuccess(false);
             setReferralAddress('');
             setIsReferralFromURL(false);
             setShowAddPartnerSection(false);
             setPartnerAddresses(['']);
-            setPartnerPercentages(['0']);
+            setPartnerPercentages(['']);
         }
     }, [address, isConnected]);
 
@@ -191,12 +189,8 @@ const RegisterPage: React.FC = () => {
             if (isConnected && address && walletClient) {
                 console.log('Checking registration for new address:', address);
                 // Reset all relevant states to ensure a clean UI before checking registration
-                setMessage('');
-                setMessageType('');
                 setReferralLink('');
                 setIsAlreadyRegistered(false);
-                setMessageFadeOut(false);
-                setWalletMessageFadeOut(false);
                 setCopySuccess(false);
                 setReferralAddress(''); // Clear the referral address input
                 setShowWalletMessage(false);
@@ -209,8 +203,7 @@ const RegisterPage: React.FC = () => {
                     const registrationCheck = await checkUserRegistration(provider, address);
 
                     if (registrationCheck.success && registrationCheck.isRegistered) {
-                        setMessage('You are already registered in the community!');
-                        setMessageType('warning');
+                        showToast('You are already registered in the community!', 'warning');
                         setIsAlreadyRegistered(true);
 
                         // Set referral link
@@ -220,16 +213,6 @@ const RegisterPage: React.FC = () => {
                             const currentReferralLink = `${window.location.origin}/register/${address}`;
                             setReferralLink(currentReferralLink);
                         }
-
-                        // Auto-hide message after 10 seconds with fade-out animation
-                        setTimeout(() => {
-                            setMessageFadeOut(true);
-                            setTimeout(() => {
-                                setMessage('');
-                                setMessageType('');
-                                setMessageFadeOut(false);
-                            }, 500); // Wait for fade animation to complete
-                        }, 10000);
                     }
                 } catch (error) {
                     console.error("Error checking user registration:", error);
@@ -240,15 +223,11 @@ const RegisterPage: React.FC = () => {
         checkUserRegistrationStatus();
     }, [isConnected, address, walletClient]);
 
-    // Auto-hide wallet required message after 10 seconds with fade-out animation
+    // Auto-hide wallet required message after 10 seconds
     useEffect(() => {
         if (!isConnected && showWalletMessage) {
             const timer = setTimeout(() => {
-                setWalletMessageFadeOut(true);
-                setTimeout(() => {
-                    setShowWalletMessage(false);
-                    setWalletMessageFadeOut(false);
-                }, 500); // Wait for fade animation to complete
+                setShowWalletMessage(false);
             }, 10000);
 
             return () => clearTimeout(timer);
@@ -276,14 +255,7 @@ const RegisterPage: React.FC = () => {
         const result = await connectWallet(open);
 
         if (!result.success) {
-            setMessage(result.error || 'Failed to connect wallet');
-            setMessageType('error');
-
-            // Auto-hide error message after 5 seconds
-            setTimeout(() => {
-                setMessage('');
-                setMessageType('');
-            }, 5000);
+            showToast(result.error || 'Failed to connect wallet', 'error');
         }
     };
 
@@ -301,7 +273,7 @@ const RegisterPage: React.FC = () => {
     // Add new partner address input field
     const handleAddPartnerInput = () => {
         setPartnerAddresses([...partnerAddresses, '']);
-        setPartnerPercentages([...partnerPercentages, '0']);
+        setPartnerPercentages([...partnerPercentages, '']);
     };
 
     // Update partner address at specific index
@@ -340,20 +312,16 @@ const RegisterPage: React.FC = () => {
     // Submit partner accounts
     const handleAddPartnerAccounts = async () => {
         setIsAddingPartners(true);
-        setMessage('');
-        setMessageType('');
 
         try {
             if (!isConnected || !address) {
-                setMessage('Please connect your wallet first');
-                setMessageType('error');
+                showToast('Please connect your wallet first', 'error');
                 setIsAddingPartners(false);
                 return;
             }
 
             if (!walletClient) {
-                setMessage('Unable to get wallet client');
-                setMessageType('error');
+                showToast('Unable to get wallet client', 'error');
                 setIsAddingPartners(false);
                 return;
             }
@@ -373,8 +341,7 @@ const RegisterPage: React.FC = () => {
             }
 
             if (addressesToAdd.length === 0) {
-                setMessage('Please add at least one partner address');
-                setMessageType('error');
+                showToast('Please add at least one partner address', 'error');
                 setIsAddingPartners(false);
                 return;
             }
@@ -384,8 +351,7 @@ const RegisterPage: React.FC = () => {
             for (let i = 0; i < addressesToAdd.length; i++) {
                 const addr = addressesToAdd[i].toLowerCase();
                 if (addressSet.has(addr)) {
-                    setMessage(`Duplicate address found: ${addressesToAdd[i]}. Each address can only be added once.`);
-                    setMessageType('error');
+                    showToast(`Duplicate address found: ${addressesToAdd[i]}. Each address can only be added once.`, 'error');
                     setIsAddingPartners(false);
                     return;
                 }
@@ -396,31 +362,35 @@ const RegisterPage: React.FC = () => {
             for (let i = 0; i < percentagesToAdd.length; i++) {
                 const pct = percentagesToAdd[i];
                 if (isNaN(pct) || pct < 0 || pct > 100) {
-                    setMessage(`Invalid percentage for address ${addressesToAdd[i]}. Percentage must be between 0 and 100.`);
-                    setMessageType('error');
+                    showToast(`Invalid percentage for address ${addressesToAdd[i]}. Percentage must be between 0 and 100.`, 'error');
                     setIsAddingPartners(false);
                     return;
                 }
+            }
+
+            // Validate total percentage doesn't exceed 60%
+            const totalPercentage = percentagesToAdd.reduce((sum, pct) => sum + pct, 0);
+            if (totalPercentage > 60) {
+                showToast(`Total percentage (${totalPercentage}%) exceeds the maximum limit of 60%. Please adjust the percentages.`, 'warning');
+                setIsAddingPartners(false);
+                return;
             }
 
             // Call addPartnerAccount function
             const result = await addPartnerAccount(walletClient, address, addressesToAdd, percentagesToAdd);
 
             if (result.success) {
-                setMessage('Successfully added partner accounts!');
-                setMessageType('success');
+                showToast(`Partner accounts added successfully! ${addressesToAdd.length} partner(s) registered.`, 'success');
                 // Clear the partner addresses after success
                 setPartnerAddresses(['']);
-                setPartnerPercentages(['0']);
+                setPartnerPercentages(['']);
                 setShowAddPartnerSection(false);
             } else {
-                setMessage(result.error || 'Failed to add partner accounts');
-                setMessageType('error');
+                showToast(result.error || 'Failed to add partner accounts', 'error');
             }
         } catch (error: unknown) {
             const err = error as { message?: string };
-            setMessage(`Error: ${err?.message || 'Unknown error occurred'}`);
-            setMessageType('error');
+            showToast(`Error: ${err?.message || 'Unknown error occurred'}`, 'error');
         } finally {
             setIsAddingPartners(false);
         }
@@ -429,8 +399,7 @@ const RegisterPage: React.FC = () => {
     // Load and show partner accounts
     const handleViewPartnerAccounts = async () => {
         if (!isConnected || !address || !walletClient) {
-            setMessage('Please connect your wallet first');
-            setMessageType('error');
+            showToast('Please connect your wallet first', 'error');
             return;
         }
 
@@ -449,13 +418,11 @@ const RegisterPage: React.FC = () => {
             if (result.success && result.partners) {
                 setPartnerAccountsList(result.partners);
             } else {
-                setMessage(result.error || 'Failed to load partner accounts');
-                setMessageType('error');
+                showToast(result.error || 'Failed to load partner accounts', 'error');
             }
         } catch (error: unknown) {
             const err = error as { message?: string };
-            setMessage(`Error: ${err?.message || 'Unknown error occurred'}`);
-            setMessageType('error');
+            showToast(`Error: ${err?.message || 'Unknown error occurred'}`, 'error');
         } finally {
             setIsLoadingPartners(false);
         }
@@ -464,26 +431,20 @@ const RegisterPage: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
-        setMessage('');
-        setMessageType('');
         setReferralLink('');
         setIsAlreadyRegistered(false);
-        setMessageFadeOut(false);
         setShowWalletMessage(false);
-        setWalletMessageFadeOut(false);
 
         try {
             if (!isConnected || !address) {
-                setMessage('Please connect your wallet first');
-                setMessageType('error');
+                showToast('Please connect your wallet first', 'error');
                 setIsLoading(false);
                 return;
             }
 
             // Call registerUser function from ZyloPowerUp.js
             if (!walletClient) {
-                setMessage('Unable to get wallet client');
-                setMessageType('error');
+                showToast('Unable to get wallet client', 'error');
                 setIsLoading(false);
                 return;
             }
@@ -491,8 +452,7 @@ const RegisterPage: React.FC = () => {
             const result = await registerUser(walletClient, address, referralAddress, userName);
 
             if (result.success) {
-                setMessage('Successfully joined community! Your referral link is ready.');
-                setMessageType('success');
+                showToast('Successfully joined community! Your referral link is ready.', 'success');
                 setReferralAddress(''); // Clear form
                 setUserName(''); // Clear name field
 
@@ -516,37 +476,23 @@ const RegisterPage: React.FC = () => {
             } else {
                 // Check for specific error that should show as alert
                 if (result.error && result.error.includes('You cannot use your own address as referral address')) {
-                    // Show message without "Error:" prefix
-                    setMessage(result.error);
-                    setMessageType('error');
+                    // Show toast without "Error:" prefix
+                    showToast(result.error, 'error');
                 } else if (result.isAlreadyRegistered) {
                     // Check if user is already registered
-                    setMessage('You are already registered in the community!');
-                    setMessageType('warning');
+                    showToast('You are already registered in the community!', 'warning');
                     setIsAlreadyRegistered(true);
 
                     if (result.referralLink) {
                         setReferralLink(result.referralLink);
                     }
-
-                    // Auto-hide message after 10 seconds with fade-out animation
-                    setTimeout(() => {
-                        setMessageFadeOut(true);
-                        setTimeout(() => {
-                            setMessage('');
-                            setMessageType('');
-                            setMessageFadeOut(false);
-                        }, 500); // Wait for fade animation to complete
-                    }, 10000);
                 } else {
-                    setMessage(`Error: ${result.error || 'Unknown error'}`);
-                    setMessageType('error');
+                    showToast(result.error || 'Unknown error occurred', 'error');
                 }
             }
         } catch (error: unknown) {
             const err = error as { message?: string };
-            setMessage(`Error: ${err?.message || 'Unknown error'}`);
-            setMessageType('error');
+            showToast(`Error: ${err?.message || 'Unknown error occurred'}`, 'error');
         } finally {
             setIsLoading(false);
         }
@@ -648,17 +594,12 @@ const RegisterPage: React.FC = () => {
                                 <div className="card border-0 register-card">
                                     <div className="card-body p-5">
                                         {!isConnected && showWalletMessage && (
-                                            <div className={`alert alert-warning mb-4 ${walletMessageFadeOut ? 'fade-out' : ''}`}>
+                                            <div className="alert alert-warning mb-4">
                                                 <strong>Wallet Required:</strong> Please connect your wallet using the button in the header to continue.
                                             </div>
                                         )}
 
-                                        {/* Message above the form */}
-                                        {message && (
-                                            <div className={`alert ${messageType === 'success' ? 'alert-success' : messageType === 'warning' ? 'alert-warning' : 'alert-danger'} mb-4 ${messageFadeOut ? 'fade-out' : ''}`}>
-                                                {message}
-                                            </div>
-                                        )}
+                                        {/* Toast notifications are now used instead of alerts */}
 
                                         {!isAlreadyRegistered ? (
                                             <form onSubmit={handleSubmit}>
@@ -863,7 +804,7 @@ const RegisterPage: React.FC = () => {
                                                                                     type="text"
                                                                                     className="form-control register-input"
                                                                                     placeholder="Percentage (0-100)"
-                                                                                    value={partnerPercentages[index] || '0'}
+                                                                                    value={partnerPercentages[index] || ''}
                                                                                     onChange={(e) => handlePartnerPercentageChange(index, e.target.value)}
                                                                                 />
                                                                             </div>
@@ -911,8 +852,27 @@ const RegisterPage: React.FC = () => {
                                                                     </small>
                                                                 )}
 
+                                                                {/* Total Percentage Indicator */}
+                                                                <div className="mt-3 p-3 rounded" style={{
+                                                                    background: getTotalPercentage() > 60 ? 'rgba(220, 53, 69, 0.1)' : 'rgba(40, 167, 69, 0.1)',
+                                                                    border: `1px solid ${getTotalPercentage() > 60 ? '#dc3545' : '#28a745'}`,
+                                                                    color: getTotalPercentage() > 60 ? '#dc3545' : '#28a745'
+                                                                }}>
+                                                                    <div className="d-flex justify-content-between align-items-center">
+                                                                        <span className="fw-bold">Total Percentage: {getTotalPercentage().toFixed(1)}%</span>
+                                                                        <span className={`badge ${getTotalPercentage() > 60 ? 'bg-danger' : 'bg-success'}`}>
+                                                                            {getTotalPercentage() > 60 ? '❌ Exceeds 60%' : '✅ Within Limit'}
+                                                                        </span>
+                                                                    </div>
+                                                                    {getTotalPercentage() > 60 && (
+                                                                        <small className="text-danger mt-1 d-block">
+                                                                            ⚠️ Total percentage cannot exceed 60%. Please adjust the values.
+                                                                        </small>
+                                                                    )}
+                                                                </div>
+
                                                                 <small className="text-info mt-2 d-block">
-                                                                    Note: Enter percentage (0-100, maximum 100) for each partner address. Each address must be unique. Percentages represent the share for each partner.
+                                                                    Note: Enter percentage (0-100) for each partner address. Total must not exceed 60%. Each address must be unique.
                                                                 </small>
                                                             </div>
                                                         </div>

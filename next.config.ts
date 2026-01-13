@@ -18,7 +18,6 @@ const nextConfig: NextConfig = {
     return [
       { source: '/incept-now', destination: '/register' },
       { source: '/incept-now/:path*', destination: '/register/:path*' },
-      { source: '/power-up', destination: '/staking' },
       { source: '/vortex-zone', destination: '/levels' },
       { source: '/vortex-zone/:path*', destination: '/levels/:path*' },
       { source: '/milestone', destination: '/achievement' },

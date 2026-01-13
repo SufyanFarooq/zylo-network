@@ -327,15 +327,27 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
       unitIndex: 4,
       name: 'Zylo Universe',
       image: '/Unit/zylo-universe.png',
-      reward: '',
+      reward: '3.5X',
       rewardColor: '#FEE739',
       borderColor: '#FEE739',
       titleColor: '#FEE739',
       quote: 'The ultimate expansion awaits.',
-      requirement: 'Coming Soon',
-      isComingSoon: true,
+      requirement: '5 units',
       tokenRange: '250,000+',
-      energyPercentage: 0,
+      energyPercentage: 100,
+    },
+    {
+      unitIndex: 5,
+      name: 'Zylo Infinity',
+      image: '/Unit/zylo-infinity.png',
+      reward: '4X',
+      rewardColor: '#9333ea',
+      borderColor: '#9333ea',
+      titleColor: '#9333ea',
+      quote: 'Beyond the universe, infinite possibilities.',
+      requirement: '6 units',
+      tokenRange: '500,000+',
+      energyPercentage: 100,
     },
   ];
 
@@ -546,11 +558,8 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
 
   // Handle zone card click
   const handleZoneCardClick = (unitIndex: number) => {
-    if (unitIndex === 4) {
-      // Zylo Universe - show coming soon
-      alert('Coming Soon!');
-      return;
-    }
+    // All units are now available for selection
+    onZoneCardClick(unitIndex);
 
     // Navigate to powerup section with unit index
     router.push(`/staking?section=powerup&unit=${unitIndex}`);
@@ -576,14 +585,15 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
     setSelectedUnit(null);
   };
 
-  // Unit mapping: Spark=0, Flicker Roar=1, AI Override=3, Zylo Apex=4, Zylo Universe=5
+  // Unit mapping: Spark=0, Flicker Roar=1, AI Override=3, Zylo Apex=4, Zylo Universe=5, Zylo Infinity=6
   const getUnitIndex = (unit: number): number => {
-    // Map unit indices: 0→0, 1→1, 2→3, 3→4, 4→5
+    // Map unit indices: 0→0, 1→1, 2→3, 3→4, 4→5, 5→6
     if (unit === 0) return 0; // Spark
     if (unit === 1) return 1; // Flicker Roar
     if (unit === 2) return 3; // AI Override
     if (unit === 3) return 4; // Zylo Apex
     if (unit === 4) return 5; // Zylo Universe
+    if (unit === 5) return 6; // Zylo Infinity
     return unit;
   };
 
@@ -679,7 +689,7 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
         handleLoadUnitPowerUps(effectiveSelectedUnit);
       } else {
         // Load all units' power ups when no unit is selected
-        [0, 1, 2, 3].forEach((unitIndex) => { // Skip Zylo Universe (4)
+        [0, 1, 2, 3, 4, 5].forEach((unitIndex) => { // Include all units: Spark, Flicker Roar, AI Override, Zylo Apex, Zylo Universe, Zylo Infinity
           handleLoadUnitPowerUps(unitIndex);
         });
       }

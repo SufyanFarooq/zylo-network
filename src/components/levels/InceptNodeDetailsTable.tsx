@@ -10,10 +10,11 @@ interface InceptNodeData {
   address: string;
   unitCounts: {
     sparkUp: number;
-    flickerRoar: number;
-    aiOverrider: number;
-    zyloApex: number;
-    zyloUniverse: number;
+  flickerRoar: number;
+  aiOverrider: number;
+  zyloApex: number;
+  zyloUniverse: number;
+  zyloInfinity: number;
   };
 }
 
@@ -22,7 +23,7 @@ interface InceptNodeDetailsTableProps {
   onClose?: () => void;
 }
 
-const UNIT_NAMES = ['Spark Up', 'Flicker Roar', 'AI Overrider', 'Zylo Apex', 'Zylo Universe'];
+const UNIT_NAMES = ['Spark Up', 'Flicker Roar', 'AI Overrider', 'Zylo Apex', 'Zylo Universe', 'Zylo Infinity'];
 
 const InceptNodeDetailsTable: React.FC<InceptNodeDetailsTableProps> = ({ levelIndex, onClose: _onClose }) => {
   const { address, isConnected } = useAccount();
@@ -95,12 +96,13 @@ const InceptNodeDetailsTable: React.FC<InceptNodeDetailsTableProps> = ({ levelIn
             console.log(`Found node address: ${nodeAddress}`);
 
             // Step 3: Get unit counts for this address (0-4)
-            const unitCounts = {
+            const             unitCounts = {
               sparkUp: 0,
               flickerRoar: 0,
               aiOverrider: 0,
               zyloApex: 0,
               zyloUniverse: 0,
+              zyloInfinity: 0,
             };
 
             // Fetch unit counts for all 5 units (0-4)
@@ -126,6 +128,9 @@ const InceptNodeDetailsTable: React.FC<InceptNodeDetailsTableProps> = ({ levelIn
                       break;
                     case 4:
                       unitCounts.zyloUniverse = count;
+                      break;
+                    case 5:
+                      unitCounts.zyloInfinity = count;
                       break;
                   }
                 }
@@ -270,6 +275,9 @@ const InceptNodeDetailsTable: React.FC<InceptNodeDetailsTableProps> = ({ levelIn
                       </td>
                       <td className="stake-cell">
                         <span className="stake-amount">{node.unitCounts.zyloUniverse}</span>
+                      </td>
+                      <td className="stake-cell">
+                        <span className="stake-amount">{node.unitCounts.zyloInfinity}</span>
                       </td>
                     </tr>
                   ))}

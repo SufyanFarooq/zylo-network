@@ -6,6 +6,7 @@ import Script from "next/script";
 import ContextProvider from "@/config/Web3Provider";
 import AppKitModal from "@/components/common/AppKitModal";
 import ConsoleFilter from "@/components/common/ConsoleFilter";
+import ToastContainer from "@/components/common/ToastContainer";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore Next.js 15 headers API compatibility
 import { headers } from "next/headers";
@@ -45,7 +46,9 @@ export default async function RootLayout({
       >
         <ConsoleFilter />
         <ContextProvider cookies={cookies}>
-          {children}
+          <ToastContainer>
+            {children}
+          </ToastContainer>
         </ContextProvider>
         <Script 
           src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"

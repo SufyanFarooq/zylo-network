@@ -88,15 +88,16 @@ const RewardSummaryCards: React.FC<RewardSummaryCardsProps> = ({
   const [currentReferralPowerUpValue, setCurrentReferralPowerUpValue] = useState<string>('0.00');
   const [isLoadingCurrentReferralPowerUp, setIsLoadingCurrentReferralPowerUp] = useState<boolean>(false);
 
-  // Unit mapping: Spark=0, Flicker Roar=1, AI Override=3, Zylo Apex=4, Zylo Universe=5
+  // Unit mapping: Spark=0, Flicker Roar=1, AI Override=3, Zylo Apex=4, Zylo Universe=5, Zylo Infinity=6
   const getUnitIndex = (unit: number | null): number => {
     if (unit === null) return 0;
-    // Map unit indices: 0→0, 1→1, 2→3, 3→4, 4→5
+    // Map unit indices: 0→0, 1→1, 2→3, 3→4, 4→5, 5→6
     if (unit === 0) return 0; // Spark
     if (unit === 1) return 1; // Flicker Roar
     if (unit === 2) return 3; // AI Override
     if (unit === 3) return 4; // Zylo Apex
     if (unit === 4) return 5; // Zylo Universe
+    if (unit === 5) return 6; // Zylo Infinity
     return unit;
   };
 
