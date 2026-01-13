@@ -2189,6 +2189,27 @@ const PowerUpUnitCards: React.FC<PowerUpUnitCardsProps> = ({
                         </button>
                       </div>
                     )}
+
+                    {/* Records info */}
+                    <div className="d-flex justify-content-between align-items-center mt-4 px-3 py-2 rounded"
+                      style={{
+                        background: 'rgba(3, 53, 61, 0.4)',
+                        border: '1px solid rgba(254, 231, 57, 0.2)',
+                        backdropFilter: 'blur(5px)'
+                      }}>
+                      <div className="d-flex align-items-center">
+                        <i className="fas fa-list-ol me-2" style={{ color: '#FEE739', fontSize: '0.9rem' }}></i>
+                        <span style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.85rem', fontWeight: '500' }}>
+                          Showing {(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, selfClaimHistory.length)} of {selfClaimHistory.length} entries
+                        </span>
+                      </div>
+                      <div className="d-flex align-items-center">
+                        <i className="fas fa-info-circle me-2" style={{ color: '#00d6a3', fontSize: '0.9rem' }}></i>
+                        <span style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '0.85rem', fontWeight: '600' }}>
+                          Claim History
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

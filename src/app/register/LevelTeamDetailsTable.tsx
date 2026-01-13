@@ -16,9 +16,10 @@ interface TeamMember {
 
 interface LevelTeamDetailsTableProps {
     className?: string;
+    onBack?: () => void;
 }
 
-const LevelTeamDetailsTable: React.FC<LevelTeamDetailsTableProps> = ({ className = '' }) => {
+const LevelTeamDetailsTable: React.FC<LevelTeamDetailsTableProps> = ({ className = '', onBack }) => {
     const [selectedLevel, setSelectedLevel] = useState<number | null>(null);
     const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -145,6 +146,42 @@ const LevelTeamDetailsTable: React.FC<LevelTeamDetailsTableProps> = ({ className
 
     return (
         <div className={`level-team-details-table ${className}`}>
+            {/* Back Navigation Button */}
+            <div className="d-flex align-items-center mb-4">
+                <button
+                    onClick={onBack || (() => window.history.back())}
+                    className="btn btn-outline-warning d-flex align-items-center gap-2"
+                    style={{
+                        background: 'linear-gradient(145deg, rgba(254, 231, 57, 0.15) 0%, rgba(254, 231, 57, 0.08) 100%)',
+                        border: '2px solid rgba(254, 231, 57, 0.5)',
+                        color: '#FEE739',
+                        borderRadius: '12px',
+                        padding: '0.75rem 1.25rem',
+                        fontWeight: '700',
+                        fontSize: '0.95rem',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        backdropFilter: 'blur(5px)',
+                        boxShadow: '0 2px 8px rgba(254, 231, 57, 0.1)',
+                        cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'linear-gradient(145deg, rgba(254, 231, 57, 0.25) 0%, rgba(254, 231, 57, 0.15) 100%)';
+                        e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)';
+                        e.currentTarget.style.boxShadow = '0 6px 16px rgba(254, 231, 57, 0.3)';
+                        e.currentTarget.style.borderColor = '#FEE739';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'linear-gradient(145deg, rgba(254, 231, 57, 0.15) 0%, rgba(254, 231, 57, 0.08) 100%)';
+                        e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(254, 231, 57, 0.1)';
+                        e.currentTarget.style.borderColor = 'rgba(254, 231, 57, 0.5)';
+                    }}
+                >
+                    <span style={{ fontSize: '1rem', marginRight: '0.5rem', fontWeight: 'bold' }}>←</span>
+                    <span>Back</span>
+                </button>
+            </div>
+
             {/* Level Selection Buttons */}
             <div className="level-buttons-container mb-4">
                 <h5 className="text-yellow fw-bold mb-3">Select Level to View Team Details</h5>

@@ -1993,78 +1993,153 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
                       </tbody>
                     </table>
 
-                    {/* Pagination Controls for Power Up History */}
-                    {powerUpHistory.length > historyItemsPerPage && (
-                      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '2rem' }}>
-                        <button
-                          onClick={() => setCurrentHistoryPage(prev => Math.max(1, prev - 1))}
-                          disabled={currentHistoryPage === 1}
-                          style={{
-                            background: currentHistoryPage === 1 ? 'rgba(254, 231, 57, 0.2)' : 'rgba(254, 231, 57, 0.1)',
-                            border: '2px solid #FEE739',
-                            color: currentHistoryPage === 1 ? 'rgba(254, 231, 57, 0.5)' : '#FEE739',
-                            padding: '0.5rem 1rem',
-                            borderRadius: '8px',
-                            fontWeight: '600',
-                            cursor: currentHistoryPage === 1 ? 'not-allowed' : 'pointer',
-                            transition: 'all 0.3s ease',
-                          }}
-                          onMouseEnter={(e) => {
-                            if (currentHistoryPage !== 1) {
-                              e.currentTarget.style.background = 'rgba(254, 231, 57, 0.2)';
-                              e.currentTarget.style.transform = 'translateY(-2px)';
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            if (currentHistoryPage !== 1) {
-                              e.currentTarget.style.background = 'rgba(254, 231, 57, 0.1)';
-                              e.currentTarget.style.transform = 'translateY(0)';
-                            }
-                          }}
-                        >
-                          Previous
-                        </button>
-
-                        <span style={{
-                          color: '#FEE739',
-                          fontWeight: '600',
-                          fontSize: '1rem',
-                          padding: '0.5rem 1rem',
-                          background: 'rgba(254, 231, 57, 0.1)',
-                          borderRadius: '8px',
-                          border: '2px solid rgba(254, 231, 57, 0.3)',
+                    {/* Beautiful Pagination Controls for Power Up History */}
+                    {powerUpHistory.length > 0 && (
+                      <div style={{
+                        marginTop: '2.5rem',
+                        padding: '1.5rem',
+                        background: 'linear-gradient(145deg, rgba(10, 10, 26, 0.8) 0%, rgba(15, 15, 35, 0.8) 50%, rgba(26, 26, 46, 0.8) 100%)',
+                        borderRadius: '16px',
+                        border: '1px solid rgba(254, 231, 57, 0.2)',
+                        boxShadow: '0 4px 20px rgba(254, 231, 57, 0.1)',
+                        backdropFilter: 'blur(10px)'
+                      }}>
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          gap: '1rem',
+                          flexWrap: 'wrap'
                         }}>
-                          Page {currentHistoryPage} of {Math.ceil(powerUpHistory.length / historyItemsPerPage)}
-                        </span>
+                          {/* Previous Button */}
+                          <button
+                            onClick={() => setCurrentHistoryPage(prev => Math.max(1, prev - 1))}
+                            disabled={currentHistoryPage === 1}
+                            style={{
+                              background: currentHistoryPage === 1
+                                ? 'linear-gradient(145deg, rgba(254, 231, 57, 0.1) 0%, rgba(254, 231, 57, 0.05) 100%)'
+                                : 'linear-gradient(145deg, rgba(254, 231, 57, 0.15) 0%, rgba(254, 231, 57, 0.08) 100%)',
+                              border: '2px solid rgba(254, 231, 57, 0.4)',
+                              color: currentHistoryPage === 1 ? 'rgba(254, 231, 57, 0.4)' : '#FEE739',
+                              padding: '0.75rem 1.25rem',
+                              borderRadius: '12px',
+                              fontWeight: '700',
+                              cursor: currentHistoryPage === 1 ? 'not-allowed' : 'pointer',
+                              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                              fontSize: '0.9rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem',
+                              boxShadow: currentHistoryPage === 1 ? 'none' : '0 4px 12px rgba(254, 231, 57, 0.15)',
+                              minWidth: '120px',
+                              justifyContent: 'center'
+                            }}
+                            onMouseEnter={(e) => {
+                              if (currentHistoryPage !== 1) {
+                                e.currentTarget.style.background = 'linear-gradient(145deg, rgba(254, 231, 57, 0.25) 0%, rgba(254, 231, 57, 0.15) 100%)';
+                                e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)';
+                                e.currentTarget.style.boxShadow = '0 6px 20px rgba(254, 231, 57, 0.25)';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (currentHistoryPage !== 1) {
+                                e.currentTarget.style.background = 'linear-gradient(145deg, rgba(254, 231, 57, 0.15) 0%, rgba(254, 231, 57, 0.08) 100%)';
+                                e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(254, 231, 57, 0.15)';
+                              }
+                            }}
+                          >
+                            <i className="fas fa-chevron-left" style={{ fontSize: '0.8rem' }}></i>
+                            <span>Previous</span>
+                          </button>
 
-                        <button
-                          onClick={() => setCurrentHistoryPage(prev => Math.min(Math.ceil(powerUpHistory.length / historyItemsPerPage), prev + 1))}
-                          disabled={currentHistoryPage === Math.ceil(powerUpHistory.length / historyItemsPerPage)}
-                          style={{
-                            background: currentHistoryPage === Math.ceil(powerUpHistory.length / historyItemsPerPage) ? 'rgba(254, 231, 57, 0.2)' : 'rgba(254, 231, 57, 0.1)',
-                            border: '2px solid #FEE739',
-                            color: currentHistoryPage === Math.ceil(powerUpHistory.length / historyItemsPerPage) ? 'rgba(254, 231, 57, 0.5)' : '#FEE739',
-                            padding: '0.5rem 1rem',
-                            borderRadius: '8px',
-                            fontWeight: '600',
-                            cursor: currentHistoryPage === Math.ceil(powerUpHistory.length / historyItemsPerPage) ? 'not-allowed' : 'pointer',
-                            transition: 'all 0.3s ease',
-                          }}
-                          onMouseEnter={(e) => {
-                            if (currentHistoryPage !== Math.ceil(powerUpHistory.length / historyItemsPerPage)) {
-                              e.currentTarget.style.background = 'rgba(254, 231, 57, 0.2)';
-                              e.currentTarget.style.transform = 'translateY(-2px)';
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            if (currentHistoryPage !== Math.ceil(powerUpHistory.length / historyItemsPerPage)) {
-                              e.currentTarget.style.background = 'rgba(254, 231, 57, 0.1)';
-                              e.currentTarget.style.transform = 'translateY(0)';
-                            }
-                          }}
-                        >
-                          Next
-                        </button>
+                          {/* Page Indicator */}
+                          <div style={{
+                            background: 'linear-gradient(145deg, rgba(254, 231, 57, 0.1) 0%, rgba(254, 231, 57, 0.05) 100%)',
+                            border: '2px solid rgba(254, 231, 57, 0.3)',
+                            color: '#FEE739',
+                            padding: '0.75rem 1.5rem',
+                            borderRadius: '12px',
+                            fontWeight: '700',
+                            fontSize: '0.95rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            boxShadow: '0 2px 8px rgba(254, 231, 57, 0.1)',
+                            minWidth: '140px',
+                            justifyContent: 'center'
+                          }}>
+                            <i className="fas fa-file-alt" style={{ fontSize: '0.8rem' }}></i>
+                            <span>Page {currentHistoryPage} of {Math.ceil(powerUpHistory.length / historyItemsPerPage)}</span>
+                          </div>
+
+                          {/* Next Button */}
+                          <button
+                            onClick={() => setCurrentHistoryPage(prev => Math.min(Math.ceil(powerUpHistory.length / historyItemsPerPage), prev + 1))}
+                            disabled={currentHistoryPage === Math.ceil(powerUpHistory.length / historyItemsPerPage)}
+                            style={{
+                              background: currentHistoryPage === Math.ceil(powerUpHistory.length / historyItemsPerPage)
+                                ? 'linear-gradient(145deg, rgba(254, 231, 57, 0.1) 0%, rgba(254, 231, 57, 0.05) 100%)'
+                                : 'linear-gradient(145deg, rgba(254, 231, 57, 0.15) 0%, rgba(254, 231, 57, 0.08) 100%)',
+                              border: '2px solid rgba(254, 231, 57, 0.4)',
+                              color: currentHistoryPage === Math.ceil(powerUpHistory.length / historyItemsPerPage) ? 'rgba(254, 231, 57, 0.4)' : '#FEE739',
+                              padding: '0.75rem 1.25rem',
+                              borderRadius: '12px',
+                              fontWeight: '700',
+                              cursor: currentHistoryPage === Math.ceil(powerUpHistory.length / historyItemsPerPage) ? 'not-allowed' : 'pointer',
+                              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                              fontSize: '0.9rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem',
+                              boxShadow: currentHistoryPage === Math.ceil(powerUpHistory.length / historyItemsPerPage) ? 'none' : '0 4px 12px rgba(254, 231, 57, 0.15)',
+                              minWidth: '120px',
+                              justifyContent: 'center'
+                            }}
+                            onMouseEnter={(e) => {
+                              if (currentHistoryPage !== Math.ceil(powerUpHistory.length / historyItemsPerPage)) {
+                                e.currentTarget.style.background = 'linear-gradient(145deg, rgba(254, 231, 57, 0.25) 0%, rgba(254, 231, 57, 0.15) 100%)';
+                                e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)';
+                                e.currentTarget.style.boxShadow = '0 6px 20px rgba(254, 231, 57, 0.25)';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (currentHistoryPage !== Math.ceil(powerUpHistory.length / historyItemsPerPage)) {
+                                e.currentTarget.style.background = 'linear-gradient(145deg, rgba(254, 231, 57, 0.15) 0%, rgba(254, 231, 57, 0.08) 100%)';
+                                e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(254, 231, 57, 0.15)';
+                              }
+                            }}
+                          >
+                            <span>Next</span>
+                            <i className="fas fa-chevron-right" style={{ fontSize: '0.8rem' }}></i>
+                          </button>
+                        </div>
+
+                        {/* Records Info */}
+                        {/* <div style={{
+                          textAlign: 'center',
+                          marginTop: '1rem',
+                          padding: '0.75rem',
+                          background: 'rgba(3, 53, 61, 0.3)',
+                          borderRadius: '10px',
+                          border: '1px solid rgba(254, 231, 57, 0.15)'
+                        }}>
+                          <div className="d-flex justify-content-center align-items-center gap-3 flex-wrap">
+                            <div className="d-flex align-items-center">
+                              <i className="fas fa-list-ol me-2" style={{ color: '#FEE739', fontSize: '0.9rem' }}></i>
+                              <span style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.85rem', fontWeight: '500' }}>
+                                Showing {(currentHistoryPage - 1) * historyItemsPerPage + 1}-{Math.min(currentHistoryPage * historyItemsPerPage, powerUpHistory.length)} of {powerUpHistory.length} entries
+                              </span>
+                            </div>
+                            <div className="d-flex align-items-center">
+                              <i className="fas fa-info-circle me-2" style={{ color: '#00d6a3', fontSize: '0.9rem' }}></i>
+                              <span style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '0.85rem', fontWeight: '600' }}>
+                                Power Up History
+                              </span>
+                            </div>
+                          </div>
+                        </div> */}
                       </div>
                     )}
                   </div>

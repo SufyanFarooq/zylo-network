@@ -3,7 +3,7 @@
 import React, { JSX, useState, useEffect } from 'react';
 import { useAccount, useWalletClient } from 'wagmi';
 import { BrowserProvider, formatEther } from 'ethers';
-import { getTotalTeamClaimInClaimX, getCurrentSelfClaimInUnit, getCurrentTeamClaimInUnit, getTotalVestingClaimInUnit } from '@/blockchain/instances/ZyloPowerUp';
+import { getCurrentSelfClaimInUnit, getCurrentTeamClaimInUnit, getTotalVestingClaimInUnit } from '@/blockchain/instances/ZyloPowerUp';
 import { getUnitName } from '../staking/utils/unitCategoryMapping';
 import { getCurrentSelfClaimX, getCurrentReferralClaimX, claimXSelfUnitPowerUp as fetchClaimXSelfUnitPowerUp, claimXReferralUnitPowerUp as fetchClaimXReferralUnitPowerUp } from '@/blockchain/instances/ClaimXFunctions';
 import { claimX, getUserClaimXDetailsLength, userClaimXHistory } from '@/blockchain/instances/ZyloPowerUpM';
@@ -111,9 +111,6 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
     const [_userTotalCSRAmount, setUserTotalCSRAmount] = useState<string>('0.00');
     const [_isLoadingTotalCSR, setIsLoadingTotalCSR] = useState<boolean>(false);
 
-    // State for Total Claimed Team Reward (used for refresh logic only)
-    const [_userTotalCTRAmount, setUserTotalCTRAmount] = useState<string>('0.00');
-    const [_isLoadingTotalCTR, setIsLoadingTotalCTR] = useState<boolean>(false);
 
     // State for Current Self Reward (used for refresh logic only)
     const [_currentSelfReward, setCurrentSelfReward] = useState<string>('0.00');
@@ -155,46 +152,6 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
 
 
 
-    // Fetch total team claim in ClaimX (sum of indices 0-4)
-    useEffect(() => {
-        const fetchTotalTeamClaimInClaimX = async () => {
-            if (!isConnected || !address || !walletClient) {
-                setUserTotalCTRAmount('0.00');
-                setIsLoadingTotalCTR(false);
-                return;
-            }
-
-            try {
-                setIsLoadingTotalCTR(true);
-                const provider = new BrowserProvider(walletClient);
-
-                let totalSum = 0;
-
-                // Loop through indices 0-4
-                for (let index = 0; index <= 4; index++) {
-                    try {
-                        const result = await getTotalTeamClaimInClaimX(provider, address, index);
-                        if (result.success && result.data) {
-                            const value = parseFloat(result.data || '0');
-                            totalSum += value;
-                            console.log(`Total Team Claim in ClaimX index ${index}:`, result.data);
-                        }
-                    } catch (err) {
-                        console.error(`Error fetching totalTeamClaimInClaimX for index ${index}:`, err);
-                    }
-                }
-
-                setUserTotalCTRAmount(totalSum.toFixed(2));
-            } catch (error) {
-                console.error('Error fetching total team claim in ClaimX:', error);
-                setUserTotalCTRAmount('0.00');
-            } finally {
-                setIsLoadingTotalCTR(false);
-            }
-        };
-
-        fetchTotalTeamClaimInClaimX();
-    }, [isConnected, address, walletClient]);
 
     // Fetch current self claim in unit (sum of indices 0-4)
     useEffect(() => {
@@ -546,21 +503,7 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
                 const provider = new BrowserProvider(walletClient);
 
 
-                // Refresh Total Claimed Team Reward
-                setIsLoadingTotalCTR(true);
-                let totalTeamSum = 0;
-                for (let index = 0; index <= 4; index++) {
-                    try {
-                        const result = await getTotalTeamClaimInClaimX(provider, address, index);
-                        if (result.success && result.data) {
-                            totalTeamSum += parseFloat(result.data || '0');
-                        }
-                    } catch (err) {
-                        console.error(`Error refreshing totalTeamClaimInClaimX for index ${index}:`, err);
-                    }
-                }
-                setUserTotalCTRAmount(totalTeamSum.toFixed(2));
-                setIsLoadingTotalCTR(false);
+                // Total Claimed Team Reward refresh removed - function not available
 
                 // Refresh Current Self Reward
                 setIsLoadingCurrentSelfReward(true);
@@ -889,151 +832,194 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
                                         </tbody>
                                     </table>
 
-                                    {/* Pagination Controls for ClaimX History */}
-                                    {Math.ceil(claimXHistory.length / claimHistoryItemsPerPage) > 1 && (
-                                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginTop: '2rem', flexWrap: 'wrap' }}>
-                                            <button
-                                                onClick={() => setCurrentClaimHistoryPage(prev => Math.max(1, prev - 1))}
-                                                disabled={currentClaimHistoryPage === 1}
-                                                style={{
-                                                    background: currentClaimHistoryPage === 1 ? 'rgba(254, 231, 57, 0.2)' : 'rgba(254, 231, 57, 0.1)',
-                                                    border: '2px solid #FEE739',
-                                                    color: currentClaimHistoryPage === 1 ? 'rgba(254, 231, 57, 0.5)' : '#FEE739',
-                                                    padding: '0.5rem 1rem',
-                                                    borderRadius: '8px',
-                                                    fontWeight: '600',
-                                                    cursor: currentClaimHistoryPage === 1 ? 'not-allowed' : 'pointer',
-                                                    transition: 'all 0.3s ease',
-                                                    fontSize: '0.9rem',
-                                                }}
-                                                onMouseEnter={(e) => {
-                                                    if (currentClaimHistoryPage !== 1) {
-                                                        e.currentTarget.style.background = 'rgba(254, 231, 57, 0.2)';
-                                                        e.currentTarget.style.transform = 'translateY(-2px)';
-                                                    }
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                    if (currentClaimHistoryPage !== 1) {
-                                                        e.currentTarget.style.background = 'rgba(254, 231, 57, 0.1)';
-                                                        e.currentTarget.style.transform = 'translateY(0)';
-                                                    }
-                                                }}
-                                            >
-                                                ‹ Prev
-                                            </button>
+                                    {/* Beautiful Pagination Controls for ClaimX History */}
+                                    {claimXHistory.length > 0 && (
+                                        <div style={{
+                                            marginTop: '2.5rem',
+                                            padding: '1.5rem',
+                                            background: 'linear-gradient(145deg, rgba(10, 10, 26, 0.8) 0%, rgba(15, 15, 35, 0.8) 50%, rgba(26, 26, 46, 0.8) 100%)',
+                                            borderRadius: '16px',
+                                            border: '1px solid rgba(254, 231, 57, 0.2)',
+                                            boxShadow: '0 4px 20px rgba(254, 231, 57, 0.1)',
+                                            backdropFilter: 'blur(10px)'
+                                        }}>
+                                            <div style={{
+                                                display: 'flex',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                gap: '0.75rem',
+                                                flexWrap: 'wrap'
+                                            }}>
+                                                {/* Previous Button */}
+                                                <button
+                                                    onClick={() => setCurrentClaimHistoryPage(prev => Math.max(1, prev - 1))}
+                                                    disabled={currentClaimHistoryPage === 1}
+                                                    style={{
+                                                        background: currentClaimHistoryPage === 1
+                                                            ? 'linear-gradient(145deg, rgba(254, 231, 57, 0.1) 0%, rgba(254, 231, 57, 0.05) 100%)'
+                                                            : 'linear-gradient(145deg, rgba(254, 231, 57, 0.15) 0%, rgba(254, 231, 57, 0.08) 100%)',
+                                                        border: '2px solid rgba(254, 231, 57, 0.4)',
+                                                        color: currentClaimHistoryPage === 1 ? 'rgba(254, 231, 57, 0.4)' : '#FEE739',
+                                                        padding: '0.75rem 1.25rem',
+                                                        borderRadius: '12px',
+                                                        fontWeight: '700',
+                                                        cursor: currentClaimHistoryPage === 1 ? 'not-allowed' : 'pointer',
+                                                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                                        fontSize: '0.9rem',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '0.5rem',
+                                                        boxShadow: currentClaimHistoryPage === 1 ? 'none' : '0 4px 12px rgba(254, 231, 57, 0.15)',
+                                                        minWidth: '100px',
+                                                        justifyContent: 'center'
+                                                    }}
+                                                    onMouseEnter={(e) => {
+                                                        if (currentClaimHistoryPage !== 1) {
+                                                            e.currentTarget.style.background = 'linear-gradient(145deg, rgba(254, 231, 57, 0.25) 0%, rgba(254, 231, 57, 0.15) 100%)';
+                                                            e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)';
+                                                            e.currentTarget.style.boxShadow = '0 6px 20px rgba(254, 231, 57, 0.25)';
+                                                        }
+                                                    }}
+                                                    onMouseLeave={(e) => {
+                                                        if (currentClaimHistoryPage !== 1) {
+                                                            e.currentTarget.style.background = 'linear-gradient(145deg, rgba(254, 231, 57, 0.15) 0%, rgba(254, 231, 57, 0.08) 100%)';
+                                                            e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                                                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(254, 231, 57, 0.15)';
+                                                        }
+                                                    }}
+                                                >
+                                                    <i className="fas fa-chevron-left" style={{ fontSize: '0.8rem' }}></i>
+                                                    <span>Previous</span>
+                                                </button>
 
-                                            {/* Page Number Buttons */}
-                                            {Array.from({ length: Math.ceil(claimXHistory.length / claimHistoryItemsPerPage) }, (_, i) => i + 1)
-                                                .filter(page => {
-                                                    const totalPages = Math.ceil(claimXHistory.length / claimHistoryItemsPerPage);
-                                                    // Show first page, last page, current page, and pages around current
-                                                    return page === 1 ||
-                                                        page === totalPages ||
-                                                        (page >= currentClaimHistoryPage - 1 && page <= currentClaimHistoryPage + 1);
-                                                })
-                                                .map((page, index, filteredPages) => {
-                                                    // Add ellipsis if there are gaps
-                                                    const prevPage = filteredPages[index - 1];
-                                                    const showEllipsis = index > 0 && page - prevPage > 1;
+                                                {/* Page Number Buttons */}
+                                                <div style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.5rem',
+                                                    flexWrap: 'wrap'
+                                                }}>
+                                                    {Array.from({ length: Math.ceil(claimXHistory.length / claimHistoryItemsPerPage) }, (_, i) => i + 1)
+                                                        .filter(page => {
+                                                            const totalPages = Math.ceil(claimXHistory.length / claimHistoryItemsPerPage);
+                                                            // Show first page, last page, current page, and pages around current
+                                                            return page === 1 ||
+                                                                page === totalPages ||
+                                                                (page >= currentClaimHistoryPage - 1 && page <= currentClaimHistoryPage + 1);
+                                                        })
+                                                        .map((page, index, filteredPages) => {
+                                                            // Add ellipsis if there are gaps
+                                                            const prevPage = filteredPages[index - 1];
+                                                            const showEllipsis = index > 0 && page - prevPage > 1;
 
-                                                    return (
-                                                        <React.Fragment key={page}>
-                                                            {showEllipsis && (
-                                                                <span style={{
-                                                                    color: '#FEE739',
-                                                                    padding: '0.5rem',
-                                                                    fontSize: '1.2rem',
-                                                                    fontWeight: 'bold'
-                                                                }}>
-                                                                    ...
-                                                                </span>
-                                                            )}
-                                                            <button
-                                                                onClick={() => setCurrentClaimHistoryPage(page)}
-                                                                disabled={currentClaimHistoryPage === page}
-                                                                style={{
-                                                                    background: currentClaimHistoryPage === page ? 'rgba(254, 231, 57, 0.3)' : 'rgba(254, 231, 57, 0.1)',
-                                                                    border: '2px solid #FEE739',
-                                                                    color: '#FEE739',
-                                                                    padding: '0.5rem 0.8rem',
-                                                                    borderRadius: '8px',
-                                                                    fontWeight: '600',
-                                                                    cursor: 'pointer',
-                                                                    transition: 'all 0.3s ease',
-                                                                    fontSize: '0.9rem',
-                                                                    minWidth: '40px',
-                                                                }}
-                                                                onMouseEnter={(e) => {
-                                                                    if (currentClaimHistoryPage !== page) {
-                                                                        e.currentTarget.style.background = 'rgba(254, 231, 57, 0.2)';
-                                                                        e.currentTarget.style.transform = 'translateY(-2px)';
-                                                                    }
-                                                                }}
-                                                                onMouseLeave={(e) => {
-                                                                    if (currentClaimHistoryPage !== page) {
-                                                                        e.currentTarget.style.background = currentClaimHistoryPage === page ? 'rgba(254, 231, 57, 0.3)' : 'rgba(254, 231, 57, 0.1)';
-                                                                        e.currentTarget.style.transform = 'translateY(0)';
-                                                                    }
-                                                                }}
-                                                            >
-                                                                {page}
-                                                            </button>
-                                                        </React.Fragment>
-                                                    );
-                                                })}
+                                                            return (
+                                                                <React.Fragment key={page}>
+                                                                    {showEllipsis && (
+                                                                        <div style={{
+                                                                            display: 'flex',
+                                                                            alignItems: 'center',
+                                                                            justifyContent: 'center',
+                                                                            width: '40px',
+                                                                            height: '40px',
+                                                                            color: 'rgba(254, 231, 57, 0.6)',
+                                                                            fontSize: '1.2rem',
+                                                                            fontWeight: 'bold',
+                                                                            userSelect: 'none'
+                                                                        }}>
+                                                                            ⋯
+                                                                        </div>
+                                                                    )}
+                                                                    <button
+                                                                        onClick={() => setCurrentClaimHistoryPage(page)}
+                                                                        disabled={currentClaimHistoryPage === page}
+                                                                        style={{
+                                                                            background: currentClaimHistoryPage === page
+                                                                                ? 'linear-gradient(145deg, #FEE739 0%, rgba(254, 231, 57, 0.8) 100%)'
+                                                                                : 'linear-gradient(145deg, rgba(254, 231, 57, 0.1) 0%, rgba(254, 231, 57, 0.05) 100%)',
+                                                                            border: currentClaimHistoryPage === page
+                                                                                ? '2px solid #FEE739'
+                                                                                : '2px solid rgba(254, 231, 57, 0.3)',
+                                                                            color: currentClaimHistoryPage === page ? '#0a0a1a' : '#FEE739',
+                                                                            width: '40px',
+                                                                            height: '40px',
+                                                                            borderRadius: '10px',
+                                                                            fontWeight: '700',
+                                                                            cursor: 'pointer',
+                                                                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                                                            fontSize: '0.9rem',
+                                                                            display: 'flex',
+                                                                            alignItems: 'center',
+                                                                            justifyContent: 'center',
+                                                                            boxShadow: currentClaimHistoryPage === page
+                                                                                ? '0 4px 16px rgba(254, 231, 57, 0.4)'
+                                                                                : '0 2px 8px rgba(254, 231, 57, 0.1)',
+                                                                        }}
+                                                                        onMouseEnter={(e) => {
+                                                                            if (currentClaimHistoryPage !== page) {
+                                                                                e.currentTarget.style.background = 'linear-gradient(145deg, rgba(254, 231, 57, 0.2) 0%, rgba(254, 231, 57, 0.1) 100%)';
+                                                                                e.currentTarget.style.transform = 'translateY(-2px) scale(1.05)';
+                                                                                e.currentTarget.style.boxShadow = '0 6px 16px rgba(254, 231, 57, 0.2)';
+                                                                            }
+                                                                        }}
+                                                                        onMouseLeave={(e) => {
+                                                                            if (currentClaimHistoryPage !== page) {
+                                                                                e.currentTarget.style.background = 'linear-gradient(145deg, rgba(254, 231, 57, 0.1) 0%, rgba(254, 231, 57, 0.05) 100%)';
+                                                                                e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                                                                                e.currentTarget.style.boxShadow = '0 2px 8px rgba(254, 231, 57, 0.1)';
+                                                                            }
+                                                                        }}
+                                                                    >
+                                                                        {page}
+                                                                    </button>
+                                                                </React.Fragment>
+                                                            );
+                                                        })}
+                                                </div>
 
-                                            <button
-                                                onClick={() => setCurrentClaimHistoryPage(prev => Math.min(Math.ceil(claimXHistory.length / claimHistoryItemsPerPage), prev + 1))}
-                                                disabled={currentClaimHistoryPage === Math.ceil(claimXHistory.length / claimHistoryItemsPerPage)}
-                                                style={{
-                                                    background: currentClaimHistoryPage === Math.ceil(claimXHistory.length / claimHistoryItemsPerPage) ? 'rgba(254, 231, 57, 0.2)' : 'rgba(254, 231, 57, 0.1)',
-                                                    border: '2px solid #FEE739',
-                                                    color: currentClaimHistoryPage === Math.ceil(claimXHistory.length / claimHistoryItemsPerPage) ? 'rgba(254, 231, 57, 0.5)' : '#FEE739',
-                                                    padding: '0.5rem 1rem',
-                                                    borderRadius: '8px',
-                                                    fontWeight: '600',
-                                                    cursor: currentClaimHistoryPage === Math.ceil(claimXHistory.length / claimHistoryItemsPerPage) ? 'not-allowed' : 'pointer',
-                                                    transition: 'all 0.3s ease',
-                                                    fontSize: '0.9rem',
-                                                }}
-                                                onMouseEnter={(e) => {
-                                                    if (currentClaimHistoryPage !== Math.ceil(claimXHistory.length / claimHistoryItemsPerPage)) {
-                                                        e.currentTarget.style.background = 'rgba(254, 231, 57, 0.2)';
-                                                        e.currentTarget.style.transform = 'translateY(-2px)';
-                                                    }
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                    if (currentClaimHistoryPage !== Math.ceil(claimXHistory.length / claimHistoryItemsPerPage)) {
-                                                        e.currentTarget.style.background = 'rgba(254, 231, 57, 0.1)';
-                                                        e.currentTarget.style.transform = 'translateY(0)';
-                                                    }
-                                                }}
-                                            >
-                                                Next ›
-                                            </button>
+                                                {/* Next Button */}
+                                                <button
+                                                    onClick={() => setCurrentClaimHistoryPage(prev => Math.min(Math.ceil(claimXHistory.length / claimHistoryItemsPerPage), prev + 1))}
+                                                    disabled={currentClaimHistoryPage === Math.ceil(claimXHistory.length / claimHistoryItemsPerPage)}
+                                                    style={{
+                                                        background: currentClaimHistoryPage === Math.ceil(claimXHistory.length / claimHistoryItemsPerPage)
+                                                            ? 'linear-gradient(145deg, rgba(254, 231, 57, 0.1) 0%, rgba(254, 231, 57, 0.05) 100%)'
+                                                            : 'linear-gradient(145deg, rgba(254, 231, 57, 0.15) 0%, rgba(254, 231, 57, 0.08) 100%)',
+                                                        border: '2px solid rgba(254, 231, 57, 0.4)',
+                                                        color: currentClaimHistoryPage === Math.ceil(claimXHistory.length / claimHistoryItemsPerPage) ? 'rgba(254, 231, 57, 0.4)' : '#FEE739',
+                                                        padding: '0.75rem 1.25rem',
+                                                        borderRadius: '12px',
+                                                        fontWeight: '700',
+                                                        cursor: currentClaimHistoryPage === Math.ceil(claimXHistory.length / claimHistoryItemsPerPage) ? 'not-allowed' : 'pointer',
+                                                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                                        fontSize: '0.9rem',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '0.5rem',
+                                                        boxShadow: currentClaimHistoryPage === Math.ceil(claimXHistory.length / claimHistoryItemsPerPage) ? 'none' : '0 4px 12px rgba(254, 231, 57, 0.15)',
+                                                        minWidth: '100px',
+                                                        justifyContent: 'center'
+                                                    }}
+                                                    onMouseEnter={(e) => {
+                                                        if (currentClaimHistoryPage !== Math.ceil(claimXHistory.length / claimHistoryItemsPerPage)) {
+                                                            e.currentTarget.style.background = 'linear-gradient(145deg, rgba(254, 231, 57, 0.25) 0%, rgba(254, 231, 57, 0.15) 100%)';
+                                                            e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)';
+                                                            e.currentTarget.style.boxShadow = '0 6px 20px rgba(254, 231, 57, 0.25)';
+                                                        }
+                                                    }}
+                                                    onMouseLeave={(e) => {
+                                                        if (currentClaimHistoryPage !== Math.ceil(claimXHistory.length / claimHistoryItemsPerPage)) {
+                                                            e.currentTarget.style.background = 'linear-gradient(145deg, rgba(254, 231, 57, 0.15) 0%, rgba(254, 231, 57, 0.08) 100%)';
+                                                            e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                                                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(254, 231, 57, 0.15)';
+                                                        }
+                                                    }}
+                                                >
+                                                    <span>Next</span>
+                                                    <i className="fas fa-chevron-right" style={{ fontSize: '0.8rem' }}></i>
+                                                </button>
+                                            </div>
                                         </div>
                                     )}
-
-                                    {/* Records info */}
-                                    <div className="d-flex justify-content-between align-items-center mt-4 px-3 py-2 rounded"
-                                         style={{
-                                             background: 'rgba(3, 53, 61, 0.4)',
-                                             border: '1px solid rgba(254, 231, 57, 0.2)',
-                                             backdropFilter: 'blur(5px)'
-                                         }}>
-                                        <div className="d-flex align-items-center">
-                                            <i className="fas fa-list-ol me-2" style={{ color: '#FEE739', fontSize: '0.9rem' }}></i>
-                                            <span style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.85rem', fontWeight: '500' }}>
-                                                Showing {(currentClaimHistoryPage - 1) * claimHistoryItemsPerPage + 1}-{Math.min(currentClaimHistoryPage * claimHistoryItemsPerPage, claimXHistory.length)} of {claimXHistory.length} entries
-                                            </span>
-                                        </div>
-                                        <div className="d-flex align-items-center">
-                                            <i className="fas fa-info-circle me-2" style={{ color: '#00d6a3', fontSize: '0.9rem' }}></i>
-                                            <span style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '0.85rem', fontWeight: '600' }}>
-                                                ClaimX History - {getUnitName(selectedUnitIndex)}
-                                            </span>
-                                        </div>
-                                    </div>
                                 </div>
                             )}
                         </div>

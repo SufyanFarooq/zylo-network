@@ -12,12 +12,13 @@ import './level.css';
 
 type LevelDetailsProps = {
   id?: number;
+  onBack?: () => void;
 };
 
 
 const MAX_LEVEL = 10;
 
-const LevelDetails: React.FC<LevelDetailsProps> = ({ id }) => {
+const LevelDetails: React.FC<LevelDetailsProps> = ({ id, onBack }) => {
   // Mocked stats and rows; replace with real data wiring when available
   // const router = useRouter();
   const levelId = Math.min(Math.max(id ?? 1, 1), MAX_LEVEL);
@@ -144,60 +145,98 @@ const LevelDetails: React.FC<LevelDetailsProps> = ({ id }) => {
 
 
   return (
-    <section className="">
-      <div className="container position-relative">
-        <div className="level-ambient" />
-        {/* Header area with nav arrows */}
-        <div className="row align-items-center p-3">
-          <div className="col-lg-12 mb-3 mb-lg-0">
-            <div className="d-flex align-items-start justify-content-between">
-              <div>
-                <h1
-                  className="text-yellow fw-bold display-6 mb-2"
-                  style={{ textShadow: '2px 2px 4px rgba(254, 230, 0, 0.25)', letterSpacing: '1px' }}
-                >
-                  Vortex Zone {levelId} Details
-                </h1>
-                <p className="text-white mb-0 d-lg-block d-none">
-                  Explore your Vortex Zone stats and members contributing to your rewards.
-                </p>
-                {isLoadingUnlock && (
-                  <div className="mt-2">
-                    <small className="text-yellow">Checking Vortex Zone unlock status...</small>
-                  </div>
-                )}
-                {!isLoadingUnlock && (
-                  <div className="mt-2">
-                    {unlockError ? (
-                      <small className="text-red">
-                        Error checking level status: {unlockError}
-                      </small>
-                    ) : (
-                      <small className={`${isLevelUnlocked(levelId) ? 'text-green' : 'text-red'}`}>
-                        Vortex Zone {levelId} is {isLevelUnlocked(levelId) ? 'Unlocked' : 'Locked'}
-                      </small>
-                    )}
-                  </div>
-                )}
-                {unlockTimeError && (
-                  <div className="mt-2">
-                    <small className="text-red">Unlock Time Error: {unlockTimeError}</small>
-                  </div>
-                )}
+    <>
+      {/* Back Navigation Button */}
+      <div className="d-flex justify-content-start mb-4" style={{ padding: '1rem 2rem' }}>
+        <button
+          onClick={onBack || (() => window.history.back())}
+          className="btn btn-outline-warning d-flex align-items-center gap-2"
+          style={{
+            background: 'linear-gradient(145deg, rgba(254, 231, 57, 0.15) 0%, rgba(254, 231, 57, 0.08) 100%)',
+            border: '2px solid rgba(254, 231, 57, 0.5)',
+            color: '#FEE739',
+            borderRadius: '12px',
+            padding: '0.75rem 1.25rem',
+            fontWeight: '700',
+            fontSize: '0.95rem',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            backdropFilter: 'blur(5px)',
+            boxShadow: '0 2px 8px rgba(254, 231, 57, 0.1)',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(145deg, rgba(254, 231, 57, 0.25) 0%, rgba(254, 231, 57, 0.15) 100%)';
+            e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)';
+            e.currentTarget.style.boxShadow = '0 6px 16px rgba(254, 231, 57, 0.3)';
+            e.currentTarget.style.borderColor = '#FEE739';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(145deg, rgba(254, 231, 57, 0.15) 0%, rgba(254, 231, 57, 0.08) 100%)';
+            e.currentTarget.style.transform = 'translateY(0) scale(1)';
+            e.currentTarget.style.boxShadow = '0 2px 8px rgba(254, 231, 57, 0.1)';
+            e.currentTarget.style.borderColor = 'rgba(254, 231, 57, 0.5)';
+          }}
+        >
+          <span style={{ fontSize: '1rem', marginRight: '0.5rem', fontWeight: 'bold' }}>←</span>
+          <span>Back</span>
+        </button>
+      </div>
+
+      <section className="">
+        <div className="container position-relative">
+          <div className="level-ambient" />
+          {/* Header area with nav arrows */}
+          <div className="row align-items-center p-3">
+            <div className="col-lg-12 mb-3 mb-lg-0">
+              <div className="d-flex align-items-start justify-content-between">
+                <div>
+                  <h1
+                    className="text-yellow fw-bold display-6 mb-2"
+                    style={{ textShadow: '2px 2px 4px rgba(254, 230, 0, 0.25)', letterSpacing: '1px' }}
+                  >
+                    Vortex Zone {levelId} Details
+                  </h1>
+                  <p className="text-white mb-0 d-lg-block d-none">
+                    Explore your Vortex Zone stats and members contributing to your rewards.
+                  </p>
+                  {isLoadingUnlock && (
+                    <div className="mt-2">
+                      <small className="text-yellow">Checking Vortex Zone unlock status...</small>
+                    </div>
+                  )}
+                  {!isLoadingUnlock && (
+                    <div className="mt-2">
+                      {unlockError ? (
+                        <small className="text-red">
+                          Error checking level status: {unlockError}
+                        </small>
+                      ) : (
+                        <small className={`${isLevelUnlocked(levelId) ? 'text-green' : 'text-red'}`}>
+                          Vortex Zone {levelId} is {isLevelUnlocked(levelId) ? 'Unlocked' : 'Locked'}
+                        </small>
+                      )}
+                    </div>
+                  )}
+                  {unlockTimeError && (
+                    <div className="mt-2">
+                      <small className="text-red">Unlock Time Error: {unlockTimeError}</small>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Incept Node Details Table - Always Visible */}
-        <div style={{ width: '100%', marginTop: '2rem', marginBottom: '2rem' }} key={`incept-table-${levelId}`}>
-          <InceptNodeDetailsTable
-            key={`incept-table-component-${levelId}`}
-            levelIndex={levelId - 1}
-          />
+          {/* Incept Node Details Table - Always Visible */}
+          <div style={{ width: '100%', marginTop: '2rem', marginBottom: '2rem' }} key={`incept-table-${levelId}`}>
+            <InceptNodeDetailsTable
+              key={`incept-table-component-${levelId}`}
+              levelIndex={levelId - 1}
+            />
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 };
 
