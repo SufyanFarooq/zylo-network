@@ -1663,7 +1663,7 @@ const ZillowStake: React.FC<ZillowStakeProps> = ({
                 <div className="total-chip total-chip-right mb-3 coin-anchor">
                   <span className="total-label text-nowrap" style={{ color: '#FEE739' }}>TOTAL SELF ACTIVE POWER UP</span>
                   <span className="total-value">
-                    {isLoadingStakedAmount ? 'Loading...' : `${index7Value} `}
+                    {isLoadingStakedAmount ? 'Loading...' : `${index6Value} `}
                     <span style={{ color: '#FEE739' }}>ZYLO</span>
                   </span>
 

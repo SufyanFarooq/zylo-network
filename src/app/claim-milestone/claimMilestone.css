@@ -1,0 +1,272 @@
+/* Claim Milestone Page Styles */
+.achievement-page-bg {
+  background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #16213e 100%);
+  min-height: 100vh;
+}
+
+.achievement-info-card {
+  background: linear-gradient(145deg, rgba(254, 231, 57, 0.1) 0%, rgba(254, 231, 57, 0.05) 100%);
+  border: 2px solid rgba(254, 231, 57, 0.3);
+  border-radius: 16px;
+  padding: 2rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(254, 231, 57, 0.1);
+}
+
+.unit-selection-card {
+  background: linear-gradient(145deg, rgba(10, 10, 26, 0.8) 0%, rgba(15, 15, 35, 0.8) 50%, rgba(26, 26, 46, 0.8) 100%);
+  border: 2px solid rgba(254, 231, 57, 0.2);
+  border-radius: 16px;
+  padding: 2rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(254, 231, 57, 0.1);
+}
+
+.unit-buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+.unit-button {
+  background: linear-gradient(145deg, rgba(254, 231, 57, 0.1) 0%, rgba(254, 231, 57, 0.05) 100%);
+  border: 2px solid rgba(254, 231, 57, 0.3);
+  border-radius: 10px;
+  padding: 0.75rem;
+  color: #FEE739;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50px;
+  text-align: center;
+}
+
+.unit-button:hover {
+  background: linear-gradient(145deg, rgba(254, 231, 57, 0.2) 0%, rgba(254, 231, 57, 0.1) 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(254, 231, 57, 0.2);
+  border-color: #FEE739;
+}
+
+.unit-button.active {
+  background: linear-gradient(145deg, #FEE739 0%, rgba(254, 231, 57, 0.8) 100%);
+  color: #0a0a1a;
+  border-color: #FEE739;
+  box-shadow: 0 6px 20px rgba(254, 231, 57, 0.4);
+}
+
+.unit-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.2;
+}
+
+
+.claim-value-card {
+  background: linear-gradient(145deg, rgba(10, 10, 26, 0.9) 0%, rgba(15, 15, 35, 0.9) 50%, rgba(26, 26, 46, 0.9) 100%);
+  border: 2px solid rgba(254, 231, 57, 0.3);
+  border-radius: 16px;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(254, 231, 57, 0.1);
+}
+
+.card-header {
+  background: rgba(254, 231, 57, 0.1);
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(254, 231, 57, 0.2);
+}
+
+.card-body {
+  padding: 2rem;
+  text-align: center;
+}
+
+.value-display {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.value-amount {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #FEE739;
+  text-shadow: 0 2px 4px rgba(254, 231, 57, 0.3);
+}
+
+.value-currency {
+  font-size: 1.2rem;
+  color: #FEE739;
+  font-weight: 600;
+}
+
+.card-footer {
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.claim-button {
+  background: linear-gradient(145deg, #FEE739 0%, rgba(254, 231, 57, 0.8) 100%);
+  border: 2px solid #FEE739;
+  color: #0a0a1a;
+  font-weight: 700;
+  font-size: 1.1rem;
+  padding: 0.75rem 2rem;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba(254, 231, 57, 0.3);
+}
+
+.claim-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(254, 231, 57, 0.4);
+}
+
+.claim-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Back Button Styles */
+.back-button {
+  background: rgba(254, 231, 57, 0.1);
+  border: 2px solid rgba(254, 231, 57, 0.3);
+  color: #FEE739;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+  cursor: pointer;
+}
+
+.back-button:hover {
+  background: rgba(254, 231, 57, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(254, 231, 57, 0.2);
+  border-color: #FEE739;
+}
+
+/* History Table Styles */
+.history-table-card {
+  background: linear-gradient(145deg, rgba(10, 10, 26, 0.9) 0%, rgba(15, 15, 35, 0.9) 50%, rgba(26, 26, 46, 0.9) 100%);
+  border: 2px solid rgba(254, 231, 57, 0.3);
+  border-radius: 16px;
+  padding: 2rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(254, 231, 57, 0.1);
+}
+
+.history-table-card .table {
+  margin-bottom: 0;
+}
+
+.history-table-card .table-dark {
+  background-color: transparent;
+}
+
+.history-table-card .table-dark th {
+  background-color: rgba(254, 231, 57, 0.1);
+  border-color: rgba(254, 231, 57, 0.2);
+  font-weight: 600;
+  padding: 1rem;
+  vertical-align: middle;
+}
+
+.history-table-card .table-dark td {
+  background-color: rgba(255, 255, 255, 0.02);
+  border-color: rgba(254, 231, 57, 0.1);
+  padding: 0.75rem 1rem;
+  vertical-align: middle;
+}
+
+.history-table-card .table-dark tbody tr:hover {
+  background-color: rgba(254, 231, 57, 0.05);
+}
+
+/* Pagination Styles */
+.pagination .page-link {
+  background-color: rgba(254, 231, 57, 0.1);
+  border-color: rgba(254, 231, 57, 0.3);
+  color: #FEE739;
+  margin: 0 2px;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.pagination .page-link:hover {
+  background-color: rgba(254, 231, 57, 0.2);
+  border-color: #FEE739;
+  color: #FEE739;
+  transform: translateY(-1px);
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #FEE739;
+  border-color: #FEE739;
+  color: #0a0a1a;
+  font-weight: 600;
+}
+
+.pagination .page-item.disabled .page-link {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(254, 231, 57, 0.2);
+  color: rgba(254, 231, 57, 0.5);
+  cursor: not-allowed;
+}
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .unit-buttons-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.6rem;
+  }
+
+  .unit-button {
+    padding: 0.6rem;
+    min-height: 45px;
+    font-size: 0.85rem;
+  }
+
+  .unit-name {
+    font-size: 0.8rem;
+  }
+
+  .value-amount {
+    font-size: 2rem;
+  }
+
+  .claim-button {
+    font-size: 1rem;
+    padding: 0.6rem 1.5rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .unit-buttons-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .unit-button {
+    padding: 0.5rem;
+    min-height: 40px;
+  }
+
+  .achievement-info-card,
+  .unit-selection-card,
+  .claim-value-card {
+    padding: 1.5rem;
+  }
+}

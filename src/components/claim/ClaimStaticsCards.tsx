@@ -3,7 +3,6 @@
 import React, { JSX, useState, useEffect } from 'react';
 import { useAccount, useWalletClient } from 'wagmi';
 import { BrowserProvider, formatEther } from 'ethers';
-import { getCurrentSelfClaimInUnit, getCurrentTeamClaimInUnit, getTotalVestingClaimInUnit } from '@/blockchain/instances/ZyloPowerUp';
 import { getUnitName } from '../staking/utils/unitCategoryMapping';
 import { getCurrentSelfClaimX, getCurrentReferralClaimX, claimXSelfUnitPowerUp as fetchClaimXSelfUnitPowerUp, claimXReferralUnitPowerUp as fetchClaimXReferralUnitPowerUp } from '@/blockchain/instances/ClaimXFunctions';
 import { claimX, getUserClaimXDetailsLength, userClaimXHistory } from '@/blockchain/instances/ZyloPowerUpM';
@@ -164,27 +163,10 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
 
             try {
                 setIsLoadingCurrentSelfReward(true);
-                const provider = new BrowserProvider(walletClient);
-
-                let totalSum = 0;
-
-                // Loop through indices 0-4
-                for (let index = 0; index <= 4; index++) {
-                    try {
-                        const result = await getCurrentSelfClaimInUnit(provider, address, index);
-                        if (result.success && result.data) {
-                            const value = parseFloat(result.data || '0');
-                            totalSum += value;
-                            console.log(`Current Self Claim in Unit index ${index}:`, result.data);
-                        }
-                    } catch (err) {
-                        console.error(`Error fetching currentSelfClaimInUnit for index ${index}:`, err);
-                    }
-                }
-
-                setCurrentSelfReward(totalSum.toFixed(2));
+                // Function removed - set to 0
+                setCurrentSelfReward('0.00');
             } catch (error) {
-                console.error('Error fetching current self claim in unit:', error);
+                console.error('Error setting current self claim:', error);
                 setCurrentSelfReward('0.00');
             } finally {
                 setIsLoadingCurrentSelfReward(false);
@@ -205,27 +187,10 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
 
             try {
                 setIsLoadingCurrentTeamReward(true);
-                const provider = new BrowserProvider(walletClient);
-
-                let totalSum = 0;
-
-                // Loop through indices 0-4
-                for (let index = 0; index <= 4; index++) {
-                    try {
-                        const result = await getCurrentTeamClaimInUnit(provider, address, index);
-                        if (result.success && result.data) {
-                            const value = parseFloat(result.data || '0');
-                            totalSum += value;
-                            console.log(`Current Team Claim in Unit index ${index}:`, result.data);
-                        }
-                    } catch (err) {
-                        console.error(`Error fetching currentTeamClaimInUnit for index ${index}:`, err);
-                    }
-                }
-
-                setCurrentTeamReward(totalSum.toFixed(2));
+                // Function removed - set to 0
+                setCurrentTeamReward('0.00');
             } catch (error) {
-                console.error('Error fetching current team claim in unit:', error);
+                console.error('Error setting current team claim:', error);
                 setCurrentTeamReward('0.00');
             } finally {
                 setIsLoadingCurrentTeamReward(false);
@@ -246,27 +211,10 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
 
             try {
                 setIsLoadingWastingAmount(true);
-                const provider = new BrowserProvider(walletClient);
-
-                let totalSum = 0;
-
-                // Loop through indices 0-4
-                for (let index = 0; index <= 4; index++) {
-                    try {
-                        const result = await getTotalVestingClaimInUnit(provider, address, index);
-                        if (result.success && result.data) {
-                            const value = parseFloat(result.data || '0');
-                            totalSum += value;
-                            console.log(`Total Vesting Claim in Unit index ${index}:`, result.data);
-                        }
-                    } catch (err) {
-                        console.error(`Error fetching totalVestingClaimInUnit for index ${index}:`, err);
-                    }
-                }
-
-                setWastingAmount(totalSum.toFixed(2));
+                // Function removed - set to 0
+                setWastingAmount('0.00');
             } catch (error) {
-                console.error('Error fetching total vesting claim in unit:', error);
+                console.error('Error setting wasting amount:', error);
                 setWastingAmount('0.00');
             } finally {
                 setIsLoadingWastingAmount(false);
@@ -507,50 +455,20 @@ const ClaimStaticsCards: React.FC<ClaimStaticsCardsProps> = () => {
 
                 // Refresh Current Self Reward
                 setIsLoadingCurrentSelfReward(true);
-                let currentSelfSum = 0;
-                for (let index = 0; index <= 4; index++) {
-                    try {
-                        const result = await getCurrentSelfClaimInUnit(provider, address, index);
-                        if (result.success && result.data) {
-                            currentSelfSum += parseFloat(result.data || '0');
-                        }
-                    } catch (err) {
-                        console.error(`Error refreshing currentSelfClaimInUnit for index ${index}:`, err);
-                    }
-                }
-                setCurrentSelfReward(currentSelfSum.toFixed(2));
+                // Function removed - set to 0
+                setCurrentSelfReward('0.00');
                 setIsLoadingCurrentSelfReward(false);
 
                 // Refresh Current Team Reward
                 setIsLoadingCurrentTeamReward(true);
-                let currentTeamSum = 0;
-                for (let index = 0; index <= 4; index++) {
-                    try {
-                        const result = await getCurrentTeamClaimInUnit(provider, address, index);
-                        if (result.success && result.data) {
-                            currentTeamSum += parseFloat(result.data || '0');
-                        }
-                    } catch (err) {
-                        console.error(`Error refreshing currentTeamClaimInUnit for index ${index}:`, err);
-                    }
-                }
-                setCurrentTeamReward(currentTeamSum.toFixed(2));
+                // Function removed - set to 0
+                setCurrentTeamReward('0.00');
                 setIsLoadingCurrentTeamReward(false);
 
                 // Refresh Wasting Reward
                 setIsLoadingWastingAmount(true);
-                let wastingSum = 0;
-                for (let index = 0; index <= 4; index++) {
-                    try {
-                        const result = await getTotalVestingClaimInUnit(provider, address, index);
-                        if (result.success && result.data) {
-                            wastingSum += parseFloat(result.data || '0');
-                        }
-                    } catch (err) {
-                        console.error(`Error refreshing totalVestingClaimInUnit for index ${index}:`, err);
-                    }
-                }
-                setWastingAmount(wastingSum.toFixed(2));
+                // Function removed - set to 0
+                setWastingAmount('0.00');
                 setIsLoadingWastingAmount(false);
 
                 console.log('All claim statics cards refreshed');

@@ -560,3 +560,160 @@ export const claimX = async (signer, userAddress, unitIndex) => {
         };
     }
 };
+
+/**
+ * Get current month from ZyloPowerUpM contract
+ * @param {Object} provider - Ethers provider
+ * @returns {Promise<{success: boolean, month?: string, error?: string}>}
+ */
+export const getCurrentMont = async (provider) => {
+    try {
+        const contract = createContractInstance(provider);
+        const month = await contract.getCurrentMont();
+
+        return {
+            success: true,
+            month: month.toString()
+        };
+    } catch (error) {
+        console.error("Error getting current month:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to get current month"
+        };
+    }
+};
+
+/**
+ * Check if achievement/milestone is unlocked for user
+ * @param {Object} provider - Ethers provider
+ * @param {string} userAddress - User wallet address
+ * @param {number} month - Current month
+ * @param {number} achievementIndex - Achievement index (1-10)
+ * @returns {Promise<{success: boolean, data?: boolean, error?: string}>}
+ */
+export const powerUpMilestoneUnLock = async (provider, userAddress, month, achievementIndex) => {
+    try {
+        const contract = createContractInstance(provider);
+        const isUnlocked = await contract.powerUpMilestoneUnLock(userAddress, month, achievementIndex);
+
+        return {
+            success: true,
+            data: isUnlocked
+        };
+    } catch (error) {
+        console.error("Error checking milestone unlock:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to check milestone unlock"
+        };
+    }
+};
+
+/**
+ * Get user locked details length for unit
+ * @param {Object} provider - Ethers provider
+ * @param {string} userAddress - User wallet address
+ * @param {number} unit - Unit number (0-5)
+ * @returns {Promise<{success: boolean, length?: number, error?: string}>}
+ */
+export const getUserLockedDetailsLength = async (provider, userAddress, unit) => {
+    try {
+        const contract = createContractInstance(provider);
+        const length = await contract.getUserLockedDetailsLength(userAddress, unit);
+
+        return {
+            success: true,
+            length: Number(length)
+        };
+    } catch (error) {
+        console.error("Error getting user locked details length:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to get user locked details length"
+        };
+    }
+};
+
+/**
+ * Get user locked history for specific index
+ * @param {Object} provider - Ethers provider
+ * @param {string} userAddress - User wallet address
+ * @param {number} unit - Unit number (0-5)
+ * @param {number} index - History index
+ * @returns {Promise<{success: boolean, amount?: string, time?: string, error?: string}>}
+ */
+export const userLockedHistory = async (provider, userAddress, unit, index) => {
+    try {
+        const contract = createContractInstance(provider);
+        const result = await contract.userLockedHistory(userAddress, unit, index);
+
+        return {
+            success: true,
+            amount: result[0].toString(),
+            time: result[1].toString()
+        };
+    } catch (error) {
+        console.error("Error getting user locked history:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to get user locked history"
+        };
+    }
+};
+
+/**
+ * Get elite amount for user and unit
+ * @param {Object} provider - Ethers provider
+ * @param {string} userAddress - User wallet address
+ * @param {number} unit - Unit number (0-5)
+ * @returns {Promise<{success: boolean, amount?: string, error?: string}>}
+ */
+export const EliteAmount = async (provider, userAddress, unit) => {
+    try {
+        const contract = createContractInstance(provider);
+        const amount = await contract.EliteAmount(userAddress, unit);
+
+        return {
+            success: true,
+            amount: amount.toString()
+        };
+    } catch (error) {
+        console.error("Error getting elite amount:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to get elite amount"
+        };
+    }
+};
+
+/**
+ * Claim locked reward for unit
+ * @param {Object} walletClient - Wallet client from wagmi
+ * @param {string} userAddress - User wallet address
+ * @param {number} unit - Unit number (0-5)
+ * @returns {Promise<{success: boolean, error?: string, txHash?: string}>}
+ */
+export const claimLockedReward = async (walletClient, userAddress, unit) => {
+    try {
+        const signer = walletClient;
+        const contract = createContractInstanceWithSigner(signer);
+
+        const tx = await contract.claimLockedReward(unit);
+        console.log('Claim locked reward transaction:', tx);
+
+        const receipt = await tx.wait();
+        console.log('Claim locked reward receipt:', receipt);
+
+        return {
+            success: true,
+            txHash: tx.hash
+        };
+    } catch (error) {
+        console.error("Error claiming locked reward:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to claim locked reward"
+        };
+    }
+};

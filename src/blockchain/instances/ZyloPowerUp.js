@@ -2067,60 +2067,6 @@ export const getTotalTeamClaimInClaimX = async (provider, address, index) => {
  * @param {number} unit - Unit index (0-4)
  * @returns {Promise<{success: boolean, data?: string, error?: string}>}
  */
-export const getCurrentSelfClaimInUnit = async (provider, address, unit) => {
-    try {
-        if (!provider) {
-            return {
-                success: false,
-                error: 'Provider is required'
-            };
-        }
-
-        if (!address) {
-            return {
-                success: false,
-                error: 'Wallet address is required'
-            };
-        }
-
-        if (unit === undefined || unit === null || unit < 0 || unit > 4) {
-            return {
-                success: false,
-                error: 'Unit index must be between 0 and 4'
-            };
-        }
-
-        const contract = createContractInstance(provider);
-        console.log('Calling currentSelfClaimInUnit with:', { address, unit });
-        const currentClaim = await contract.currentSelfClaimInUnit(address, unit);
-        console.log('Raw currentClaim value:', currentClaim, typeof currentClaim);
-
-        // Format from wei to ether
-        let currentClaimFormatted = '0';
-        try {
-            const { formatEther } = await import('ethers');
-            // Handle BigInt if needed
-            const claimValue = typeof currentClaim === 'bigint' ? currentClaim : BigInt(currentClaim.toString());
-            currentClaimFormatted = formatEther(claimValue);
-            console.log('Formatted currentClaim:', currentClaimFormatted);
-        } catch (formatError) {
-            console.error('Error formatting currentClaim:', formatError);
-            currentClaimFormatted = currentClaim.toString();
-        }
-
-        console.log('Returning currentSelfClaimInUnit result:', { success: true, data: currentClaimFormatted });
-        return {
-            success: true,
-            data: currentClaimFormatted
-        };
-    } catch (error) {
-        console.error('Error in getCurrentSelfClaimInUnit:', error);
-        return {
-            success: false,
-            error: error.message || 'Failed to get current self claim in unit'
-        };
-    }
-};
 
 /**
  * Get current team claim in unit
@@ -2129,60 +2075,6 @@ export const getCurrentSelfClaimInUnit = async (provider, address, unit) => {
  * @param {number} unit - Unit index (0-4)
  * @returns {Promise<{success: boolean, data?: string, error?: string}>}
  */
-export const getCurrentTeamClaimInUnit = async (provider, address, unit) => {
-    try {
-        if (!provider) {
-            return {
-                success: false,
-                error: 'Provider is required'
-            };
-        }
-
-        if (!address) {
-            return {
-                success: false,
-                error: 'Wallet address is required'
-            };
-        }
-
-        if (unit === undefined || unit === null || unit < 0 || unit > 4) {
-            return {
-                success: false,
-                error: 'Unit index must be between 0 and 4'
-            };
-        }
-
-        const contract = createContractInstance(provider);
-        console.log('Calling currentTeamClaimInUnit with:', { address, unit });
-        const currentClaim = await contract.currentTeamClaimInUnit(address, unit);
-        console.log('Raw currentClaim value:', currentClaim, typeof currentClaim);
-
-        // Format from wei to ether
-        let currentClaimFormatted = '0';
-        try {
-            const { formatEther } = await import('ethers');
-            // Handle BigInt if needed
-            const claimValue = typeof currentClaim === 'bigint' ? currentClaim : BigInt(currentClaim.toString());
-            currentClaimFormatted = formatEther(claimValue);
-            console.log('Formatted currentClaim:', currentClaimFormatted);
-        } catch (formatError) {
-            console.error('Error formatting currentClaim:', formatError);
-            currentClaimFormatted = currentClaim.toString();
-        }
-
-        console.log('Returning currentTeamClaimInUnit result:', { success: true, data: currentClaimFormatted });
-        return {
-            success: true,
-            data: currentClaimFormatted
-        };
-    } catch (error) {
-        console.error('Error in getCurrentTeamClaimInUnit:', error);
-        return {
-            success: false,
-            error: error.message || 'Failed to get current team claim in unit'
-        };
-    }
-};
 
 /**
  * Get total vesting claim in unit
@@ -2191,60 +2083,6 @@ export const getCurrentTeamClaimInUnit = async (provider, address, unit) => {
  * @param {number} unit - Unit index (0-4)
  * @returns {Promise<{success: boolean, data?: string, error?: string}>}
  */
-export const getTotalVestingClaimInUnit = async (provider, address, unit) => {
-    try {
-        if (!provider) {
-            return {
-                success: false,
-                error: 'Provider is required'
-            };
-        }
-
-        if (!address) {
-            return {
-                success: false,
-                error: 'Wallet address is required'
-            };
-        }
-
-        if (unit === undefined || unit === null || unit < 0 || unit > 4) {
-            return {
-                success: false,
-                error: 'Unit index must be between 0 and 4'
-            };
-        }
-
-        const contract = createContractInstance(provider);
-        console.log('Calling totalVestingClaimInUnit with:', { address, unit });
-        const totalClaim = await contract.totalVestingClaimInUnit(address, unit);
-        console.log('Raw totalClaim value:', totalClaim, typeof totalClaim);
-
-        // Format from wei to ether
-        let totalClaimFormatted = '0';
-        try {
-            const { formatEther } = await import('ethers');
-            // Handle BigInt if needed
-            const claimValue = typeof totalClaim === 'bigint' ? totalClaim : BigInt(totalClaim.toString());
-            totalClaimFormatted = formatEther(claimValue);
-            console.log('Formatted totalClaim:', totalClaimFormatted);
-        } catch (formatError) {
-            console.error('Error formatting totalClaim:', formatError);
-            totalClaimFormatted = totalClaim.toString();
-        }
-
-        console.log('Returning totalVestingClaimInUnit result:', { success: true, data: totalClaimFormatted });
-        return {
-            success: true,
-            data: totalClaimFormatted
-        };
-    } catch (error) {
-        console.error('Error in getTotalVestingClaimInUnit:', error);
-        return {
-            success: false,
-            error: error.message || 'Failed to get total vesting claim in unit'
-        };
-    }
-};
 
 /**
  * Get total team claim sum

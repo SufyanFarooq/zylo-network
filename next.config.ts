@@ -13,6 +13,38 @@ const nextConfig: NextConfig = {
   // Compression and optimization
   compress: true,
 
+  // Headers for Cross-Origin-Opener-Policy to fix wallet SDK issues
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin-allow-popups'
+          },
+          {
+            key: 'Cross-Origin-Embedder-Policy',
+            value: 'credentialless'
+          }
+        ]
+      },
+      {
+        source: '/vortex-leaderboard',
+        headers: [
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin-allow-popups'
+          },
+          {
+            key: 'Cross-Origin-Embedder-Policy',
+            value: 'credentialless'
+          }
+        ]
+      }
+    ];
+  },
+
   // Rewrites to map display names to actual folder paths
   async rewrites() {
     return [

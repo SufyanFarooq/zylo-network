@@ -147,7 +147,7 @@ const LevelTeamDetailsTable: React.FC<LevelTeamDetailsTableProps> = ({ className
     return (
         <div className={`level-team-details-table ${className}`}>
             {/* Back Navigation Button */}
-            <div className="d-flex align-items-center mb-4">
+            {/* <div className="d-flex align-items-center mb-4">
                 <button
                     onClick={onBack || (() => window.history.back())}
                     className="btn btn-outline-warning d-flex align-items-center gap-2"
@@ -180,7 +180,7 @@ const LevelTeamDetailsTable: React.FC<LevelTeamDetailsTableProps> = ({ className
                     <span style={{ fontSize: '1rem', marginRight: '0.5rem', fontWeight: 'bold' }}>←</span>
                     <span>Back</span>
                 </button>
-            </div>
+            </div> */}
 
             {/* Level Selection Buttons */}
             <div className="level-buttons-container mb-4">

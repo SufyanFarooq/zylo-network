@@ -3,24 +3,25 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAccount, useWalletClient } from 'wagmi';
 import { BrowserProvider } from 'ethers';
+import { useRouter } from 'next/navigation';
 import Header from '@/components/common/Header';
 import Footer from '@/components/common/Footer';
-import { getUserRewards } from '@/blockchain/instances/ZyloPowerUp';
+import { getCurrentMont, powerUpMilestoneUnLock } from '@/blockchain/instances/ZyloPowerUpM';
 import Image from 'next/image';
 import './achievement.css';
 
 const AchievementPage = () => {
+    const router = useRouter();
     const { address, isConnected } = useAccount();
     const { data: walletClient } = useWalletClient();
 
-    // State for user rewards data
-    const [userRewards, setUserRewards] = useState<Array<{
-        level: number;
-        firstIndexValue: boolean | string | number;
-        isTrue: boolean;
-        error?: string;
-    }>>([]);
     const [isLoading, setIsLoading] = useState(false);
+
+    // State for current month
+    const [currentMonth, setCurrentMonth] = useState<number | null>(null);
+
+    // State for achievement unlock statuses
+    const [achievementStatuses, setAchievementStatuses] = useState<Record<number, boolean>>({});
 
     const achievementData = [
         {
@@ -116,82 +117,65 @@ const AchievementPage = () => {
     ];
 
 
-    // Fetch user rewards data
-    const fetchUserRewards = useCallback(async () => {
-        if (!isConnected || !address || !walletClient) {
-            setUserRewards([]);
-            return;
-        }
 
-        setIsLoading(true);
-
-        try {
-            const provider = new BrowserProvider(walletClient);
-            const result = await getUserRewards(provider, address);
-
-            if (result.success) {
-                if (result.data && result.data.length > 0) {
-                    console.log('User rewards data:', result.data);
-                    setUserRewards(result.data);
-                } else {
-                    // Function not implemented or no data - show all as locked
-                    setUserRewards([]);
-                }
-            } else {
-                const errorMessage = 'error' in result ? result.error : 'Unknown error';
-                
-                // Check if this is the expected "not yet implemented" error
-                if (errorMessage && errorMessage.includes('not yet implemented')) {
-                    // This is expected behavior - function is not implemented yet
-                    // Silently handle it and show all achievements as locked
-                    console.log('getUserRewards function not yet implemented - showing all achievements as locked');
-                    setUserRewards([]);
-                } else {
-                    // This is an actual error - log it
-                    console.error('Error fetching user rewards:', errorMessage);
-                    setUserRewards([]);
-                }
+    // Fetch current month
+    useEffect(() => {
+        const fetchCurrentMonth = async () => {
+            if (!isConnected || !address || !walletClient) {
+                return;
             }
-        } catch (error) {
-            // Check if this is the expected "not yet implemented" error
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            if (errorMessage.includes('not yet implemented')) {
-                console.log('getUserRewards function not yet implemented - showing all achievements as locked');
-                setUserRewards([]);
-            } else {
-                console.error('Error fetching user rewards:', error);
-                setUserRewards([]);
+
+            try {
+                const provider = new BrowserProvider(walletClient);
+                const result = await getCurrentMont(provider);
+
+                if (result.success) {
+                    setCurrentMonth(Number(result.month));
+                    console.log('Current month:', result.month);
+                } else {
+                    console.error('Failed to get current month:', result.error);
+                }
+            } catch (error) {
+                console.error('Error fetching current month:', error);
             }
-        } finally {
-            setIsLoading(false);
-        }
+        };
+
+        fetchCurrentMonth();
     }, [isConnected, address, walletClient]);
 
+    // Check achievement unlock statuses
     useEffect(() => {
-        fetchUserRewards();
-    }, [fetchUserRewards]);
-
-    // Check if achievement is unlocked based on user rewards
-    const isAchievementUnlocked = (achievementLevel: number) => {
-        // If no user rewards data is available, show all as locked
-        if (userRewards.length === 0) {
-            return false;
-        }
-
-        // Find the user reward data for this level (level 0 = achievement 1, level 1 = achievement 2, etc.)
-        const rewardIndex = achievementLevel - 1; // Convert achievement level to array index
-        const rewardData = userRewards.find(reward => reward.level === rewardIndex);
-
-        if (rewardData) {
-            // Check if there was an error (function not implemented)
-            if (rewardData.error && rewardData.error.includes("not implemented")) {
-                console.warn(`userRewards function not implemented for level ${rewardIndex}`);
-                return false;
+        const checkAllAchievements = async () => {
+            if (!isConnected || !address || !walletClient || !currentMonth) {
+                return;
             }
-            return rewardData.isTrue;
-        }
-        return false;
-    };
+
+            const statuses: Record<number, boolean> = {};
+
+            for (let i = 1; i <= 10; i++) {
+                try {
+                    const provider = new BrowserProvider(walletClient);
+                    const result = await powerUpMilestoneUnLock(provider, address, currentMonth, i);
+
+                    if (result.success) {
+                        statuses[i] = result.data === true;
+                    } else {
+                        console.warn(`Failed to check achievement ${i} unlock status:`, result.error);
+                        statuses[i] = false;
+                    }
+                } catch (error) {
+                    console.error(`Error checking achievement ${i}:`, error);
+                    statuses[i] = false;
+                }
+            }
+
+            setAchievementStatuses(statuses);
+        };
+
+        checkAllAchievements();
+    }, [isConnected, address, walletClient, currentMonth]);
+
+
 
     return (
         <div className="min-h-screen achievement-page-bg">
@@ -221,125 +205,135 @@ const AchievementPage = () => {
 
                 {/* Cards Content */}
                 <div className="row justify-content-center g-4">
-                    {achievementData.map((achievement) => (
-                        <div key={achievement.level} className="col-12 col-md-6 col-lg-4">
-                            <div className="achievement-level-card">
-                                {/* Image Section */}
-                                <div className="card-image-section">
-                                    <Image
-                                        src={achievement.image}
-                                        alt={`Achievement Level ${achievement.level}`}
-                                        className="card-image"
-                                        width={300}
-                                        height={200}
-                                    />
-                                    <div className="level-badge">
-                                        Milestone {achievement.level}
+                    {achievementData.map((achievement) => {
+                        // Check if this is a special achievement (8, 9, 10) that should navigate to claim page
+                        const isSpecialAchievement = achievement.level >= 8;
+                        const isClickable = isSpecialAchievement; // Always clickable for achievements 8, 9, 10
+
+                        return (
+                            <div key={achievement.level} className="col-12 col-md-6 col-lg-4">
+                                <div
+                                    className={`achievement-level-card ${isClickable ? 'clickable' : ''}`}
+                                    onClick={isClickable ? () => router.push(`/claim-milestone?achievement=${achievement.level}`) : undefined}
+                                    style={isClickable ? { cursor: 'pointer' } : {}}
+                                >
+                                    {/* Image Section */}
+                                    <div className="card-image-section">
+                                        <Image
+                                            src={achievement.image}
+                                            alt={`Achievement Level ${achievement.level}`}
+                                            className="card-image"
+                                            width={300}
+                                            height={200}
+                                        />
+                                        <div className="level-badge">
+                                            Milestone {achievement.level}
+                                        </div>
                                     </div>
-                                </div>
 
-                                {/* Info Section */}
-                                <div className="card-info-section">
-                                    <h3 className="card-title">
-                                        {isLoading ? (
-                                            <div className="spinner-border spinner-border-sm text-warning" role="status">
-                                                <span className="visually-hidden">Loading...</span>
-                                            </div>
-                                        ) : (
-                                            achievement.mysteryBoxName || achievement.name
-                                        )}
-                                    </h3>
-                                    <p className="card-subtitle">
-                                        {isLoading ? (
-                                            'Loading...'
-                                        ) : isAchievementUnlocked(achievement.level) ? (
-                                            <span style={{ color: '#00d6a3' }}>✓ Unlocked</span>
-                                        ) : (
-                                            <span className="not-achieved-badge">
-                                                <i className="fas fa-lock me-1"></i>
-                                                Locked
-                                            </span>
-                                        )}
-                                    </p>
+                                    {/* Info Section */}
+                                    <div className="card-info-section">
+                                        <h3 className="card-title">
+                                            {isLoading || currentMonth === null ? (
+                                                <div className="spinner-border spinner-border-sm text-warning" role="status">
+                                                    <span className="visually-hidden">Loading...</span>
+                                                </div>
+                                            ) : (
+                                                achievement.mysteryBoxName || achievement.name
+                                            )}
+                                        </h3>
+                                        <p className="card-subtitle">
+                                            {isLoading || currentMonth === null ? (
+                                                'Loading...'
+                                            ) : achievementStatuses[achievement.level] ? (
+                                                <span style={{ color: '#00d6a3' }}>✓ Unlocked</span>
+                                            ) : (
+                                                <span className="not-achieved-badge">
+                                                    <i className="fas fa-lock me-1"></i>
+                                                    Locked
+                                                </span>
+                                            )}
+                                        </p>
 
-                                    {/* Compact Details */}
-                                    <div style={{ marginTop: '1rem' }}>
-                                        {/* Unit Requirement */}
-                                        <div style={{ marginBottom: '0.75rem' }}>
-                                            <div style={{
-                                                fontSize: '0.7rem',
-                                                color: 'rgba(255, 255, 255, 0.6)',
-                                                marginBottom: '0.25rem',
-                                                textTransform: 'uppercase',
-                                                letterSpacing: '0.5px',
-                                                fontWeight: '600'
-                                            }}>
-                                                Self Units
+                                        {/* Compact Details */}
+                                        <div style={{ marginTop: '1rem' }}>
+                                            {/* Unit Requirement */}
+                                            <div style={{ marginBottom: '0.75rem' }}>
+                                                <div style={{
+                                                    fontSize: '0.7rem',
+                                                    color: 'rgba(255, 255, 255, 0.6)',
+                                                    marginBottom: '0.25rem',
+                                                    textTransform: 'uppercase',
+                                                    letterSpacing: '0.5px',
+                                                    fontWeight: '600'
+                                                }}>
+                                                    Self Units
+                                                </div>
+                                                <div style={{
+                                                    fontSize: '0.8rem',
+                                                    color: '#FEE739',
+                                                    fontWeight: '600',
+                                                    lineHeight: '1.3'
+                                                }}>
+                                                    {achievement.unitRequirementSelf}
+                                                </div>
                                             </div>
-                                            <div style={{
-                                                fontSize: '0.8rem',
-                                                color: '#FEE739',
-                                                fontWeight: '600',
-                                                lineHeight: '1.3'
-                                            }}>
-                                                {achievement.unitRequirementSelf}
-                                            </div>
-                                        </div>
 
-                                        {/* Zone Requirement */}
-                                        <div style={{ marginBottom: '0.75rem' }}>
-                                            <div style={{
-                                                fontSize: '0.7rem',
-                                                color: 'rgba(255, 255, 255, 0.6)',
-                                                marginBottom: '0.25rem',
-                                                textTransform: 'uppercase',
-                                                letterSpacing: '0.5px',
-                                                fontWeight: '600'
-                                            }}>
-                                                Zone Requirement
+                                            {/* Zone Requirement */}
+                                            <div style={{ marginBottom: '0.75rem' }}>
+                                                <div style={{
+                                                    fontSize: '0.7rem',
+                                                    color: 'rgba(255, 255, 255, 0.6)',
+                                                    marginBottom: '0.25rem',
+                                                    textTransform: 'uppercase',
+                                                    letterSpacing: '0.5px',
+                                                    fontWeight: '600'
+                                                }}>
+                                                    Zone Requirement
+                                                </div>
+                                                <div style={{
+                                                    fontSize: '0.75rem',
+                                                    color: '#ffffff',
+                                                    fontWeight: '500',
+                                                    lineHeight: '1.3'
+                                                }}>
+                                                    {achievement.zoneAssetRequirement}
+                                                </div>
                                             </div>
-                                            <div style={{
-                                                fontSize: '0.75rem',
-                                                color: '#ffffff',
-                                                fontWeight: '500',
-                                                lineHeight: '1.3'
-                                            }}>
-                                                {achievement.zoneAssetRequirement}
-                                            </div>
-                                        </div>
 
-                                        {/* Reward */}
-                                        <div style={{
-                                            marginTop: '0.5rem',
-                                            padding: '0.75rem',
-                                            background: 'rgba(0, 214, 163, 0.1)',
-                                            borderRadius: '8px',
-                                            border: '1px solid rgba(0, 214, 163, 0.3)'
-                                        }}>
+                                            {/* Reward */}
                                             <div style={{
-                                                fontSize: '0.7rem',
-                                                color: '#00d6a3',
-                                                marginBottom: '0.25rem',
-                                                textTransform: 'uppercase',
-                                                letterSpacing: '0.5px',
-                                                fontWeight: '700'
+                                                marginTop: '0.5rem',
+                                                padding: '0.75rem',
+                                                background: 'rgba(0, 214, 163, 0.1)',
+                                                borderRadius: '8px',
+                                                border: '1px solid rgba(0, 214, 163, 0.3)'
                                             }}>
-                                                Reward
-                                            </div>
-                                            <div style={{
-                                                fontSize: '0.8rem',
-                                                color: '#00d6a3',
-                                                fontWeight: '600',
-                                                lineHeight: '1.3'
-                                            }}>
-                                                {achievement.rewardDescription}
+                                                <div style={{
+                                                    fontSize: '0.7rem',
+                                                    color: '#00d6a3',
+                                                    marginBottom: '0.25rem',
+                                                    textTransform: 'uppercase',
+                                                    letterSpacing: '0.5px',
+                                                    fontWeight: '700'
+                                                }}>
+                                                    Reward
+                                                </div>
+                                                <div style={{
+                                                    fontSize: '0.8rem',
+                                                    color: '#00d6a3',
+                                                    fontWeight: '600',
+                                                    lineHeight: '1.3'
+                                                }}>
+                                                    {achievement.rewardDescription}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </main>
             <Footer />
